@@ -32,7 +32,7 @@ struct StageClearView: View {
 
     var body: some View {
         ZStack {
-            CasinoTheme.background
+            CrookedCasinoTheme.tableBackground
             .ignoresSafeArea()
 
             ParticleBurstView(
@@ -148,44 +148,19 @@ struct StageClearView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, isCompact ? 9 : 12)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-        )
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: 10)
     }
 
     private func rewardCard(_ reward: StageReward, isCompact: Bool) -> some View {
-        VStack(alignment: .leading, spacing: isCompact ? 4 : 7) {
-            Text("Stage Reward")
-                .font(.system(size: isCompact ? 8 : 9, weight: .black, design: .rounded))
-                .foregroundStyle(CasinoTheme.gold)
-                .textCase(.uppercase)
-
-            Text(reward.name)
-                .font((isCompact ? Font.subheadline : Font.title3).weight(.black))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-
-            Text(reward.description)
-                .font((isCompact ? Font.caption2 : Font.subheadline).weight(.medium))
-                .foregroundStyle(.white.opacity(0.72))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .lineLimit(2)
-                .minimumScaleFactor(0.76)
-        }
-        .padding(isCompact ? 12 : 16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.08))
+        CrookedCasinoCard(
+            kind: .uncommon,
+            eyebrow: "Stage Reward",
+            title: reward.name,
+            description: reward.description,
+            icon: .reward,
+            footer: "Claim after this draft",
+            isCompact: isCompact
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(CasinoTheme.gold.opacity(0.52), lineWidth: 1)
-        )
-        .shadow(color: CasinoTheme.gold.opacity(0.12), radius: 10, y: 6)
     }
 
     private func betUnlockText(for nextStage: Stage) -> String? {

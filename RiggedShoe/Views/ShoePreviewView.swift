@@ -11,6 +11,9 @@ struct ShoePreviewView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
+                DealerShoeView(state: shoeImpact == .shuffled ? .shuffling : .peeking, isCompact: true)
+                    .frame(width: 48, height: 32)
+
                 Text("Shoe")
                     .font(.headline.weight(.black))
                     .foregroundStyle(.white)
@@ -54,7 +57,11 @@ struct ShoePreviewView: View {
         }
         .padding(14)
         .scaleEffect(pulse ? 1.015 : 1.0)
-        .neonPanel(strokeColor: shoeImpact == .none ? CasinoTheme.gold : (shoeImpact.isPositive ? CasinoTheme.emerald : CasinoTheme.red), opacity: shoeImpact == .none ? 0.22 : 0.52, cornerRadius: 12)
+        .crookedPanel(
+            kind: .felt,
+            strokeColor: shoeImpact == .none ? CrookedCasinoTheme.dirtyGold : (shoeImpact.isPositive ? CrookedCasinoTheme.felt : CrookedCasinoTheme.mutedRed),
+            cornerRadius: 12
+        )
         .accessibilityElement(children: .contain)
         .accessibilityHint("Manipulation upgrades add or remove real cards from this shoe.")
         .onChange(of: shoeImpact) { _, newValue in
@@ -82,7 +89,7 @@ struct ShoePreviewView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(
-                Capsule()
+                CrookedStickerShape(cornerRadius: 10)
                     .fill(color.opacity(0.13))
             )
     }

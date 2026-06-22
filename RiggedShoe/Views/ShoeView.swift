@@ -84,21 +84,9 @@ struct ShoeView: View {
     }
 
     private var shoeBody: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: bodyColors,
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 26, style: .continuous)
-                        .stroke(borderColor, lineWidth: isLocked ? 3 : isRevealed ? 2.5 : 2)
-                )
-                .shadow(color: glowColor, radius: isRevealed || isLocked ? 20 : 10, y: 8)
-        }
+        Color.clear
+            .crookedPanel(kind: isLocked ? .warning : .felt, strokeColor: borderColor, cornerRadius: 26)
+            .shadow(color: glowColor, radius: isRevealed || isLocked ? 20 : 10, y: 8)
     }
 
     private var cardExitSlot: some View {
@@ -359,9 +347,10 @@ private struct ShoeHiddenStackZone: View {
             }
 
             ZStack {
-                ForEach(0..<5, id: \.self) { index in
-                    faceDownCard(at: index)
-                }
+                DealerShoeView(state: isLocked ? .angry : .idle, isCompact: true)
+                    .frame(width: 76, height: 58)
+                    .scaleEffect(isLocked ? 0.96 : 1.0)
+                    .opacity(isLocked ? 0.72 : 1)
             }
             .frame(width: 74, height: 58, alignment: .leading)
         }

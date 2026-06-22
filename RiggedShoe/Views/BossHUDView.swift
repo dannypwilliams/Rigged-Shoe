@@ -64,14 +64,7 @@ struct BossHUDView: View {
             }
         }
         .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(red: 0.10, green: 0.01, blue: 0.01).opacity(0.74))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color(red: 0.95, green: 0.22, blue: 0.22).opacity(0.60), lineWidth: 1)
-        )
+        .crookedPanel(kind: .boss, strokeColor: CrookedCasinoTheme.mutedRed, cornerRadius: 14)
         .accessibilityHint("Boss effects are temporary and only apply during the current boss stage.")
     }
 }

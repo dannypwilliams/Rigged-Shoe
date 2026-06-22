@@ -101,19 +101,8 @@ struct RoundResultView: View {
 
     private var shoeSource: some View {
         HStack(spacing: 10) {
-            ZStack {
-                ForEach(0..<4, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .fill(CasinoTheme.feltDark)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .stroke(CasinoTheme.gold.opacity(0.55), lineWidth: 1)
-                        )
-                        .frame(width: 34, height: 48)
-                        .offset(x: CGFloat(index) * 4, y: CGFloat(index) * -2)
-                }
-            }
-            .frame(width: 54, height: 54)
+            DealerShoeView(state: showResult ? .idle : .shuffling, isCompact: true)
+                .frame(width: 64, height: 46)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Dealing from shoe")
@@ -129,7 +118,7 @@ struct RoundResultView: View {
             Spacer()
         }
         .padding(12)
-        .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.18, cornerRadius: 12)
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: 12)
     }
 
     private var resultBanner: some View {
@@ -149,14 +138,7 @@ struct RoundResultView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(resultColor.opacity(0.14))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(resultColor.opacity(0.78), lineWidth: 1)
-        )
+        .crookedPanel(kind: result.didWin ? .reward : .warning, strokeColor: resultColor, cornerRadius: 14)
     }
 
     private func animatedHand(title: String, total: Int, cards: [Card]) -> some View {
@@ -197,7 +179,7 @@ struct RoundResultView: View {
             .animation(.spring(response: 0.34, dampingFraction: 0.76), value: cards.count)
         }
         .padding(14)
-        .neonPanel(strokeColor: title == "Player" ? CasinoTheme.neonBlue : CasinoTheme.red, opacity: 0.20, cornerRadius: 12)
+        .crookedPanel(kind: .felt, strokeColor: title == "Player" ? CrookedCasinoTheme.fadedBlue : CrookedCasinoTheme.mutedRed, cornerRadius: 12)
     }
 
     private func stat(title: String, value: String) -> some View {
@@ -215,7 +197,7 @@ struct RoundResultView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
-        .neonPanel(strokeColor: Color.white, opacity: 0.10, cornerRadius: 10)
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.paper.opacity(0.54), cornerRadius: 10)
     }
 
     private func visibleCards(for owner: DealOwner) -> [Card] {

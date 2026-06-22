@@ -238,7 +238,7 @@ struct CasinoLobbyView: View {
             }
         }
         .padding(16)
-        .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.22, cornerRadius: 16)
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: 16)
     }
 
     private var lobbyObjectiveValue: String {
@@ -930,20 +930,8 @@ private func baccaratDealSteps(for result: RoundResult?) -> [BaccaratDealStep] {
 private struct GameTableBackground: View {
     var body: some View {
         ZStack {
-            CasinoTheme.background
+            CrookedCasinoTheme.tableBackground
                 .ignoresSafeArea()
-
-            RadialGradient(
-                colors: [
-                    CasinoTheme.felt.opacity(0.80),
-                    CasinoTheme.feltDark.opacity(0.72),
-                    Color.black.opacity(0.96)
-                ],
-                center: .center,
-                startRadius: 80,
-                endRadius: 620
-            )
-            .ignoresSafeArea()
 
             LinearGradient(
                 colors: [
@@ -955,6 +943,10 @@ private struct GameTableBackground: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
+
+            DoodleAccentView(accent: CrookedCasinoTheme.dirtyGold.opacity(0.55), density: .medium)
+                .ignoresSafeArea()
+                .opacity(0.30)
         }
     }
 }
@@ -1170,33 +1162,30 @@ private struct BankrollPill: View {
     }
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 3) {
-            Text("Bankroll")
-                .font(.system(size: 9, weight: .black, design: .rounded))
-                .foregroundStyle(.white.opacity(0.46))
-                .textCase(.uppercase)
+        HStack(spacing: 8) {
+            CrookedChipView(valueText: "$", size: 34, tone: .gold)
 
-            Text(MoneyFormatter.format(bankrollCents))
-                .font(.headline.monospacedDigit().weight(.black))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.70)
+            VStack(alignment: .trailing, spacing: 3) {
+                Text("Bankroll")
+                    .font(.system(size: 9, weight: .black, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.46))
+                    .textCase(.uppercase)
 
-            Text(deltaCents == 0 ? "No change" : MoneyFormatter.signed(deltaCents))
-                .font(.caption2.monospacedDigit().weight(.black))
-                .foregroundStyle(deltaColor)
-                .lineLimit(1)
+                Text(MoneyFormatter.format(bankrollCents))
+                    .font(.headline.monospacedDigit().weight(.black))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.70)
+
+                Text(deltaCents == 0 ? "No change" : MoneyFormatter.signed(deltaCents))
+                    .font(.caption2.monospacedDigit().weight(.black))
+                    .foregroundStyle(deltaColor)
+                    .lineLimit(1)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.black.opacity(0.32))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(deltaColor.opacity(0.24), lineWidth: 1)
-        )
+        .crookedPanel(kind: .felt, strokeColor: deltaColor.opacity(0.74), cornerRadius: 12)
     }
 }
 
@@ -1283,24 +1272,7 @@ private struct BaccaratTableSurface: View {
             }
         }
         .padding(isCompact ? 10 : 14)
-        .background(
-            RoundedRectangle(cornerRadius: isCompact ? 22 : 28, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            CasinoTheme.felt.opacity(0.92),
-                            CasinoTheme.feltDark.opacity(0.96)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: isCompact ? 22 : 28, style: .continuous)
-                .stroke(CasinoTheme.gold.opacity(0.46), lineWidth: 2)
-        )
-        .shadow(color: Color.black.opacity(0.42), radius: 22, y: 12)
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: isCompact ? 22 : 28)
     }
 
     private var dealCardCount: Int {
@@ -1519,14 +1491,7 @@ private struct TableHandZone: View {
             .frame(maxWidth: .infinity, minHeight: isCompact ? 70 : 92, alignment: .center)
         }
         .padding(isCompact ? 9 : 12)
-        .background(
-            RoundedRectangle(cornerRadius: isCompact ? 14 : 18, style: .continuous)
-                .fill(Color.black.opacity(0.20))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: isCompact ? 14 : 18, style: .continuous)
-                .stroke((isWinner ? CasinoTheme.gold : accentColor).opacity(isWinner ? 0.70 : 0.28), lineWidth: isWinner ? 2 : 1)
-        )
+        .crookedPanel(kind: .felt, strokeColor: (isWinner ? CrookedCasinoTheme.dirtyGold : accentColor), cornerRadius: isCompact ? 14 : 18)
         .shadow(color: isWinner ? CasinoTheme.gold.opacity(0.22) : .clear, radius: isWinner ? 16 : 0)
         .opacity(isDimmed ? 0.72 : 1.0)
     }
@@ -2785,9 +2750,10 @@ private struct GameRoomBetDock: View {
         .padding(.bottom, isCompact ? 8 : 14)
         .background(
             UnevenRoundedRectangle(topLeadingRadius: 22, topTrailingRadius: 22, style: .continuous)
-                .fill(Color.black.opacity(0.52))
+                .fill(CrookedCasinoTheme.dustyBlack.opacity(0.82))
                 .ignoresSafeArea(edges: .bottom)
         )
+        .overlay(DoodleAccentView(accent: CrookedCasinoTheme.dirtyGold, density: .low).opacity(0.32).allowsHitTesting(false))
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(CasinoTheme.gold.opacity(0.24))
@@ -2814,34 +2780,46 @@ private struct BetChipButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
-                Text(title)
-                    .font((isCompact ? Font.caption : Font.subheadline).weight(.black))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.68)
+            HStack(spacing: 5) {
+                if title.hasPrefix("$") {
+                    CrookedChipView(valueText: chipLabel, size: isCompact ? 22 : 27, tone: isSelected ? .gold : .red)
+                }
 
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.system(size: isCompact ? 7 : 8, weight: .black, design: .rounded))
-                        .textCase(.uppercase)
+                VStack(spacing: 2) {
+                    Text(title)
+                        .font((isCompact ? Font.caption : Font.subheadline).weight(.black))
                         .lineLimit(1)
-                        .minimumScaleFactor(0.70)
+                        .minimumScaleFactor(0.68)
+
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.system(size: isCompact ? 7 : 8, weight: .black, design: .rounded))
+                            .textCase(.uppercase)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.70)
+                    }
                 }
             }
                 .foregroundStyle(isDisabled ? .white.opacity(0.30) : (isSelected ? .black : .white))
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: isCompact ? 34 : 42)
                 .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    CrookedStickerShape(cornerRadius: 12)
                         .fill(isSelected ? CasinoTheme.gold : Color.white.opacity(0.09))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    CrookedStickerShape(cornerRadius: 12)
                         .stroke(Color.white.opacity(isSelected ? 0.0 : 0.14), lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)
         .disabled(isDisabled)
+    }
+
+    private var chipLabel: String {
+        title
+            .replacingOccurrences(of: "$", with: "")
+            .replacingOccurrences(of: ",", with: "")
     }
 }
 
@@ -3573,22 +3551,12 @@ private struct DealButton: View {
         Button(action: action) {
             Text(title.uppercased())
                 .font((isCompact ? Font.headline : Font.title2).weight(.black))
-                .foregroundStyle(canDeal ? CasinoTheme.ink : .white.opacity(0.55))
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
                 .frame(maxWidth: .infinity)
                 .frame(height: isCompact ? 48 : 58)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(canDeal ? CasinoTheme.gold : Color.white.opacity(0.10))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.white.opacity(canDeal ? 0.25 : 0.08), lineWidth: 1)
-                )
-                .shadow(color: canDeal ? CasinoTheme.gold.opacity(0.28) : .clear, radius: 16, y: 8)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(CrookedCasinoButtonStyle(tone: canDeal ? .gold : .black))
         .disabled(!canDeal)
     }
 }
@@ -3607,7 +3575,7 @@ private struct EmptyRoundResultView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(18)
-        .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.14, cornerRadius: 12)
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: 12)
     }
 }
 
@@ -3638,7 +3606,7 @@ private struct RoomPanel<Content: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.20, cornerRadius: 14)
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: 14)
     }
 }
 
@@ -3662,14 +3630,8 @@ private struct CasinoMetricCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(accentColor.opacity(0.10))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(accentColor.opacity(0.30), lineWidth: 1)
-        )
+        .background(CrookedStickerShape(cornerRadius: 10).fill(accentColor.opacity(0.10)))
+        .overlay(CrookedStickerShape(cornerRadius: 10).stroke(accentColor.opacity(0.30), lineWidth: 1))
     }
 }
 

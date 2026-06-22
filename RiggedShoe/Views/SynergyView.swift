@@ -46,14 +46,7 @@ struct SynergyView: View {
             }
         }
         .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.black.opacity(0.24))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(CasinoTheme.gold.opacity(activeSynergies.isEmpty ? 0.14 : 0.36), lineWidth: 1)
-        )
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold.opacity(activeSynergies.isEmpty ? 0.48 : 0.86), cornerRadius: 12)
     }
 
     private var tagRail: some View {
@@ -75,11 +68,11 @@ struct SynergyView: View {
                     .padding(.horizontal, 9)
                     .padding(.vertical, 7)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        CrookedStickerShape(cornerRadius: 8)
                             .fill(count > 0 ? CasinoTheme.gold.opacity(0.14) : Color.white.opacity(0.06))
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        CrookedStickerShape(cornerRadius: 8)
                             .stroke(CasinoTheme.gold.opacity(count > 0 ? 0.32 : 0.10), lineWidth: 1)
                     )
                 }
@@ -108,7 +101,7 @@ struct SynergyView: View {
         }
         .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            CrookedStickerShape(cornerRadius: 8)
                 .fill(CasinoTheme.gold.opacity(0.10))
         )
     }

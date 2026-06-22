@@ -12,7 +12,7 @@ struct UpgradeSelectionView: View {
             let isCompact = proxy.size.height < 740
 
             ZStack {
-                CasinoTheme.background
+                CrookedCasinoTheme.tableBackground
                     .ignoresSafeArea()
 
                 VStack(spacing: isCompact ? 9 : 14) {
@@ -56,94 +56,18 @@ struct UpgradeSelectionView: View {
     }
 
     private func upgradeCard(_ upgrade: UpgradeCard, isCompact: Bool) -> some View {
-        let color = CasinoTheme.rarityColor(upgrade.rarity)
-
         return ZStack {
-            VStack(alignment: .leading, spacing: isCompact ? 6 : 8) {
-                HStack {
-                    Text(upgrade.rarity.displayName)
-                        .font(.system(size: isCompact ? 10 : 12, weight: .black, design: .rounded))
-                        .foregroundStyle(upgrade.rarity == .legendary ? .black : color)
-                        .padding(.horizontal, isCompact ? 8 : 10)
-                        .padding(.vertical, isCompact ? 4 : 5)
-                        .background(
-                            Capsule()
-                                .fill(upgrade.rarity == .legendary ? color : color.opacity(0.15))
-                        )
-
-                    Spacer()
-
-                    Text("Tap to pick")
-                        .font(.system(size: isCompact ? 8 : 9, weight: .black, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.62))
-                        .textCase(.uppercase)
-
-                    if upgrade.rarity == .legendary {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(CasinoTheme.gold)
-                    }
-                }
-
-                Text(upgrade.name)
-                    .font(.system(size: isCompact ? 18 : 21, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.76)
-
-                Text(upgrade.description)
-                    .font(.system(size: isCompact ? 12 : 15, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.72))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .lineLimit(isCompact ? 3 : 2)
-                    .minimumScaleFactor(0.82)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Label(activationText(for: upgrade.effect), systemImage: "bolt.fill")
-                    .font(.system(size: isCompact ? 8 : 10, weight: .black, design: .rounded))
-                    .foregroundStyle(color)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-                    .padding(.horizontal, isCompact ? 7 : 9)
-                    .padding(.vertical, isCompact ? 4 : 5)
-                    .background(
-                        Capsule()
-                            .fill(color.opacity(0.12))
-                    )
-
-                HStack(spacing: 6) {
-                    ForEach(Array(upgrade.tags.prefix(isCompact ? 2 : 3)), id: \.self) { tag in
-                        Text(tag.displayName)
-                            .font(.system(size: isCompact ? 8 : 9, weight: .black, design: .rounded))
-                            .foregroundStyle(color)
-                            .textCase(.uppercase)
-                            .padding(.horizontal, isCompact ? 7 : 8)
-                            .padding(.vertical, isCompact ? 3 : 4)
-                            .background(Capsule().fill(color.opacity(0.14)))
-                    }
-                }
-            }
-            .padding(isCompact ? 11 : 14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                color.opacity(upgrade.rarity == .legendary ? 0.26 : 0.12),
-                                Color.white.opacity(0.07),
-                                Color.black.opacity(0.16)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+            CrookedCasinoCard(
+                kind: CrookedCardFrameKind(rarity: upgrade.rarity),
+                eyebrow: upgrade.rarity.displayName,
+                title: upgrade.name,
+                description: upgrade.description,
+                icon: CrookedCasinoTheme.icon(for: upgrade),
+                footer: activationText(for: upgrade.effect),
+                tags: upgrade.tags.map(\.displayName).sorted(),
+                tapHint: "Tap to pick",
+                isCompact: isCompact
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(color.opacity(upgrade.rarity == .legendary ? 0.90 : 0.62), lineWidth: upgrade.rarity == .legendary ? 2 : 1)
-            )
-            .shadow(color: color.opacity(upgrade.rarity == .legendary ? 0.32 : 0.12), radius: upgrade.rarity == .legendary ? 18 : 8, y: 8)
 
             if upgrade.rarity == .legendary {
                 ParticleBurstView(

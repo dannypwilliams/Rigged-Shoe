@@ -216,7 +216,11 @@ struct StagePreviewView: View {
                     }
                 }
                 .padding(16)
-                .neonPanel(strokeColor: preview.isBossStage ? CasinoTheme.red : CasinoTheme.gold, opacity: 0.30)
+                .crookedPanel(
+                    kind: preview.isBossStage ? .boss : .felt,
+                    strokeColor: preview.isBossStage ? CrookedCasinoTheme.mutedRed : CrookedCasinoTheme.dirtyGold,
+                    cornerRadius: 14
+                )
 
                 HStack(spacing: 8) {
                     RunFlowStat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents))
@@ -269,7 +273,7 @@ struct StageResultView: View {
                     RunFlowDetailRow(title: "Main Build", value: result.buildArchetype)
                 }
                 .padding(16)
-                .neonPanel(strokeColor: accent, opacity: 0.30)
+                .crookedPanel(kind: result.didWin ? .felt : .warning, strokeColor: accent, cornerRadius: 14)
 
                 HStack(spacing: 8) {
                     RunFlowStat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents))
@@ -430,58 +434,18 @@ private struct ShopOfferCard: View {
     let onFreeze: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            HStack {
-                Text(kindText)
-                    .font(.system(size: 8, weight: .black, design: .rounded))
-                    .foregroundStyle(CasinoTheme.ink)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(kindColor))
-
-                Spacer(minLength: 4)
-
-                Text("\(offer.priceChips)C")
-                    .font(.caption.weight(.black))
-                    .foregroundStyle(CasinoTheme.gold)
-            }
-
-            Text(title)
-                .font(.caption.weight(.black))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-
-            Text(summary)
-                .font(.system(size: 9, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.66))
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if let tags {
-                Text(tags)
-                    .font(.system(size: 8, weight: .black, design: .rounded))
-                    .foregroundStyle(CasinoTheme.gold.opacity(0.85))
-                    .lineLimit(1)
-            }
-
-            if let ownedLevel {
-                Text("Owned L\(ownedLevel) - duplicate levels up")
-                    .font(.system(size: 8, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.55))
-                    .lineLimit(1)
-            }
-
-            if let attachmentTargetName {
-                Text("Attaches to \(attachmentTargetName)")
-                    .font(.system(size: 8, weight: .black, design: .rounded))
-                    .foregroundStyle(CasinoTheme.neonBlue.opacity(0.90))
-                    .lineLimit(1)
-            } else if let blockedReason {
-                Text(blockedReason)
-                    .font(.system(size: 8, weight: .bold, design: .rounded))
-                    .foregroundStyle(CasinoTheme.red.opacity(0.80))
-                    .lineLimit(1)
-            }
+        VStack(alignment: .leading, spacing: 6) {
+            CrookedCasinoCard(
+                kind: cardKind,
+                eyebrow: kindText,
+                title: title,
+                description: summary,
+                icon: cardIcon,
+                footer: footerText,
+                tags: cardTags,
+                tapHint: "\(offer.priceChips)C",
+                isCompact: true
+            )
 
             HStack(spacing: 6) {
                 Button(offer.isFrozen ? "Frozen" : "Freeze", action: onFreeze)
@@ -493,15 +457,8 @@ private struct ShopOfferCard: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 132, alignment: .topLeading)
-        .padding(9)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(offer.isSoldOut ? Color.white.opacity(0.035) : Color.white.opacity(0.07))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(offer.isFrozen ? CasinoTheme.gold.opacity(0.82) : Color.white.opacity(0.10), lineWidth: 1)
-        )
+        .padding(5)
+        .crookedPanel(kind: .felt, strokeColor: offer.isFrozen ? CrookedCasinoTheme.dirtyGold : CrookedCasinoTheme.paper.opacity(0.46), cornerRadius: 14)
         .opacity(offer.isSoldOut ? 0.45 : 1)
     }
 
@@ -538,6 +495,85 @@ private struct ShopOfferCard: View {
         }
 
         return modifier.tags.map(\.displayName).sorted().prefix(3).joined(separator: " - ")
+    }
+
+    private var cardTags: [String] {
+        var result = ["Cost \(offer.priceChips)"]
+
+        if let tags {
+            result.append(contentsOf: tags.components(separatedBy: " - "))
+        }
+
+        if let ownedLevel {
+            result.append("Owned L\(ownedLevel)")
+        }
+
+        return result
+    }
+
+    private var footerText: String? {
+        if offer.isSoldOut {
+            return "Bought"
+        }
+
+        if let attachmentTargetName {
+            return "Attaches to \(attachmentTargetName)"
+        }
+
+        if let blockedReason {
+            return blockedReason
+        }
+
+        if offer.isFrozen {
+            return "Frozen"
+        }
+
+        return nil
+    }
+
+    private var cardKind: CrookedCardFrameKind {
+        if offer.kind == .modifier,
+           let modifier = Modifier.definition(id: offer.contentID) {
+            return CrookedCardFrameKind(modifierRarity: modifier.rarity)
+        }
+
+        switch offer.kind {
+        case .modifier:
+            return .common
+        case .consumable:
+            return .uncommon
+        case .attachment:
+            return .rare
+        case .bossRelic:
+            return .boss
+        }
+    }
+
+    private var cardIcon: CrookedDoodleIcon {
+        switch offer.kind {
+        case .modifier:
+            if let modifier = Modifier.definition(id: offer.contentID) {
+                if modifier.tags.contains(.shoeVision) || modifier.tags.contains(.shoeControl) || modifier.tags.contains(.cardSculpting) {
+                    return .shoe
+                }
+
+                if modifier.tags.contains(.economy) {
+                    return .chip
+                }
+
+                if modifier.tags.contains(.boss) {
+                    return .skull
+                }
+            }
+
+            return .spark
+        case .consumable:
+            return .chip
+        case .attachment:
+            return .hand
+        case .bossRelic:
+            return .crown
+        }
     }
 
     private var kindText: String {
@@ -664,11 +700,11 @@ private struct CompactShopButtonStyle: ButtonStyle {
             .padding(.vertical, 7)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                CrookedStickerShape(cornerRadius: 9)
                     .fill(backgroundColor)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                CrookedStickerShape(cornerRadius: 9)
                     .stroke(isEnabled ? Color.clear : Color.white.opacity(0.12), lineWidth: 1)
             )
             .opacity(configuration.isPressed ? 0.72 : 1)
@@ -699,7 +735,7 @@ private struct RunFlowOverlay<Content: View>: View {
 
     var body: some View {
         ZStack {
-            CasinoTheme.background
+            CrookedCasinoTheme.tableBackground
                 .ignoresSafeArea()
 
             GeometryReader { proxy in
@@ -709,15 +745,7 @@ private struct RunFlowOverlay<Content: View>: View {
                     content
                         .padding(18)
                         .frame(maxWidth: min(proxy.size.width - 28, 460))
-                        .background(
-                            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                .fill(Color.black.opacity(0.64))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                .stroke(accentColor.opacity(0.52), lineWidth: 1)
-                        )
-                        .shadow(color: accentColor.opacity(0.22), radius: 22, y: 12)
+                        .crookedPanel(kind: .felt, strokeColor: accentColor, cornerRadius: 22)
                         .scaleEffect(didAppear ? 1 : 0.96)
                         .opacity(didAppear ? 1 : 0)
 
@@ -755,10 +783,7 @@ private struct RunFlowStat: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-        )
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.paper.opacity(0.50), cornerRadius: 10)
     }
 }
 
@@ -793,14 +818,9 @@ private struct PrimaryRunFlowButton: View {
         Button(action: action) {
             Text(title)
                 .font(.headline.weight(.black))
-                .foregroundStyle(CasinoTheme.ink)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(CasinoTheme.gold)
-                )
+                .padding(.vertical, 4)
         }
-        .buttonStyle(JuicyPressButtonStyle())
+        .buttonStyle(CrookedCasinoButtonStyle(tone: .gold))
     }
 }

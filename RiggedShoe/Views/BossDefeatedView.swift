@@ -15,7 +15,7 @@ struct BossDefeatedView: View {
 
     var body: some View {
         ZStack {
-            CasinoTheme.background
+            CrookedCasinoTheme.tableBackground
             .ignoresSafeArea()
 
             ParticleBurstView(
@@ -98,39 +98,18 @@ struct BossDefeatedView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-        )
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.mutedRed, cornerRadius: 10)
     }
 
     private func rewardCard(_ reward: BossReward) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Boss Reward")
-                .font(.system(size: 10, weight: .black, design: .rounded))
-                .foregroundStyle(CasinoTheme.red)
-                .textCase(.uppercase)
-
-            Text(reward.name)
-                .font(.title3.weight(.black))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text(reward.description)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.white.opacity(0.72))
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.08))
+        CrookedCasinoCard(
+            kind: .boss,
+            eyebrow: "Boss Reward",
+            title: reward.name,
+            description: reward.description,
+            icon: .crown,
+            footer: "Powerful reward",
+            isCompact: false
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color(red: 0.94, green: 0.75, blue: 0.22).opacity(0.58), lineWidth: 1)
-        )
-        .shadow(color: CasinoTheme.gold.opacity(0.16), radius: 12, y: 6)
     }
 }

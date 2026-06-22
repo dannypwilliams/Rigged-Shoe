@@ -73,10 +73,7 @@ struct RunOverView: View {
                     }
                     .padding(isCompact ? 10 : 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color.white.opacity(0.07))
-                    )
+                    .crookedPanel(kind: isVictory ? .reward : .warning, strokeColor: isVictory ? CrookedCasinoTheme.dirtyGold : CrookedCasinoTheme.mutedRed, cornerRadius: 12)
 
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: isCompact ? 7 : 9) {
                         ForEach(visibleStats, id: \.offset) { item in
@@ -84,22 +81,17 @@ struct RunOverView: View {
                         }
                     }
                     .padding(isCompact ? 10 : 14)
-                    .neonPanel(strokeColor: isVictory ? CasinoTheme.gold : CasinoTheme.red, opacity: 0.32)
+                    .crookedPanel(kind: .felt, strokeColor: isVictory ? CrookedCasinoTheme.dirtyGold : CrookedCasinoTheme.mutedRed, cornerRadius: 14)
 
                     Spacer(minLength: 0)
 
                     Button(action: onStartNewRun) {
                         Text("Start New Run")
                             .font((isCompact ? Font.headline : Font.title3).weight(.black))
-                            .foregroundStyle(CasinoTheme.ink)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, isCompact ? 13 : 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(CasinoTheme.gold)
-                            )
+                            .padding(.vertical, isCompact ? 3 : 5)
                     }
-                    .buttonStyle(JuicyPressButtonStyle())
+                    .buttonStyle(CrookedCasinoButtonStyle(tone: .gold))
                     .accessibilityLabel("Start New Run")
                 }
                 .padding(.horizontal, 18)
@@ -136,7 +128,7 @@ struct RunOverView: View {
         .padding(.horizontal, isCompact ? 9 : 11)
         .padding(.vertical, isCompact ? 7 : 9)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            CrookedStickerShape(cornerRadius: 10)
                 .fill(Color.white.opacity(0.08))
         )
     }

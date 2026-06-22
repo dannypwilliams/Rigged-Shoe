@@ -48,10 +48,7 @@ struct BetSelectionView: View {
             }
         }
         .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.black.opacity(0.24))
-        )
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: 12)
     }
 
     private func selectionButton(
@@ -61,23 +58,35 @@ struct BetSelectionView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            Text(title)
-                .font(.subheadline.weight(.black))
-                .foregroundStyle(isDisabled ? .white.opacity(0.34) : (isSelected ? .black : .white))
-                .lineLimit(1)
-                .minimumScaleFactor(0.65)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(isSelected ? Color(red: 0.94, green: 0.75, blue: 0.22) : Color.white.opacity(0.10))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.white.opacity(isSelected ? 0.00 : 0.12), lineWidth: 1)
-                )
+            HStack(spacing: 5) {
+                if title.hasPrefix("$") {
+                    CrookedChipView(valueText: chipLabel(for: title), size: 24, tone: isSelected ? .gold : .red)
+                }
+
+                Text(title)
+                    .font(.subheadline.weight(.black))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+            }
+            .foregroundStyle(isDisabled ? .white.opacity(0.34) : (isSelected ? .black : .white))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                CrookedStickerShape(cornerRadius: 10)
+                    .fill(isSelected ? Color(red: 0.94, green: 0.75, blue: 0.22) : Color.white.opacity(0.10))
+            )
+            .overlay(
+                CrookedStickerShape(cornerRadius: 10)
+                    .stroke(Color.white.opacity(isSelected ? 0.00 : 0.12), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
         .disabled(isDisabled)
+    }
+
+    private func chipLabel(for title: String) -> String {
+        title
+            .replacingOccurrences(of: "$", with: "")
+            .replacingOccurrences(of: ",", with: "")
     }
 }

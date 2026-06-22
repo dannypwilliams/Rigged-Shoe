@@ -158,9 +158,7 @@ struct CasinoCurrencyStrip: View {
 
     private func currencyPill(title: String, value: String, color: Color) -> some View {
         HStack(spacing: 5) {
-            Circle()
-                .fill(color)
-                .frame(width: compact ? 6 : 7, height: compact ? 6 : 7)
+            CrookedChipView(valueText: title == "Chips" ? "C" : "R", size: compact ? 18 : 22, tone: title == "Chips" ? .gold : .blue)
 
             Text(title)
                 .font(.system(size: compact ? 8 : 9, weight: .black, design: .rounded))
@@ -181,8 +179,8 @@ struct CasinoCurrencyStrip: View {
         .fixedSize(horizontal: true, vertical: false)
         .padding(.horizontal, compact ? 8 : 10)
         .padding(.vertical, compact ? 5 : 7)
-        .background(Capsule().fill(Color.black.opacity(0.28)))
-        .overlay(Capsule().stroke(color.opacity(0.22), lineWidth: 1))
+        .background(CrookedStickerShape(cornerRadius: 12).fill(Color.black.opacity(0.28)))
+        .overlay(CrookedStickerShape(cornerRadius: 12).stroke(color.opacity(0.22), lineWidth: 1))
         .accessibilityLabel("\(title) \(value)")
     }
 }
@@ -200,9 +198,7 @@ struct RunCurrencyStrip: View {
 
     private func resourcePill(title: String, value: String, color: Color) -> some View {
         HStack(spacing: 5) {
-            Circle()
-                .fill(color)
-                .frame(width: compact ? 6 : 7, height: compact ? 6 : 7)
+            CrookedChipView(valueText: title == "Chips" ? "C" : "H", size: compact ? 18 : 22, tone: title == "Chips" ? .gold : .red)
 
             Text(title)
                 .font(.system(size: compact ? 8 : 9, weight: .black, design: .rounded))
@@ -219,8 +215,8 @@ struct RunCurrencyStrip: View {
         }
         .padding(.horizontal, compact ? 8 : 10)
         .padding(.vertical, compact ? 5 : 7)
-        .background(Capsule().fill(Color.black.opacity(0.28)))
-        .overlay(Capsule().stroke(color.opacity(0.22), lineWidth: 1))
+        .background(CrookedStickerShape(cornerRadius: 12).fill(Color.black.opacity(0.28)))
+        .overlay(CrookedStickerShape(cornerRadius: 12).stroke(color.opacity(0.22), lineWidth: 1))
         .accessibilityLabel("\(title) \(value)")
     }
 }
@@ -593,8 +589,7 @@ private struct FloorPanel<Content: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.black.opacity(0.30)))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(CasinoTheme.gold.opacity(0.16), lineWidth: 1))
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold.opacity(0.76), cornerRadius: 14)
     }
 }
 
@@ -619,8 +614,8 @@ private struct FloorMetricTile: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
-        .background(RoundedRectangle(cornerRadius: 10).fill(accentColor.opacity(0.10)))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(accentColor.opacity(0.24), lineWidth: 1))
+        .background(CrookedStickerShape(cornerRadius: 10).fill(accentColor.opacity(0.10)))
+        .overlay(CrookedStickerShape(cornerRadius: 10).stroke(accentColor.opacity(0.24), lineWidth: 1))
     }
 }
 
@@ -645,7 +640,7 @@ private struct FloorDetailPill: View {
                 .minimumScaleFactor(0.62)
         }
         .padding(8)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.06)))
+        .background(CrookedStickerShape(cornerRadius: 10).fill(Color.white.opacity(0.06)))
     }
 }
 
@@ -947,7 +942,7 @@ private struct FloorActionLabel: View {
         .lineLimit(1)
         .minimumScaleFactor(0.68)
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 10).fill(accentColor))
+        .background(CrookedStickerShape(cornerRadius: 10).fill(accentColor))
     }
 }
 

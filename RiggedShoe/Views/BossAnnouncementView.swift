@@ -66,27 +66,15 @@ struct BossAnnouncementView: View {
                     }
                 }
                 .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(CasinoTheme.red.opacity(0.56), lineWidth: 1)
-                )
+                .crookedPanel(kind: .boss, strokeColor: CrookedCasinoTheme.mutedRed, cornerRadius: 14)
 
                 Button(action: onContinue) {
                     Text("Continue")
                         .font(.title3.weight(.black))
-                        .foregroundStyle(Color(red: 0.08, green: 0.01, blue: 0.01))
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(CasinoTheme.gold)
-                        )
+                        .padding(.vertical, 5)
                 }
-                .buttonStyle(JuicyPressButtonStyle())
+                .buttonStyle(CrookedCasinoButtonStyle(tone: .gold))
             }
             .padding(22)
             .opacity(didAppear ? 1 : 0)

@@ -6,23 +6,17 @@ struct CardView: View {
     var isHighlighted = false
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(isFaceDown ? CasinoTheme.feltDark : Color.white)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(isFaceDown ? CasinoTheme.gold : (isHighlighted ? CasinoTheme.gold : Color.black.opacity(0.18)), lineWidth: isHighlighted ? 2 : 1)
-                )
-                .shadow(color: isHighlighted ? CasinoTheme.gold.opacity(0.40) : Color.black.opacity(0.24), radius: isHighlighted ? 12 : 4, y: 3)
-
+        CrookedPlayingCardView(kind: isFaceDown ? .backRed : .common, isHighlighted: isHighlighted) {
             if isFaceDown {
                 VStack(spacing: 4) {
+                    CrookedDoodleIconView(icon: .shoe, tint: CrookedCasinoTheme.dirtyGold, size: 20)
+
                     Text("RS")
                         .font(.caption2.weight(.black))
                     Text("SHOE")
                         .font(.system(size: 7, weight: .bold, design: .rounded))
                 }
-                .foregroundStyle(CasinoTheme.gold)
+                .foregroundStyle(CrookedCasinoTheme.paperLight)
             } else if let card {
                 VStack(spacing: 2) {
                     Text(card.rank.shortName)
@@ -30,7 +24,10 @@ struct CardView: View {
                     Text(card.suit.symbol)
                         .font(.headline.weight(.bold))
                 }
-                .foregroundStyle(card.suit.isRed ? Color.red : Color.black)
+                .foregroundStyle(card.suit.isRed ? CrookedCasinoTheme.mutedRed : CrookedCasinoTheme.ink)
+            } else {
+                CrookedDoodleIconView(icon: .spark, tint: CrookedCasinoTheme.smoke, size: 22)
+                    .opacity(0.54)
             }
         }
         .aspectRatio(0.68, contentMode: .fit)
@@ -77,6 +74,6 @@ struct BaccaratHandView: View {
             }
         }
         .padding(14)
-        .neonPanel(strokeColor: Color.white, opacity: 0.12, cornerRadius: 12)
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.paper.opacity(0.72), cornerRadius: 12)
     }
 }

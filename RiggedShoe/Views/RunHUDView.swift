@@ -55,8 +55,12 @@ struct RunHUDView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 5) {
-                    AnimatedMoneyText(cents: bankrollCents)
-                        .minimumScaleFactor(0.7)
+                    HStack(spacing: 8) {
+                        CrookedChipView(valueText: "$", size: 30, tone: .gold)
+
+                        AnimatedMoneyText(cents: bankrollCents)
+                            .minimumScaleFactor(0.7)
+                    }
 
                     Text("Bankroll")
                         .font(.caption.weight(.bold))
@@ -115,7 +119,7 @@ struct RunHUDView: View {
             }
         }
         .padding(16)
-        .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.34, cornerRadius: 14)
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: 14)
     }
 
     private func stat(title: String, value: String) -> some View {
@@ -133,9 +137,6 @@ struct RunHUDView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.white.opacity(0.07))
-        )
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold.opacity(0.60), cornerRadius: 8)
     }
 }

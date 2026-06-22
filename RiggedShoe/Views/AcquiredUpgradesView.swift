@@ -51,11 +51,11 @@ struct AcquiredUpgradesView: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 8)
                             .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                CrookedStickerShape(cornerRadius: 8)
                                     .fill(isDisabled ? Color.red.opacity(0.13) : Color.white.opacity(0.08))
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                CrookedStickerShape(cornerRadius: 8)
                                     .stroke((isDisabled ? Color.red : rarityColor(upgrade.rarity)).opacity(0.48), lineWidth: 1)
                             )
                         }
@@ -64,20 +64,17 @@ struct AcquiredUpgradesView: View {
             }
         }
         .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.black.opacity(0.24))
-        )
+        .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.dirtyGold, cornerRadius: 12)
     }
 
     private func rarityColor(_ rarity: UpgradeRarity) -> Color {
         switch rarity {
         case .common:
-            return Color(red: 0.86, green: 0.90, blue: 0.84)
+            return CrookedCasinoTheme.paper
         case .rare:
-            return Color(red: 0.31, green: 0.65, blue: 1.00)
+            return CrookedCasinoTheme.dirtyGold
         case .legendary:
-            return Color(red: 1.00, green: 0.72, blue: 0.20)
+            return CrookedCasinoTheme.dirtyGold
         }
     }
 }
