@@ -123,10 +123,43 @@ final class ShopBackboneTests: XCTestCase {
             XCTAssertEqual(preview.opponentName, stage.opponent.name)
             XCTAssertFalse(preview.opponentStyle.isEmpty)
             XCTAssertFalse(preview.opponentWeakness.isEmpty)
+            XCTAssertEqual(preview.primaryObjectiveTitle, stage.teachingObjective?.title ?? "Beat the Table")
+            XCTAssertEqual(preview.primaryObjectiveSummary, stage.teachingObjective?.description ?? "End the stage ahead of the table.")
             XCTAssertEqual(preview.tableRuleDetail, stage.tableEvent.summary)
             XCTAssertEqual(preview.secondaryObjectiveTitle, stage.secondaryObjective.title)
             XCTAssertFalse(preview.secondaryObjectiveReward.isEmpty)
         }
+    }
+
+    func testStagePayoutRulesReflectNoCommissionNight() {
+        let openingStage = Stage.allStages[0]
+        XCTAssertEqual(openingStage.tablePayoutRules.payoutLabel(for: .banker), "Pays 0.95:1")
+        XCTAssertEqual(openingStage.tablePayoutRules.profitCents(for: .banker, betAmountCents: 5_000), 4_750)
+
+        let noCommissionStage = Stage.allStages[1]
+        XCTAssertEqual(noCommissionStage.tableEvent, .noCommissionNight)
+        XCTAssertEqual(noCommissionStage.tablePayoutRules.payoutLabel(for: .banker), "Pays 1:1")
+        XCTAssertEqual(noCommissionStage.tablePayoutRules.profitCents(for: .banker, betAmountCents: 5_000), 5_000)
+        XCTAssertTrue(noCommissionStage.tablePayoutRules.preDealText(for: .banker, betAmountCents: 5_000).contains("Pays 1:1"))
+    }
+
+    func testSurvivalObjectiveCopyAvoidsPennyThreshold() {
+        let manager = RunManager()
+        let text = manager.currentStage.teachingObjective?.progressText(
+            in: manager,
+            bankrollCents: manager.stageStartingBankrollCents
+        ) ?? ""
+
+        XCTAssertFalse(text.contains("$0.01"))
+        XCTAssertTrue(text.contains("bankroll above $0"))
+    }
+
+    func testEarlyModifierShopMechanicTextNamesActualEffects() {
+        XCTAssertTrue(Modifier.definition(id: "core.lucky-chip")?.shopMechanicText.contains("Gain 1 Chips") == true)
+        XCTAssertTrue(Modifier.definition(id: "banker.house-favorite")?.shopMechanicText.contains("First Banker win each stage") == true)
+        XCTAssertTrue(Modifier.definition(id: "player.countertrend")?.shopMechanicText.contains("Gain 60% of ante") == true)
+        XCTAssertTrue(Modifier.definition(id: "player.punto-insurance")?.shopMechanicText.contains("Refund 20%") == true)
+        XCTAssertTrue(Modifier.definition(id: "economy.freeze-discount")?.shopMechanicText.contains("Shop prices -5%") == true)
     }
 
     func testBossScheduleAndRelicRewardsAreDeterministic() {

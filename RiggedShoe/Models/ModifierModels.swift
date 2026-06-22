@@ -123,6 +123,61 @@ enum ModifierTrigger: String, CaseIterable, Codable, Hashable {
     case runEnded
 }
 
+extension ModifierTrigger {
+    var shopLabel: String {
+        switch self {
+        case .runStarted:
+            return "Run start"
+        case .stageStarted:
+            return "Stage start"
+        case .handStarted:
+            return "Hand start"
+        case .beforeBet:
+            return "Before betting"
+        case .betPlaced:
+            return "Bet placed"
+        case .beforeDeal:
+            return "Before deal"
+        case .cardRevealed:
+            return "Card revealed"
+        case .cardDrawn:
+            return "Card drawn"
+        case .handResolved:
+            return "Hand resolved"
+        case .playerWonBet:
+            return "Winning bet"
+        case .playerLostBet:
+            return "Losing bet"
+        case .tieOccurred:
+            return "Tie result"
+        case .naturalOccurred:
+            return "Natural result"
+        case .pairOccurred:
+            return "Pair result"
+        case .heatGained:
+            return "Heat gained"
+        case .shopEntered:
+            return "Shop entry"
+        case .shopRerolled:
+            return "Shop reroll"
+        case .modifierBought:
+            return "Modifier bought"
+        case .modifierSold:
+            return "Modifier sold"
+        case .modifierLeveled:
+            return "Modifier leveled"
+        case .bossStarted:
+            return "Boss start"
+        case .bossDefeated:
+            return "Boss defeated"
+        case .finalHand:
+            return "Final hand"
+        case .runEnded:
+            return "Run end"
+        }
+    }
+}
+
 /// Runtime events emitted by battles, shops, bosses, and run flow.
 ///
 /// `ModifierTrigger` is the stable content hook stored on a modifier. `GameEvent`
@@ -220,6 +275,51 @@ indirect enum ModifierCondition: Codable, Equatable {
     case hasTag(ModifierTag)
     case all([ModifierCondition])
     case any([ModifierCondition])
+}
+
+extension ModifierCondition {
+    var shopLabel: String? {
+        switch self {
+        case .always:
+            return nil
+        case .betType(let betType):
+            return "\(betType.displayName) bet"
+        case .winningSide(let betType):
+            return "\(betType.displayName) result"
+        case .firstPlayerSideWinThisStage:
+            return "First Player win each stage"
+        case .firstBankerSideWinThisStage:
+            return "First Banker win each stage"
+        case .firstTieLossThisStage:
+            return "First losing Tie bet each stage"
+        case .firstWinningBetThisStage:
+            return "First winning bet each stage"
+        case .hasTag(let tag):
+            return "Requires \(tag.displayName)"
+        case .all(let conditions):
+            if conditions.contains(.firstPlayerSideWinThisStage) {
+                return "First Player win each stage"
+            }
+
+            if conditions.contains(.firstBankerSideWinThisStage) {
+                return "First Banker win each stage"
+            }
+
+            if conditions.contains(.firstTieLossThisStage) {
+                return "First losing Tie bet each stage"
+            }
+
+            if conditions.contains(.firstWinningBetThisStage) {
+                return "First winning bet each stage"
+            }
+
+            let labels = conditions.compactMap(\.shopLabel)
+            return labels.isEmpty ? nil : labels.joined(separator: ", ")
+        case .any(let conditions):
+            let labels = conditions.compactMap(\.shopLabel)
+            return labels.isEmpty ? nil : labels.joined(separator: " or ")
+        }
+    }
 }
 
 /// Optional fire limits for modifier instances.
@@ -353,6 +453,18 @@ indirect enum ModifierEffect: Codable, Equatable {
             return description
         }
     }
+
+    var shopDescription: String {
+        switch self {
+        case .levelScaled(let level1, _, _):
+            let baseText = level1.map(\.shopDescription).joined(separator: "; ")
+            return baseText.isEmpty ? "Scales with modifier level" : "\(baseText) (levels improve)"
+        case .composite(let effects):
+            return effects.map(\.shopDescription).joined(separator: "; ")
+        default:
+            return shortDescription
+        }
+    }
 }
 
 /// Rebuilt shop/battle modifier definition.
@@ -411,6 +523,32 @@ struct Modifier: Identifiable, Codable, Equatable {
         self.sellValueChips = sellValueChips ?? max(1, baseCostChips / 2)
         self.minShopTier = min(max(1, minShopTier), 5)
         self.battleLogText = battleLogText ?? rulesText
+    }
+}
+
+extension Modifier {
+    var shopMechanicText: String {
+        let conditionText = conditions.compactMap(\.shopLabel).joined(separator: ", ")
+        let triggerText = triggers.map(\.shopLabel).sorted().joined(separator: ", ")
+        let effectText = effects.map(\.shopDescription).joined(separator: "; ")
+        let heatText = heatCost > 0 ? "Adds \(heatCost) Heat" : nil
+
+        let prefix = conditionText.isEmpty ? triggerText : conditionText
+        var detailParts = [effectText].filter { !$0.isEmpty }
+        if let heatText {
+            detailParts.append(heatText)
+        }
+        let details = detailParts.joined(separator: "; ")
+
+        if prefix.isEmpty {
+            return details.isEmpty ? summary : details
+        }
+
+        if details.isEmpty {
+            return prefix
+        }
+
+        return "\(prefix): \(details)"
     }
 }
 
@@ -556,7 +694,7 @@ extension Modifier {
         Modifier(
             id: "core.lucky-chip",
             name: "Lucky Chip",
-            summary: "First winning bet each stage creates shop economy.",
+            summary: "First winning bet each stage grants Chips.",
             rulesText: "The first time your bet wins each stage, gain Chips. Level 2 also grants bankroll equal to half the ante.",
             rarity: .common,
             tags: [.economy],
@@ -660,7 +798,7 @@ extension Modifier {
     private static var bankerEngineContent: [Modifier] {
         [
             contentModifier(id: "banker.commission-dodge", name: "Commission Dodge", summary: "Banker wins add a small commission refund.", rarity: .common, tags: [.banker, .economy], trigger: .playerWonBet, effects: payoutLevels(.banker, 5, 9, 14), minShopTier: 1, conditions: [.all([.betType(.banker), .winningSide(.banker)])]),
-            contentModifier(id: "banker.house-favorite", name: "House Favorite", summary: "First Banker win each stage grants Chips.", rarity: .uncommon, tags: [.banker, .economy], trigger: .playerWonBet, effects: [.levelScaled(level1: [.grantChips(amount: 1)], level2: [.grantChips(amount: 1), .grantBankrollFromAnte(percent: 50)], level3: [.grantChips(amount: 2)])], minShopTier: 1, conditions: [.all([.betType(.banker), .winningSide(.banker), .firstBankerSideWinThisStage])], useLimits: [.perStage(1)]),
+            contentModifier(id: "banker.house-favorite", name: "House Favorite", summary: "First Banker win each stage grants +1 Chip.", rarity: .uncommon, tags: [.banker, .economy], trigger: .playerWonBet, effects: [.levelScaled(level1: [.grantChips(amount: 1)], level2: [.grantChips(amount: 1), .grantBankrollFromAnte(percent: 50)], level3: [.grantChips(amount: 2)])], minShopTier: 1, conditions: [.all([.betType(.banker), .winningSide(.banker), .firstBankerSideWinThisStage])], useLimits: [.perStage(1)]),
             contentModifier(id: "banker.banco-battery", name: "Banco Battery", summary: "Banker wins build steady ante-scaled bankroll.", rarity: .rare, tags: [.banker, .streak], trigger: .playerWonBet, effects: anteLevels(35, 60, 100), minShopTier: 2, conditions: [.all([.betType(.banker), .winningSide(.banker)])]),
             contentModifier(id: "banker.dealers-nod", name: "Dealer's Nod", summary: "Banker wins reveal one future card.", rarity: .uncommon, tags: [.banker, .shoeVision], trigger: .playerWonBet, effects: [.revealUpcomingCards(count: 1)], minShopTier: 2, conditions: [.all([.betType(.banker), .winningSide(.banker)])]),
             contentModifier(id: "banker.banker-anchor", name: "Banker Anchor", summary: "Banker losses refund a little when you stay loyal.", rarity: .common, tags: [.banker, .comeback], trigger: .playerLostBet, effects: [.lossRefund(percent: 20, maxCents: nil)], minShopTier: 1, conditions: [.betType(.banker)], useLimits: [.perStageByLevel(level1: 1, level2: 2, level3: 3)]),
@@ -676,10 +814,10 @@ extension Modifier {
             contentModifier(id: "player.reversal-read", name: "Reversal Read", summary: "Player wins after a Banker result pay more.", rarity: .uncommon, tags: [.player, .comeback], trigger: .playerWonBet, effects: payoutLevels(.player, 12, 20, 32), minShopTier: 1, conditions: [.all([.betType(.player), .winningSide(.player)])]),
             contentModifier(id: "player.side-step", name: "Side Step", summary: "Player wins reveal a short look ahead.", rarity: .common, tags: [.player, .shoeVision], trigger: .playerWonBet, effects: [.revealUpcomingCards(count: 1)], minShopTier: 1, conditions: [.all([.betType(.player), .winningSide(.player)])]),
             contentModifier(id: "player.punto-strike", name: "Punto Strike", summary: "Player bets gain ante-scaled burst bankroll on wins.", rarity: .rare, tags: [.player, .tempo], trigger: .playerWonBet, effects: anteLevels(60, 100, 160), minShopTier: 2, conditions: [.all([.betType(.player), .winningSide(.player)])]),
-            contentModifier(id: "player.countertrend", name: "Countertrend", summary: "First Player win each stage pays a comeback bonus.", rarity: .common, tags: [.player, .comeback], trigger: .playerWonBet, effects: anteLevels(60, 100, 150), minShopTier: 1, conditions: [.all([.betType(.player), .winningSide(.player), .firstPlayerSideWinThisStage])], useLimits: [.perStage(1)]),
+            contentModifier(id: "player.countertrend", name: "Countertrend", summary: "First Player win each stage grants 60% ante bankroll.", rarity: .common, tags: [.player, .comeback], trigger: .playerWonBet, effects: anteLevels(60, 100, 150), minShopTier: 1, conditions: [.all([.betType(.player), .winningSide(.player), .firstPlayerSideWinThisStage])], useLimits: [.perStage(1)]),
             contentModifier(id: "player.sharp-turn", name: "Sharp Turn", summary: "Player wins give Chips once per stage.", rarity: .uncommon, tags: [.player, .economy], trigger: .playerWonBet, effects: [.grantChipsOnFirstStageTrigger(amount: 1)], minShopTier: 2, conditions: [.all([.betType(.player), .winningSide(.player)])], useLimits: [.perStage(1)]),
             contentModifier(id: "player.break-pattern", name: "Break the Pattern", summary: "Player wins pay a larger bonus during boss pressure.", rarity: .epic, tags: [.player, .boss], trigger: .playerWonBet, effects: payoutLevels(.player, 20, 35, 55), minShopTier: 4, conditions: [.all([.betType(.player), .winningSide(.player)])]),
-            contentModifier(id: "player.punto-insurance", name: "Punto Insurance", summary: "First missed Player bet each stage refunds part of the loss.", rarity: .common, tags: [.player, .comeback], trigger: .playerLostBet, effects: [.levelScaled(level1: [.lossRefund(percent: 20, maxCents: nil)], level2: [.lossRefund(percent: 32, maxCents: nil)], level3: [.lossRefund(percent: 45, maxCents: nil)])], minShopTier: 1, conditions: [.betType(.player)], useLimits: [.perStage(1)]),
+            contentModifier(id: "player.punto-insurance", name: "Punto Insurance", summary: "First losing Player bet each stage refunds 20%.", rarity: .common, tags: [.player, .comeback], trigger: .playerLostBet, effects: [.levelScaled(level1: [.lossRefund(percent: 20, maxCents: nil)], level2: [.lossRefund(percent: 32, maxCents: nil)], level3: [.lossRefund(percent: 45, maxCents: nil)])], minShopTier: 1, conditions: [.betType(.player)], useLimits: [.perStage(1)]),
             contentModifier(id: "player.underdog-side", name: "Underdog Side", summary: "Player wins pay more but add Heat.", rarity: .rare, tags: [.player, .heat], trigger: .playerWonBet, effects: payoutLevels(.player, 18, 30, 46), minShopTier: 3, conditions: [.all([.betType(.player), .winningSide(.player)])], heatCost: 1),
             contentModifier(id: "player.player-tempo", name: "Player Tempo", summary: "Any Player win advances your economy.", rarity: .uncommon, tags: [.player, .economy], trigger: .playerWonBet, effects: [.levelScaled(level1: [.grantBankrollFromAnte(percent: 30)], level2: [.grantBankrollFromAnte(percent: 50)], level3: [.grantBankrollFromAnte(percent: 75), .grantChips(amount: 1)])], minShopTier: 2, conditions: [.all([.betType(.player), .winningSide(.player)])])
         ]
@@ -747,7 +885,7 @@ extension Modifier {
         [
             contentModifier(id: "economy.interest-ledger", name: "Interest Ledger", summary: "Stage starts pay a tiny bankroll stipend.", rarity: .common, tags: [.economy], trigger: .stageStarted, effects: anteLevels(35, 60, 100), minShopTier: 1, useLimits: [.perStage(1)]),
             contentModifier(id: "economy.shop-regular", name: "Shop Regular", summary: "Rerolls become easier to afford.", rarity: .uncommon, tags: [.economy], trigger: .shopRerolled, effects: [.addRerollDiscount(chips: 1)], minShopTier: 2),
-            contentModifier(id: "economy.freeze-discount", name: "Freeze Discount", summary: "Freezing shop offers supports slow builds.", rarity: .common, tags: [.economy], trigger: .shopEntered, effects: [.addShopDiscount(percent: 5)], minShopTier: 1),
+            contentModifier(id: "economy.freeze-discount", name: "Freeze Discount", summary: "Shop entry discounts prices by 5%.", rarity: .common, tags: [.economy], trigger: .shopEntered, effects: [.addShopDiscount(percent: 5)], minShopTier: 1),
             contentModifier(id: "economy.duplicate-finder", name: "Duplicate Finder", summary: "Buying modifiers helps find copies.", rarity: .rare, tags: [.economy], trigger: .modifierBought, effects: [.custom(id: "duplicate-finder", description: "Future shops bias toward owned modifiers.")], minShopTier: 3),
             contentModifier(id: "economy.sellback", name: "Sellback", summary: "Selling modifiers returns better chip value.", rarity: .uncommon, tags: [.economy], trigger: .modifierSold, effects: [.grantChips(amount: 1)], minShopTier: 2),
             contentModifier(id: "economy.comp-points", name: "Comp Points", summary: "First win each stage grants bankroll from ante.", rarity: .common, tags: [.economy], trigger: .playerWonBet, effects: anteLevels(30, 50, 80), minShopTier: 1, conditions: [.firstWinningBetThisStage], useLimits: [.perStage(1)]),

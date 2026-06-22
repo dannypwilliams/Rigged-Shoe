@@ -88,7 +88,10 @@ struct StageObjective: Equatable {
     func progressText(in runManager: RunManager, bankrollCents: Int) -> String {
         switch kind {
         case .surviveHands(let minBankrollCents):
-            return "\(min(currentValue(in: runManager, bankrollCents: bankrollCents), target))/\(target) hands, stay \(MoneyFormatter.format(minBankrollCents))+"
+            let survivalText = minBankrollCents <= 1
+                ? "bankroll above $0"
+                : "bankroll \(MoneyFormatter.format(minBankrollCents))+"
+            return "\(min(currentValue(in: runManager, bankrollCents: bankrollCents), target))/\(target) hands, \(survivalText)"
         case .finishHandsBreakEvenOrBetter:
             let result = runManager.stageProfitCents(bankrollCents: bankrollCents) >= 0 ? "even+" : MoneyFormatter.signed(runManager.stageProfitCents(bankrollCents: bankrollCents))
             return "\(min(currentValue(in: runManager, bankrollCents: bankrollCents), target))/\(target) hands, \(result)"
@@ -456,6 +459,8 @@ struct StagePreviewData: Equatable {
     let opponentWeakness: String
     let opponentFlavorText: String
     let opponentDifficulty: Int
+    let primaryObjectiveTitle: String
+    let primaryObjectiveSummary: String
     let ante: Int
     let handCount: Int
     let tableRule: String
@@ -478,6 +483,8 @@ struct StagePreviewData: Equatable {
         self.opponentWeakness = opponent.weakness
         self.opponentFlavorText = opponent.flavorText
         self.opponentDifficulty = opponent.difficultyRating
+        self.primaryObjectiveTitle = stage.teachingObjective?.title ?? "Beat the Table"
+        self.primaryObjectiveSummary = stage.teachingObjective?.description ?? "End the stage ahead of the table."
         self.ante = stage.ante
         self.handCount = handCount
         self.tableRule = stage.tableRuleSummary
