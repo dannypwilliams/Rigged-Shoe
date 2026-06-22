@@ -113,8 +113,10 @@ extension ShopState {
         seededGenerator: inout SeededRandomGenerator?
     ) -> ShopState {
         let tier = Self.tier(for: stageID, defeatedBosses: defeatedBosses)
-        let frozen = frozenOffers.filter { $0.isFrozen && !$0.isSoldOut }
-        let needed = max(0, 4 - frozen.count)
+        let frozen = frozenOffers.filter {
+            $0.isFrozen && !$0.isSoldOut && ActiveModifierCatalog.productionShopOfferAllowed($0)
+        }
+        let needed = max(0, ActiveModifierCatalog.normalShopOfferCount - frozen.count)
         let generatedOffers = generateOffers(
             count: needed,
             tier: tier,
@@ -127,7 +129,7 @@ extension ShopState {
             ante: ante,
             rerollCostChips: 1,
             rerollsThisStage: 0,
-            offers: Array((frozen + generatedOffers).prefix(4))
+            offers: Array((frozen + generatedOffers).prefix(ActiveModifierCatalog.normalShopOfferCount))
         )
     }
 
@@ -146,24 +148,13 @@ extension ShopState {
         var localGenerator = seededGenerator ?? SeededRandomGenerator(seed: UInt64(Date().timeIntervalSince1970))
         let ownedSet = Set(ownedModifierIDs)
 
-        for index in 0..<count {
-            let roll = Int(localGenerator.next() % 100)
-
-            if roll < 68 || index == 0 {
-                let modifiers = weightedModifiers(tier: tier, ownedModifierIDs: ownedSet, contactBiasTags: contactBiasTags)
-                if let modifier = modifiers.seededRandomElement(using: &localGenerator) {
-                    offers.append(ShopOffer(kind: .modifier, contentID: modifier.id, priceChips: modifier.baseCostChips))
-                }
-            } else if roll < 86 {
-                let consumables = Consumable.allContent.filter { $0.minShopTier <= tier }
-                if let consumable = consumables.seededRandomElement(using: &localGenerator) {
-                    offers.append(ShopOffer(kind: .consumable, contentID: consumable.id, priceChips: consumable.priceChips))
-                }
-            } else {
-                let attachments = Attachment.allContent.filter { $0.minShopTier <= tier }
-                if let attachment = attachments.seededRandomElement(using: &localGenerator) {
-                    offers.append(ShopOffer(kind: .attachment, contentID: attachment.id, priceChips: attachment.priceChips))
-                }
+        for _ in 0..<count {
+            let modifiers = weightedModifiers(tier: tier, ownedModifierIDs: ownedSet, contactBiasTags: contactBiasTags)
+            let available = modifiers.filter { candidate in
+                !offers.contains { $0.kind == .modifier && $0.contentID == candidate.id }
+            }
+            if let modifier = (available.isEmpty ? modifiers : available).seededRandomElement(using: &localGenerator) {
+                offers.append(ShopOffer(kind: .modifier, contentID: modifier.id, priceChips: modifier.baseCostChips))
             }
         }
 
@@ -176,7 +167,11 @@ extension ShopState {
         ownedModifierIDs: Set<String>,
         contactBiasTags: Set<ModifierTag>
     ) -> [Modifier] {
-        let candidates = Modifier.allContent.filter { $0.minShopTier <= tier && $0.rarity != .boss }
+        let candidates = ActiveModifierCatalog.shopEligibleModifiers(
+            in: Modifier.allContent,
+            tier: tier,
+            contactBiasTags: contactBiasTags
+        )
         var weighted = candidates
 
         for modifier in candidates where !modifier.tags.isDisjoint(with: contactBiasTags) {
@@ -363,10 +358,10 @@ extension Consumable {
         [
             Consumable(id: "consumable.marked-card", name: "Marked Card", summary: "Mark one upcoming card for a short read.", tags: [.shoeVision], triggerWindow: .beforeDeal, effects: [.revealUpcomingCards(count: 1)], priceChips: 2),
             Consumable(id: "consumable.burn-slip", name: "Burn Slip", summary: "Burn the next card before a hand.", tags: [.shoeControl], triggerWindow: .beforeDeal, effects: [.burnCards(count: 1)], priceChips: 2),
-            Consumable(id: "consumable.dealer-favor", name: "Dealer Favor", summary: "Your next loss refunds 50%.", tags: [.comeback], triggerWindow: .playerLostBet, effects: [.lossRefund(percent: 50, maxCents: nil)], priceChips: 3),
+            Consumable(id: "consumable.dealer-favor", name: "Dealer Favor", summary: "Your next loss refunds 50%.", tags: [.comeback], triggerWindow: .wagerLost, effects: [.lossRefund(percent: 50, maxCents: nil)], priceChips: 3),
             Consumable(id: "consumable.counterfeit-chip", name: "Counterfeit Chip", summary: "Gain 3 Chips and add 1 Heat.", tags: [.economy, .heat], triggerWindow: .shopEntered, effects: [.grantChips(amount: 3), .gainHeat(amount: 1)], priceChips: 0),
             Consumable(id: "consumable.free-drink", name: "Free Drink", summary: "Remove 1 Heat.", tags: [.heat], triggerWindow: .shopEntered, effects: [.reduceHeat(amount: 1)], priceChips: 2),
-            Consumable(id: "consumable.lucky-matchbook", name: "Lucky Matchbook", summary: "Next win grants 1x ante bankroll.", tags: [.economy], triggerWindow: .playerWonBet, effects: [.grantBankrollFromAnte(percent: 100)], priceChips: 3),
+            Consumable(id: "consumable.lucky-matchbook", name: "Lucky Matchbook", summary: "Next win grants 1x ante bankroll.", tags: [.economy], triggerWindow: .wagerWon, effects: [.grantBankrollFromAnte(percent: 100)], priceChips: 3),
             Consumable(id: "consumable.private-marker", name: "Private Marker", summary: "Borrow bankroll for one hand.", tags: [.economy, .betControl], triggerWindow: .beforeBet, effects: [.grantBankrollFromAnte(percent: 200)], priceChips: 4, minShopTier: 2),
             Consumable(id: "consumable.false-shuffle", name: "False Shuffle", summary: "Shuffle a small segment of future shoe order.", tags: [.shoeControl], triggerWindow: .beforeDeal, effects: [.custom(id: "false-shuffle", description: "Reroll a small upcoming shoe segment.")], priceChips: 4, minShopTier: 2),
             Consumable(id: "consumable.shop-coupon", name: "Shop Coupon", summary: "Next shop item costs 1 less.", tags: [.economy], triggerWindow: .shopEntered, effects: [.addShopDiscount(percent: 10)], priceChips: 2),
@@ -376,8 +371,8 @@ extension Consumable {
             Consumable(id: "consumable.pocket-blank", name: "Pocket Blank", summary: "Slip a zero-value card into the future shoe.", tags: [.cardSculpting], triggerWindow: .beforeDeal, effects: [.addCards(ranks: [.king], count: 1)], priceChips: 2),
             Consumable(id: "consumable.pit-boss-bribe", name: "Pit Boss Bribe", summary: "Disable one boss penalty for one hand.", tags: [.boss, .opponentSabotage], triggerWindow: .bossStarted, effects: [.suppressOpponentTags([.boss])], priceChips: 4, minShopTier: 3),
             Consumable(id: "consumable.emergency-exit", name: "Emergency Exit", summary: "End a stage early if ahead.", tags: [.betControl], triggerWindow: .finalHand, effects: [.custom(id: "emergency-exit", description: "Cash out early if the stage is ahead.")], priceChips: 4, minShopTier: 2),
-            Consumable(id: "consumable.double-voucher", name: "Double Voucher", summary: "Next winning payout is boosted.", tags: [.betControl], triggerWindow: .playerWonBet, effects: [.payoutMultiplier(betType: nil, percent: 50)], priceChips: 4, minShopTier: 2),
-            Consumable(id: "consumable.insurance-slip", name: "Insurance Slip", summary: "Next losing bet is partially refunded.", tags: [.comeback], triggerWindow: .playerLostBet, effects: [.lossRefund(percent: 50, maxCents: nil)], priceChips: 3),
+            Consumable(id: "consumable.double-voucher", name: "Double Voucher", summary: "Next winning payout is boosted.", tags: [.betControl], triggerWindow: .wagerWon, effects: [.payoutMultiplier(betType: nil, percent: 50)], priceChips: 4, minShopTier: 2),
+            Consumable(id: "consumable.insurance-slip", name: "Insurance Slip", summary: "Next losing bet is partially refunded.", tags: [.comeback], triggerWindow: .wagerLost, effects: [.lossRefund(percent: 50, maxCents: nil)], priceChips: 3),
             Consumable(id: "consumable.side-switch", name: "Side Switch", summary: "Change side after a small reveal.", tags: [.betControl, .shoeVision], triggerWindow: .beforeBet, effects: [.revealUpcomingCards(count: 1)], priceChips: 4, minShopTier: 2),
             Consumable(id: "consumable.deep-peek", name: "Deep Peek", summary: "Reveal 5 cards and add Heat.", tags: [.shoeVision, .heat], triggerWindow: .beforeDeal, effects: [.revealUpcomingCards(count: 5), .gainHeat(amount: 1)], priceChips: 4, minShopTier: 3),
             Consumable(id: "consumable.loaded-cut", name: "Loaded Cut", summary: "Choose between two short shoe sequences.", tags: [.shoeControl, .cardSculpting], triggerWindow: .beforeDeal, effects: [.custom(id: "loaded-cut", description: "Choose between two upcoming shoe cuts.")], priceChips: 4, minShopTier: 3),
@@ -390,7 +385,7 @@ extension Consumable {
             Consumable(id: "consumable.marker-loan", name: "Marker Loan", summary: "Borrow 2x ante and add 1 Heat.", tags: [.economy, .heat], triggerWindow: .beforeBet, effects: [.grantBankrollFromAnte(percent: 200), .gainHeat(amount: 1)], priceChips: 1, minShopTier: 1),
             Consumable(id: "consumable.fake-tell", name: "Fake Tell", summary: "Distract the opponent for one battle beat.", tags: [.opponentSabotage], triggerWindow: .handStarted, effects: [.custom(id: "fake-tell", description: "Opponent pressure softened for this hand.")], priceChips: 2, minShopTier: 1),
             Consumable(id: "consumable.clean-cut", name: "Clean Cut", summary: "Move the top card without adding Heat.", tags: [.shoeControl], triggerWindow: .beforeDeal, effects: [.moveTopCardToBottom], priceChips: 3, minShopTier: 2),
-            Consumable(id: "consumable.whale-marker", name: "Whale Marker", summary: "Next winning bet pays more but looks suspicious.", tags: [.betControl, .heat], triggerWindow: .playerWonBet, effects: [.payoutMultiplier(betType: nil, percent: 35), .gainHeat(amount: 1)], priceChips: 4, minShopTier: 3)
+            Consumable(id: "consumable.whale-marker", name: "Whale Marker", summary: "Next winning bet pays more but looks suspicious.", tags: [.betControl, .heat], triggerWindow: .wagerWon, effects: [.payoutMultiplier(betType: nil, percent: 35), .gainHeat(amount: 1)], priceChips: 4, minShopTier: 3)
         ]
     }
 
@@ -490,18 +485,12 @@ extension BossRelic {
 extension StartingContact {
     static var allContacts: [StartingContact] {
         [
-            StartingContact(id: "contact.dealer", name: "The Dealer", flavor: "A quiet nod from the boxman.", summary: "Starts with Opening Tell. Better reveal and shop-vision options, but less bankroll.", startingModifiers: ["core.opening-tell"], bankrollAdjustmentCents: -2_500, shopBiasTags: [.shoeVision, .natural], difficultyRating: "Medium", recommendedArchetype: "Shoe Vision / Natural Hunter"),
-            StartingContact(id: "contact.accountant", name: "The Accountant", flavor: "Every comp has a ledger entry.", summary: "Starts with Interest Ledger and extra Chips. Early max bets stay tighter.", startingModifiers: ["economy.interest-ledger"], chipsAdjustment: 2, shopBiasTags: [.economy, .betControl], difficultyRating: "Easy", recommendedArchetype: "Economy / Small Ball", earlyMaxBetMultiplierPercent: 70),
-            StartingContact(id: "contact.whale", name: "The Whale", flavor: "The pit knows your name before you sit.", summary: "Starts with High Roller. More bankroll, more Heat risk.", startingModifiers: ["bet.high-roller"], bankrollAdjustmentCents: 7_500, heatAdjustment: 1, shopBiasTags: [.betControl, .comeback], difficultyRating: "Hard", recommendedArchetype: "High Roller / Comeback"),
-            StartingContact(id: "contact.mechanic", name: "The Mechanic", flavor: "The shoe never sits quite straight.", summary: "Starts with Burn Notice. Better shoe-control offers, +1 Heat.", startingModifiers: ["control.burn-notice"], heatAdjustment: 1, shopBiasTags: [.shoeControl, .cardSculpting], difficultyRating: "Medium", recommendedArchetype: "Shoe Control / Loaded Shoe"),
-            StartingContact(id: "contact.tourist", name: "The Tourist", flavor: "Nobody suspects the one taking photos.", summary: "Starts with Lucky Chip. Balanced beginner-friendly option with no penalties.", startingModifiers: ["core.lucky-chip"], shopBiasTags: [.economy, .banker, .player], difficultyRating: "Easy", recommendedArchetype: "Beginner / Flexible"),
-            StartingContact(id: "contact.grifter", name: "The Grifter", flavor: "Always one step away from the obvious bet.", summary: "Starts with Side Step. Better Player Pivot offers.", startingModifiers: ["player.side-step"], shopBiasTags: [.player, .comeback], difficultyRating: "Medium", recommendedArchetype: "Player Pivot / Counter Master"),
-            StartingContact(id: "contact.tie-chaser", name: "The Tie Chaser", flavor: "Bad odds. Better story.", summary: "Starts with Tie Insurance. Better Tie Hunter offers, slightly lower bankroll.", startingModifiers: ["core.tie-insurance"], bankrollAdjustmentCents: -1_500, shopBiasTags: [.tie, .comeback], difficultyRating: "Hard", recommendedArchetype: "Tie Hunter"),
-            StartingContact(id: "contact.ghost", name: "The Ghost", flavor: "The cameras remember you a second too late.", summary: "Starts with Clean Hands. Better Heat control, lower cash pressure.", startingModifiers: ["core.clean-hands"], shopBiasTags: [.heat, .opponentSabotage], difficultyRating: "Medium", recommendedArchetype: "Heat / Stealth", cashRewardMultiplierPercent: 80),
-            StartingContact(id: "contact.naturalist", name: "The Naturalist", flavor: "They only care about the first two cards.", summary: "Starts with Natural Read and a Natural Marker.", startingModifiers: ["natural.natural-read"], startingConsumables: ["consumable.natural-marker"], shopBiasTags: [.natural, .shoeVision], difficultyRating: "Medium", recommendedArchetype: "Natural Hunter"),
-            StartingContact(id: "contact.pair-spotter", name: "The Pair Spotter", flavor: "Two matching corners are enough to make a plan.", summary: "Starts with Pair Hunter and stronger pair shop odds.", startingModifiers: ["pair.pair-hunter"], shopBiasTags: [.pair, .tie, .economy], difficultyRating: "Medium", recommendedArchetype: "Pair Hunter / Tie"),
-            StartingContact(id: "contact.marker-broker", name: "The Marker Broker", flavor: "Credit always arrives before consequences.", summary: "Starts with Emergency Marker. More comeback cash, more Heat risk.", startingModifiers: ["debt.emergency-marker"], bankrollAdjustmentCents: 2_500, heatAdjustment: 1, shopBiasTags: [.economy, .comeback, .heat], difficultyRating: "Hard", recommendedArchetype: "Debt / Comeback"),
-            StartingContact(id: "contact.closer", name: "The Closer", flavor: "They only sit down when the table is almost over.", summary: "Starts with Closer and better final-hand offers.", startingModifiers: ["final.closer"], shopBiasTags: [.streak, .boss, .betControl], difficultyRating: "Medium", recommendedArchetype: "Final Hand Specialist")
+            StartingContact(id: "contact.banker-bias", name: "Banker Bias", flavor: "A quiet nod from the boxman.", summary: "Starts with Banker Bias. Banker wins can recover standard commission.", startingModifiers: ["core.banker-bias"], shopBiasTags: [.banker, .shoeVision, .economy], difficultyRating: "Medium", recommendedArchetype: "Banker"),
+            StartingContact(id: "contact.player-surge", name: "Player Surge", flavor: "A quick pivot before the table notices.", summary: "Starts with Player Surge. Player wins gain profit and a first-stage Chip.", startingModifiers: ["core.player-surge"], shopBiasTags: [.player, .shoeVision, .comeback], difficultyRating: "Medium", recommendedArchetype: "Player"),
+            StartingContact(id: "contact.opening-tell", name: "Opening Tell", flavor: "The first cards are never as quiet as they look.", summary: "Starts with Opening Tell. Stage starts reveal exact opening cards.", startingModifiers: ["core.opening-tell"], bankrollAdjustmentCents: -1_000, shopBiasTags: [.shoeVision, .shoeControl, .tie], difficultyRating: "Medium", recommendedArchetype: "Vision"),
+            StartingContact(id: "contact.tie-insurance", name: "Tie Insurance", flavor: "Bad odds, better brakes.", summary: "Starts with Tie Insurance. The first failed Tie wager each stage refunds part of the loss.", startingModifiers: ["core.tie-insurance"], bankrollAdjustmentCents: -1_000, shopBiasTags: [.tie, .comeback, .shoeVision], difficultyRating: "Hard", recommendedArchetype: "Tie"),
+            StartingContact(id: "contact.lucky-chip", name: "Lucky Chip", flavor: "Nobody suspects the one counting comps.", summary: "Starts with Lucky Chip. Winning wagers generate capped Chips.", startingModifiers: ["core.lucky-chip"], chipsAdjustment: 1, shopBiasTags: [.economy, .banker, .player], difficultyRating: "Easy", recommendedArchetype: "Economy / Comeback"),
+            StartingContact(id: "contact.clean-hands", name: "Clean Hands", flavor: "The cameras remember you a second too late.", summary: "Starts with Clean Hands. Real Heat gains create capped Chips without preventing Heat.", startingModifiers: ["core.clean-hands"], shopBiasTags: [.heat, .betControl, .economy], difficultyRating: "Medium", recommendedArchetype: "Heat / High Risk", cashRewardMultiplierPercent: 90)
         ]
     }
 
@@ -510,17 +499,22 @@ extension StartingContact {
     }
 
     static var sampleInsideDealer: StartingContact {
-        dealer
+        openingTell
     }
 
-    static var dealer: StartingContact { allContacts[0] }
-    static var accountant: StartingContact { allContacts[1] }
-    static var whale: StartingContact { allContacts[2] }
-    static var mechanic: StartingContact { allContacts[3] }
+    static var bankerBias: StartingContact { allContacts[0] }
+    static var playerSurge: StartingContact { allContacts[1] }
+    static var openingTell: StartingContact { allContacts[2] }
+    static var tieInsurance: StartingContact { allContacts[3] }
     static var tourist: StartingContact { allContacts[4] }
-    static var grifter: StartingContact { allContacts[5] }
-    static var tieChaser: StartingContact { allContacts[6] }
-    static var ghost: StartingContact { allContacts[7] }
+    static var cleanHands: StartingContact { allContacts[5] }
+    static var dealer: StartingContact { openingTell }
+    static var accountant: StartingContact { tourist }
+    static var whale: StartingContact { playerSurge }
+    static var mechanic: StartingContact { openingTell }
+    static var grifter: StartingContact { playerSurge }
+    static var tieChaser: StartingContact { tieInsurance }
+    static var ghost: StartingContact { cleanHands }
 
     static func definition(id: String) -> StartingContact? {
         allContacts.first { $0.id == id }

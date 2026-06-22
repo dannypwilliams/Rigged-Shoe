@@ -108,15 +108,38 @@ final class GameViewModel: ObservableObject {
 
     var currentPayoutRules: TablePayoutRules {
         var bankerCommissionPercent = activeBankerCommissionPercent()
+        if let commissionLevel = highestActiveModifierLevel(for: "banker.commission-dodge") {
+            let modifierCommission: Int
+            switch commissionLevel {
+            case 3...:
+                modifierCommission = 2
+            case 2:
+                modifierCommission = 3
+            default:
+                modifierCommission = 4
+            }
+            bankerCommissionPercent = min(bankerCommissionPercent, modifierCommission)
+        }
 
         if activeUpgradeEffects.removesBankerCommission,
            !state.bossManager.restoresBankerCommission {
             bankerCommissionPercent = 0
         }
 
+        var tiePayoutMultiplier = effectiveTiePayoutMultiplier(upgrades: activeUpgradeEffects)
+        if !state.bossManager.capsTiePayoutAtBase {
+            if let equalizerLevel = highestActiveModifierLevel(for: "tie.equalizer") {
+                tiePayoutMultiplier = max(tiePayoutMultiplier, 8 + min(3, equalizerLevel))
+            }
+            if highestActiveModifierLevel(for: "tie.tie-master") != nil {
+                tiePayoutMultiplier = max(tiePayoutMultiplier + 1, 9)
+            }
+        }
+        tiePayoutMultiplier = min(tiePayoutMultiplier, BalanceMath.tiePayoutCeiling)
+
         return TablePayoutRules(
             bankerCommissionPercent: bankerCommissionPercent,
-            tiePayoutMultiplier: effectiveTiePayoutMultiplier(upgrades: activeUpgradeEffects)
+            tiePayoutMultiplier: tiePayoutMultiplier
         )
     }
 
@@ -134,6 +157,13 @@ final class GameViewModel: ObservableObject {
 
     var ownedModifierIDs: [String] {
         (state.activeModifiers + state.benchModifiers).map(\.modifierID)
+    }
+
+    private func highestActiveModifierLevel(for modifierID: String) -> Int? {
+        state.activeModifiers
+            .filter { $0.modifierID == modifierID }
+            .map(\.level)
+            .max()
     }
 
     var activeModifierDefinitions: [(ModifierInstance, Modifier)] {
@@ -177,6 +207,7 @@ final class GameViewModel: ObservableObject {
         state.runManager.chips = max(0, state.runManager.chips + contact.chipsAdjustment)
         state.runManager.heat = min(state.runManager.maxHeat, max(0, state.runManager.heat + contact.heatAdjustment))
         state.activeModifiers = contact.startingModifiers
+            .filter { ActiveModifierCatalog.acquisitionClass(for: $0) == .starter }
             .prefix(state.activeModifierSlotLimit)
             .map { ModifierInstance(modifierID: $0) }
         state.consumables = contact.startingConsumables
@@ -354,16 +385,22 @@ final class GameViewModel: ObservableObject {
     }
 
     private func canBuyModifier(id: String) -> Bool {
-        guard Modifier.definition(id: id) != nil else {
+        guard ActiveModifierCatalog.isProductionAvailable(id),
+              let definition = Modifier.definition(id: id) else {
             return false
         }
 
-        if state.activeModifiers.contains(where: { $0.modifierID == id && $0.level < 3 }) {
+        if state.activeModifiers.contains(where: { $0.modifierID == id && $0.level < definition.maxLevel }) {
             return true
         }
 
-        if state.benchModifiers.contains(where: { $0.modifierID == id && $0.level < 3 }) {
+        if state.benchModifiers.contains(where: { $0.modifierID == id && $0.level < definition.maxLevel }) {
             return true
+        }
+
+        if state.activeModifiers.contains(where: { $0.modifierID == id })
+            || state.benchModifiers.contains(where: { $0.modifierID == id }) {
+            return false
         }
 
         return state.activeModifiers.count < state.activeModifierSlotLimit
@@ -372,20 +409,26 @@ final class GameViewModel: ObservableObject {
 
     @discardableResult
     private func buyModifier(id: String) -> Bool {
-        guard Modifier.definition(id: id) != nil else {
+        guard ActiveModifierCatalog.isProductionAvailable(id),
+              let definition = Modifier.definition(id: id) else {
             return false
         }
 
-        if let activeIndex = state.activeModifiers.firstIndex(where: { $0.modifierID == id && $0.level < 3 }) {
+        if let activeIndex = state.activeModifiers.firstIndex(where: { $0.modifierID == id && $0.level < definition.maxLevel }) {
             state.activeModifiers[activeIndex].level += 1
             appendDebugBattleEvent("GameEvent.modifierLeveled \(id) level=\(state.activeModifiers[activeIndex].level)")
             return true
         }
 
-        if let benchIndex = state.benchModifiers.firstIndex(where: { $0.modifierID == id && $0.level < 3 }) {
+        if let benchIndex = state.benchModifiers.firstIndex(where: { $0.modifierID == id && $0.level < definition.maxLevel }) {
             state.benchModifiers[benchIndex].level += 1
             appendDebugBattleEvent("GameEvent.modifierLeveled \(id) level=\(state.benchModifiers[benchIndex].level)")
             return true
+        }
+
+        if state.activeModifiers.contains(where: { $0.modifierID == id })
+            || state.benchModifiers.contains(where: { $0.modifierID == id }) {
+            return false
         }
 
         let instance = ModifierInstance(modifierID: id)
@@ -1193,23 +1236,19 @@ final class GameViewModel: ObservableObject {
 
     func debugGrantUpgrade(named name: String) {
         track(.debugAction, properties: ["action": "grantUpgrade", "upgrade": name])
-        guard let upgrade = UpgradeCard.allCards.first(where: { $0.name.localizedCaseInsensitiveContains(name) })?.copyForAcquisition() else {
+        guard UpgradeCard.allCards.first(where: { $0.name.localizedCaseInsensitiveContains(name) }) != nil else {
             return
         }
 
-        state.acquiredUpgrades.append(upgrade)
-        registerShoeImpact(applyImmediateEffect(upgrade.effect))
+        state.runManager.chips += 2
+        appendDebugBattleEvent("Legacy debug upgrade grant converted to +2 Chips")
         persistRunState()
     }
 
     func debugGrantLegendary() {
         track(.debugAction, properties: ["action": "grantLegendary"])
-        guard let upgrade = UpgradeCard.allCards.filter({ $0.rarity == .legendary }).randomElement()?.copyForAcquisition() else {
-            return
-        }
-
-        state.acquiredUpgrades.append(upgrade)
-        registerShoeImpact(applyImmediateEffect(upgrade.effect))
+        state.runManager.chips += 5
+        appendDebugBattleEvent("Legacy debug legendary grant converted to +5 Chips")
         persistRunState()
     }
 
@@ -1217,11 +1256,7 @@ final class GameViewModel: ObservableObject {
         track(.debugAction, properties: ["action": "spawnBoss", "boss": boss.name])
         state.bossManager.pendingAnnouncementBoss = nil
         state.bossManager.activeBoss = boss
-        state.bossManager.disabledUpgradeIDs = Set(
-            state.acquiredUpgrades
-                .filter { !$0.tags.isDisjoint(with: boss.effect.suppressedTags) }
-                .map(\.id)
-        )
+        state.bossManager.disabledUpgradeIDs = []
         persistRunState()
     }
 
@@ -1310,10 +1345,14 @@ final class GameViewModel: ObservableObject {
             contactBiasTags: StartingContact.tourist.shopBiasTags,
             seededGenerator: &shopGenerator
         )
-        let contentCatalogPass = Modifier.allContent.count >= 120
+        let contentCatalogPass = Modifier.allContent.count >= 100
+            && Modifier.productionContent.count == 41
+            && ActiveModifierCatalog.starterIDs.count == 6
+            && ActiveModifierCatalog.regularIDs.count == 28
+            && ActiveModifierCatalog.capstoneIDs.count == 7
             && Consumable.allContent.count >= 30
             && Attachment.allContent.count >= 30
-            && StartingContact.allContacts.count >= 12
+            && StartingContact.allContacts.count == 6
             && OpponentState.allOpponents.count >= 16
             && TableEvent.allEvents.count >= 16
             && BossRelic.allRelics.count >= 20
@@ -1322,12 +1361,14 @@ final class GameViewModel: ObservableObject {
             && ShopState.tier(for: 5, defeatedBosses: 1) == 3
             && ShopState.tier(for: 8, defeatedBosses: 2) == 4
             && ShopState.tier(for: 9, defeatedBosses: 2) == 5
-        let generatedShopPass = generatedShop.offers.count == 4
+        let generatedShopPass = generatedShop.offers.count == ActiveModifierCatalog.normalShopOfferCount
             && generatedShop.offers.allSatisfy { $0.priceChips >= 0 }
-        let contactPass = StartingContact.accountant.earlyMaxBetMultiplierPercent < 100
-            && StartingContact.ghost.cashRewardMultiplierPercent < 100
-            && StartingContact.allContacts.allSatisfy { contact in
+            && generatedShop.offers.allSatisfy {
+                $0.kind != .modifier || ActiveModifierCatalog.acquisitionClass(for: $0.contentID) == .regular
+            }
+        let contactPass = StartingContact.allContacts.allSatisfy { contact in
                 contact.startingModifiers.allSatisfy { Modifier.definition(id: $0) != nil }
+                    && contact.startingModifiers.allSatisfy { ActiveModifierCatalog.acquisitionClass(for: $0) == .starter }
                     && contact.startingConsumables.allSatisfy { Consumable.definition(id: $0) != nil }
             }
         let modifierEnginePass = ModifierEngineDebugTests.runAll().allSatisfy { $0.contains("OK") }
@@ -1416,12 +1457,12 @@ final class GameViewModel: ObservableObject {
         buyShopOffer(compatibleAttachmentOffer)
         let attachmentApplied = state.activeModifiers.first(where: { $0.modifierID == "core.banker-bias" })?.attachedIDs.contains("attachment.gold-foil") == true
 
-        let frozenOffer = ShopOffer(kind: .modifier, contentID: "core.player-surge", priceChips: 3)
+        let frozenOffer = ShopOffer(kind: .modifier, contentID: "player.side-step", priceChips: 3)
         state.shopState = ShopState(
             ante: 25,
             offers: [
                 frozenOffer,
-                ShopOffer(kind: .modifier, contentID: "core.lucky-chip", priceChips: 2),
+                ShopOffer(kind: .modifier, contentID: "banker.commission-dodge", priceChips: 3),
                 ShopOffer(kind: .consumable, contentID: "consumable.free-drink", priceChips: 2),
                 ShopOffer(kind: .attachment, contentID: "attachment.red-ink", priceChips: 3)
             ]
@@ -1472,24 +1513,27 @@ final class GameViewModel: ObservableObject {
 
     func debugStressGameRoomLayout() {
         track(.debugAction, properties: ["action": "stressGameRoomLayout"])
-        let stressUpgradeNames = [
-            "X-Ray Shoe",
-            "Opening Tell",
-            "Burn Control",
-            "Soft Shuffle",
-            "Marked Shoe",
-            "Deep Read",
-            "Dealer Pressure"
+        let stressModifierIDs = [
+            "core.opening-tell",
+            "banker.commission-dodge",
+            "player.side-step",
+            "tie.split-signal",
+            "vision.deep-read",
+            "control.soft-cut",
+            "heat.low-profile"
         ]
-        let existingNames = Set(state.acquiredUpgrades.map(\.name))
+        let existingIDs = Set((state.activeModifiers + state.benchModifiers).map(\.modifierID))
 
-        for name in stressUpgradeNames where !existingNames.contains(name) {
-            guard let upgrade = UpgradeCard.allCards.first(where: { $0.name == name })?.copyForAcquisition() else {
+        for modifierID in stressModifierIDs where !existingIDs.contains(modifierID) {
+            guard ActiveModifierCatalog.isProductionAvailable(modifierID) else {
                 continue
             }
 
-            state.acquiredUpgrades.append(upgrade)
-            registerShoeImpact(applyImmediateEffect(upgrade.effect))
+            if state.activeModifiers.count < state.activeModifierSlotLimit {
+                state.activeModifiers.append(ModifierInstance(modifierID: modifierID))
+            } else if state.benchModifiers.count < state.benchModifierSlotLimit {
+                state.benchModifiers.append(ModifierInstance(modifierID: modifierID))
+            }
         }
 
         persistRunState()
@@ -1511,7 +1555,10 @@ final class GameViewModel: ObservableObject {
         let heatBeforeRound = state.runManager.heat
         let battleLogHandNumber = state.runManager.totalRoundsPlayed + 1
         var shoeImpact = ShoeImpact.none
+        var activationMessages: [String] = []
+        var payoutLedgerLines: [PayoutLedgerLine] = []
         appendDebugBattleEvent("Hand \(battleLogHandNumber): GameEvent.handStarted")
+        var preBetModifierResolutions = resolveActiveModifiers(event: .handStarted(handIndex: battleLogHandNumber), handNumber: battleLogHandNumber)
 
         if state.shoe.cardsRemaining < 20 {
             reshuffleShoe()
@@ -1526,11 +1573,17 @@ final class GameViewModel: ObservableObject {
         prepareGuidedFirstDealIfNeeded()
         let betType = state.selectedBetType
         let betAmountCents = state.selectedBetAmountCents
-        var activationMessages = preDealShoeControl.messages
-        var payoutLedgerLines: [PayoutLedgerLine] = []
+        activationMessages += preDealShoeControl.messages
 
+        let isFinalHand = state.runManager.currentStageRoundsPlayed + 1 >= state.runManager.currentRoundLimit
+        if isFinalHand {
+            appendDebugBattleEvent("Hand \(battleLogHandNumber): GameEvent.finalHand")
+            preBetModifierResolutions += resolveActiveModifiers(event: .finalHand, handNumber: battleLogHandNumber)
+        }
+        appendDebugBattleEvent("Hand \(battleLogHandNumber): GameEvent.beforeBet")
+        preBetModifierResolutions += resolveActiveModifiers(event: .beforeBet, handNumber: battleLogHandNumber)
         appendDebugBattleEvent("Hand \(battleLogHandNumber): GameEvent.betPlaced \(betType.displayName) \(MoneyFormatter.format(betAmountCents))")
-        var preDealModifierResolutions = resolveActiveModifiers(
+        var preDealModifierResolutions = preBetModifierResolutions + resolveActiveModifiers(
             event: .betPlaced(betType: betType, amountCents: betAmountCents),
             handNumber: battleLogHandNumber
         )
@@ -1608,13 +1661,34 @@ final class GameViewModel: ObservableObject {
         let safetyNet = applyPostPayoutStageSafetyNetIfNeeded()
         activationMessages += safetyNet.messages
         payoutLedgerLines += safetyNet.ledgerLines
-        let modifierEvent: GameEvent = result.didWin
-            ? .playerWonBet(betType: betType, winningSide: result.winner, amountCents: betAmountCents, basePayoutCents: result.payoutCents)
-            : .playerLostBet(betType: betType, winningSide: result.winner, amountCents: betAmountCents)
-        var modifierResolutions = resolveActiveModifiers(event: modifierEvent, handNumber: battleLogHandNumber)
+        var modifierResolutions: [ModifierResolution] = []
+        for (offset, card) in dealtCardsInOrder(from: result).enumerated() {
+            modifierResolutions += resolveActiveModifiers(
+                event: .cardDrawn(card: card, order: offset + 1),
+                handNumber: battleLogHandNumber
+            )
+        }
+        if result.playerHand.isNatural || result.bankerHand.isNatural {
+            modifierResolutions += resolveActiveModifiers(event: .naturalOccurred, handNumber: battleLogHandNumber)
+        }
+        if hasOpeningPair(result.playerHand) || hasOpeningPair(result.bankerHand) {
+            modifierResolutions += resolveActiveModifiers(event: .pairOccurred, handNumber: battleLogHandNumber)
+        }
+        if result.didWin {
+            modifierResolutions += resolveActiveModifiers(
+                event: .wagerWon(betType: betType, winningSide: result.winner, amountCents: betAmountCents, basePayoutCents: result.payoutCents),
+                handNumber: battleLogHandNumber
+            )
+        } else if !result.isPush {
+            modifierResolutions += resolveActiveModifiers(
+                event: .wagerLost(betType: betType, winningSide: result.winner, amountCents: betAmountCents),
+                handNumber: battleLogHandNumber
+            )
+        }
         if result.winner == .tie {
             modifierResolutions += resolveActiveModifiers(event: .tieOccurred, handNumber: battleLogHandNumber)
         }
+        modifierResolutions += resolveActiveModifiers(event: .handResolved(result: result), handNumber: battleLogHandNumber)
         appendHeatPreventionIfNeeded(to: &modifierResolutions, handNumber: battleLogHandNumber)
         let modifierLedgerLines = applyModifierResolutions(modifierResolutions)
         let modifierBankrollDelta = modifierResolutions.reduce(0) { $0 + $1.bankrollDeltaCents }
@@ -1643,7 +1717,7 @@ final class GameViewModel: ObservableObject {
         state.roundsSinceLastUpgrade += 1
         appendDebugBattleEvent("Hand \(battleLogHandNumber): GameEvent.handResolved winner=\(result.winner.displayName) bet=\(result.betType.displayName)")
         appendDebugBattleEvent(
-            "Hand \(battleLogHandNumber): \(result.didWin ? "GameEvent.playerWonBet" : result.isPush ? "GameEvent.tieOccurred" : "GameEvent.playerLostBet")"
+            "Hand \(battleLogHandNumber): \(result.didWin ? "GameEvent.wagerWon" : result.isPush ? "GameEvent.tieOccurred" : "GameEvent.wagerLost")"
         )
         updateRoundMemory(
             result: result,
@@ -1830,15 +1904,20 @@ final class GameViewModel: ObservableObject {
     }
 
     func selectUpgrade(_ upgrade: UpgradeCard) {
-        state.acquiredUpgrades.append(upgrade)
-        let shoeImpact = applyImmediateEffect(upgrade.effect)
-        if shoeImpact != .none {
-            state.roundPresentation.shoeImpact = shoeImpact
-            state.roundPresentation.sequenceID = UUID()
+        let chipCompensation: Int
+        switch upgrade.rarity {
+        case .common:
+            chipCompensation = 1
+        case .rare:
+            chipCompensation = 3
+        case .legendary:
+            chipCompensation = 5
         }
 
+        state.runManager.chips += chipCompensation
         state.pendingUpgradeChoices = []
         state.roundsSinceLastUpgrade = 0
+        appendDebugBattleEvent("Legacy upgrade choice \(upgrade.name) converted to +\(chipCompensation) Chips")
         track(
             .upgradeChosen,
             properties: [
@@ -2147,7 +2226,10 @@ final class GameViewModel: ObservableObject {
             stageNumber: state.runManager.currentStage.id,
             handNumber: handNumber,
             anteCents: state.runManager.currentStage.anteCents,
+            legalBetAmountsCents: state.runManager.currentStage.betLimit.allowedBetAmountsCents,
             availableHeatRoom: max(0, state.runManager.maxHeat - state.runManager.heat),
+            isBossStage: state.bossManager.activeBoss != nil || state.runManager.currentStage.isBossStage,
+            bossID: state.bossManager.activeBoss.map { "\($0.id)" },
             stageStats: modifierStageStats(),
             activeTags: activeModifierTags(),
             upcomingCards: state.shoe.previewCards(limit: 8)
@@ -2156,7 +2238,7 @@ final class GameViewModel: ObservableObject {
         var resolutions = modifierEngine.resolve(
             event: event,
             modifiers: state.activeModifiers,
-            library: Modifier.allContent,
+            library: Modifier.productionContent,
             attachments: state.attachments,
             context: context
         )
@@ -2895,6 +2977,14 @@ final class GameViewModel: ObservableObject {
         return cards
     }
 
+    private func hasOpeningPair(_ hand: BaccaratHand) -> Bool {
+        guard hand.cards.count >= 2 else {
+            return false
+        }
+
+        return hand.cards[0].rank == hand.cards[1].rank
+    }
+
     private func prepareGuidedFirstDealIfNeeded() {
         guard state.isGuidedFirstRun,
               !state.guidedExcitingWinDelivered,
@@ -3530,37 +3620,7 @@ final class GameViewModel: ObservableObject {
     }
 
     private func queueShoeUpgradeRewardIfNeeded() {
-        guard shouldOfferLegacyShoeUpgradeDrafts else {
-            clearLegacyShoeUpgradeDraftIfNeeded()
-            return
-        }
-
-        guard state.roundsSinceLastUpgrade >= upgradeRewardThreshold else {
-            return
-        }
-
-        if state.isGuidedFirstRun && !state.hasOfferedGuidedUpgrade {
-            state.hasOfferedGuidedUpgrade = true
-            let curatedNames = ["Opening Tell", "Conservative Edge", "Press the Advantage"]
-            let curatedChoices = curatedNames.compactMap { name in
-                unlockedUpgradeCards.first { $0.name == name }?.copyForAcquisition()
-                    ?? UpgradeCard.allCards.first { $0.name == name }?.copyForAcquisition()
-            }
-
-            if curatedChoices.count == 3 {
-                state.pendingUpgradeChoices = curatedChoices
-                return
-            }
-        }
-
-        state.pendingUpgradeChoices = mutateSeededRandom { generator in
-            UpgradeCard.randomChoices(
-                count: 3,
-                availableCards: unlockedUpgradeCards,
-                seededGenerator: &generator,
-                acquiredCards: state.acquiredUpgrades
-            )
-        }
+        clearLegacyShoeUpgradeDraftIfNeeded()
     }
 
     private var shouldOfferLegacyShoeUpgradeDrafts: Bool {
@@ -3709,32 +3769,15 @@ final class GameViewModel: ObservableObject {
         case .reduceHeat(let amount):
             state.runManager.heat = max(0, state.runManager.heat - max(0, amount))
         case .removeRandomAcquiredUpgrade:
-            guard let index = randomAcquiredUpgradeIndex() else {
-                return
-            }
-
-            state.acquiredUpgrades.remove(at: index)
+            state.runManager.chips += 1
+            appendDebugBattleEvent("\(reward.name): retired upgrade removal converted to +1 Chip")
         case .duplicateRandomAcquiredUpgrade:
-            guard let index = randomAcquiredUpgradeIndex() else {
-                return
-            }
-
-            let upgrade = state.acquiredUpgrades[index].copyForAcquisition()
-            state.acquiredUpgrades.append(upgrade)
-            registerShoeImpact(applyImmediateEffect(upgrade.effect))
+            state.runManager.chips += 2
+            appendDebugBattleEvent("\(reward.name): retired upgrade duplicate converted to +2 Chips")
         case .addRandomUpgrade(let rarity):
-            guard let upgrade = mutateSeededRandom({ generator in
-                UpgradeCard.randomCard(
-                    rarity: rarity,
-                    availableCards: unlockedUpgradeCards,
-                    seededGenerator: &generator
-                )
-            }) else {
-                return
-            }
-
-            state.acquiredUpgrades.append(upgrade)
-            registerShoeImpact(applyImmediateEffect(upgrade.effect))
+            let chips = rarity == .legendary ? 5 : 3
+            state.runManager.chips += chips
+            appendDebugBattleEvent("\(reward.name): retired \(rarity.displayName) upgrade converted to +\(chips) Chips")
         case .increaseTiePayout(let amount):
             state.runManager.tiePayoutBonus += amount
         case .addRandomHighValueCards(let count):
@@ -3784,9 +3827,8 @@ final class GameViewModel: ObservableObject {
             defeatedBosses: state.bossManager.defeatedBosses.count
         )
         let dominantTags = RewardDraftState.dominantTags(from: state.activeModifiers)
-        let candidates = Modifier.allContent.filter { modifier in
+        let candidates = ActiveModifierCatalog.regularDefinitions(in: Modifier.allContent).filter { modifier in
             modifier.minShopTier <= tier
-                && modifier.rarity != .boss
                 && (rarity == nil || modifier.rarity == rarity)
         }
         let weighted = weightedModifiers(candidates, dominantTags: dominantTags)
@@ -3805,6 +3847,31 @@ final class GameViewModel: ObservableObject {
         } else {
             state.runManager.chips += max(1, modifier.sellValueChips)
             appendDebugBattleEvent("\(sourceName): no modifier slot, +\(max(1, modifier.sellValueChips)) Chips")
+        }
+    }
+
+    private func grantCapstoneModifier(sourceName: String) {
+        let ownedIDs = Set((state.activeModifiers + state.benchModifiers).map(\.modifierID))
+        let dominantTags = RewardDraftState.dominantTags(from: state.activeModifiers)
+        let candidates = ActiveModifierCatalog.capstoneDefinitions(in: Modifier.allContent).filter { modifier in
+            !ownedIDs.contains(modifier.id)
+        }
+        let weighted = weightedModifiers(candidates, dominantTags: dominantTags)
+
+        guard let modifier = mutateSeededRandom({ generator in
+            seededRandomElement(from: weighted.isEmpty ? candidates : weighted, seededGenerator: &generator)
+        }) else {
+            state.runManager.chips += 3
+            appendDebugBattleEvent("\(sourceName): no capstone available, +3 Chips")
+            return
+        }
+
+        if buyModifier(id: modifier.id) {
+            appendDebugBattleEvent("\(sourceName): drafted capstone \(modifier.name)")
+            emitOutOfHandModifierEvent(.modifierBought(modifierID: modifier.id))
+        } else {
+            state.runManager.chips += max(3, modifier.sellValueChips)
+            appendDebugBattleEvent("\(sourceName): no capstone slot, +\(max(3, modifier.sellValueChips)) Chips")
         }
     }
 
@@ -3955,27 +4022,15 @@ final class GameViewModel: ObservableObject {
             logRewardCalculation(calculation)
             logContactCashAdjustmentIfNeeded(originalCents: calculation.cashRewardCents, adjustedCents: adjustedCash)
         case .duplicateRandomUpgrades(let count):
-            for upgrade in shuffledAcquiredUpgrades().prefix(count) {
-                let copiedUpgrade = upgrade.copyForAcquisition()
-                state.acquiredUpgrades.append(copiedUpgrade)
-                registerShoeImpact(applyImmediateEffect(copiedUpgrade.effect))
-            }
+            let chips = max(1, count) * 2
+            state.runManager.chips += chips
+            appendDebugBattleEvent("\(reward.name): retired boss upgrade duplicate converted to +\(chips) Chips")
         case .removeAllFaceCards:
             let removedCount = state.shoe.removeAllFaceCards()
             registerShoeImpact(.removedCards(removedCount))
         case .addRandomLegendaryUpgrade:
-            guard let upgrade = mutateSeededRandom({ generator in
-                UpgradeCard.randomCard(
-                    rarity: .legendary,
-                    availableCards: unlockedUpgradeCards,
-                    seededGenerator: &generator
-                )
-            }) else {
-                return
-            }
-
-            state.acquiredUpgrades.append(upgrade)
-            registerShoeImpact(applyImmediateEffect(upgrade.effect))
+            state.runManager.chips += 5
+            appendDebugBattleEvent("\(reward.name): retired legendary upgrade converted to +5 Chips")
         case .casinoInsideContact(let extraRounds):
             state.runManager.futureStageRoundBonus += extraRounds
         case .grantBossRelic(let id):
@@ -3986,6 +4041,8 @@ final class GameViewModel: ObservableObject {
             }
 
             state.bossRelics.append(relic)
+        case .draftCapstoneModifier:
+            grantCapstoneModifier(sourceName: reward.name)
         }
     }
 

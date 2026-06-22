@@ -137,20 +137,16 @@ struct PlayerProfile: Codable, Equatable {
         "Table Comp",
         "Chip Runner",
         "Cool Down",
-        "Double Down",
-        "Rare Contact"
+        "Modifier Voucher",
+        "Rare Modifier Voucher"
     ]
 
     static let defaultUnlockedBossRewardNames: Set<String> = [
-        "Player Consortium",
-        "Banker Consortium",
-        "High Roller Shoe",
-        "Vault Leak",
-        "Face Card Blackout",
         "Pit Boss Nod",
         "Vault Key",
         "Private Room",
-        "Surveillance Loop"
+        "Surveillance Loop",
+        "Casino Inside Contact"
     ]
 }
 

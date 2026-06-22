@@ -87,9 +87,7 @@ struct GameState: Equatable {
         self.themeID = configuration.themeID
         self.isGuidedFirstRun = configuration.isGuidedFirstRun
         self.startingContact = .defaultFloorHost
-        self.acquiredUpgrades = configuration.startingUpgradeNames.compactMap { name in
-            UpgradeCard.allCards.first { $0.name == name }?.copyForAcquisition()
-        }
+        self.acquiredUpgrades = []
 
         if configuration.challengeID == .tieOnly {
             self.selectedBetType = .tie

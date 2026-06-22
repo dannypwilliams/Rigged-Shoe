@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Build Strength vs Acquisition</text>
+<line x1="80" y1="490" x2="860" y2="490" stroke="#30343b"/>
+<line x1="80" y1="60" x2="80" y2="490" stroke="#30343b"/>
+<circle cx="860" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip 0.046,0%</title></circle>
+<circle cx="536.42" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands 0.027,0%</title></circle>
+<circle cx="454.67" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge 0.022,0%</title></circle>
+<circle cx="352.49" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + soft-footsteps 0.016,0%</title></circle>
+<circle cx="267.34" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + low-profile 0.011,0%</title></circle>
+<circle cx="250.31" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + low-profile + soft-footsteps 0.01,0%</title></circle>
+<circle cx="243.49" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + emergency-marker 0.01,0%</title></circle>
+<circle cx="199.21" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + emergency-marker 0.007,0%</title></circle>
+<circle cx="192.4" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + interest-ledger 0.007,0%</title></circle>
+<circle cx="192.4" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + punto-insurance 0.007,0%</title></circle>
+<circle cx="171.97" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + side-step 0.005,0%</title></circle>
+<circle cx="171.97" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + punto-insurance + side-step 0.005,0%</title></circle>
+<circle cx="168.56" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + punto-insurance + reversal-read 0.005,0%</title></circle>
+<circle cx="168.56" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + emergency-marker + comp-points 0.005,0%</title></circle>
+<circle cx="161.75" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + emergency-marker + punto-insurance 0.005,0%</title></circle>
+<circle cx="151.53" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + comp-points 0.004,0%</title></circle>
+<circle cx="151.53" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + emergency-marker + soft-footsteps 0.004,0%</title></circle>
+<circle cx="148.12" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + emergency-marker + soft-footsteps 0.004,0%</title></circle>
+<circle cx="148.12" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + soft-footsteps 0.004,0%</title></circle>
+<circle cx="144.72" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + emergency-marker + comp-points 0.004,0%</title></circle>
+<circle cx="144.72" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + emergency-marker + reversal-read 0.004,0%</title></circle>
+<circle cx="137.9" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell 0.003,0%</title></circle>
+<circle cx="137.9" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + soft-peek 0.003,0%</title></circle>
+<circle cx="137.9" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + soft-footsteps + punto-insurance 0.003,0%</title></circle>
+<circle cx="134.5" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>tie-insurance 0.003,0%</title></circle>
+<circle cx="134.5" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + interest-ledger 0.003,0%</title></circle>
+<circle cx="134.5" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + interest-ledger + soft-footsteps 0.003,0%</title></circle>
+<circle cx="131.09" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + comp-points + interest-ledger 0.003,0%</title></circle>
+<circle cx="131.09" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + interest-ledger 0.003,0%</title></circle>
+<circle cx="131.09" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + comp-points + interest-ledger 0.003,0%</title></circle>
+<circle cx="131.09" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + comp-points + punto-insurance 0.003,0%</title></circle>
+<circle cx="131.09" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + interest-ledger + punto-insurance 0.003,0%</title></circle>
+<circle cx="127.69" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + player-surge 0.003,0%</title></circle>
+<circle cx="127.69" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + soft-footsteps 0.003,0%</title></circle>
+<circle cx="127.69" cy="60" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + comp-points + interest-ledger + soft-footsteps 0.003,42.857%</title></circle>
+<circle cx="127.69" cy="131.67" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + comp-points + interest-ledger 0.003,35.714%</title></circle>
+<circle cx="127.69" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + comp-points + soft-footsteps 0.003,0%</title></circle>
+<circle cx="127.69" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + comp-points + interest-ledger 0.003,0%</title></circle>
+<circle cx="127.69" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + player-surge + emergency-marker 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + interest-ledger 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + soft-footsteps + punto-insurance 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + comp-points 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + punto-insurance 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + comp-points 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + comp-points + interest-ledger 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + comp-points + interest-ledger + player-tempo 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + last-dollar + comp-points 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + comp-points + interest-ledger 0.003,0%</title></circle>
+<circle cx="124.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + emergency-marker + interest-ledger 0.003,0%</title></circle>
+<circle cx="120.87" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + interest-ledger + soft-footsteps 0.002,0%</title></circle>
+<circle cx="120.87" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + interest-ledger 0.002,0%</title></circle>
+<circle cx="120.87" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker 0.002,0%</title></circle>
+<circle cx="120.87" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-anchor + commission-dodge + lucky-chip + emergency-marker 0.002,0%</title></circle>
+<circle cx="120.87" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-anchor + lucky-chip + emergency-marker + comp-points 0.002,0%</title></circle>
+<circle cx="117.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-bias 0.002,0%</title></circle>
+<circle cx="117.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + reversal-read 0.002,0%</title></circle>
+<circle cx="117.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + comp-points 0.002,0%</title></circle>
+<circle cx="117.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + interest-ledger + side-step 0.002,0%</title></circle>
+<circle cx="117.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + comp-points + soft-footsteps 0.002,0%</title></circle>
+<circle cx="117.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + interest-ledger + punto-insurance 0.002,0%</title></circle>
+<circle cx="117.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + comp-points + interest-ledger 0.002,0%</title></circle>
+<circle cx="117.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + emergency-marker + interest-ledger 0.002,0%</title></circle>
+<circle cx="117.47" cy="125.15" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + interest-ledger + soft-footsteps 0.002,36.364%</title></circle>
+<circle cx="117.47" cy="398.79" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + interest-ledger + soft-footsteps 0.002,9.091%</title></circle>
+<circle cx="114.06" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + mirror-bet 0.002,0%</title></circle>
+<circle cx="114.06" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-anchor + player-surge + punto-insurance 0.002,0%</title></circle>
+<circle cx="114.06" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + emergency-marker + soft-footsteps + equalizer 0.002,0%</title></circle>
+<circle cx="114.06" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + comp-points + soft-footsteps 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-anchor + banker-bias 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + soft-footsteps 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + interest-ledger + soft-peek 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + emergency-marker + last-dollar + interest-ledger 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-anchor + commission-dodge + lucky-chip + comp-points 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + emergency-marker + interest-ledger 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + last-dollar + comp-points + interest-ledger 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + lucky-chip + comp-points + interest-ledger 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge + soft-footsteps + side-step 0.002,0%</title></circle>
+<circle cx="110.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + comp-points + soft-footsteps 0.002,0%</title></circle>
+<circle cx="110.66" cy="378.52" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + emergency-marker + low-profile + soft-footsteps 0.002,11.111%</title></circle>
+<text x="450" y="538" font-family="Segoe UI, Arial" font-size="13" fill="#26313f" text-anchor="middle">frequency / acquisition probability</text>
+<text x="18" y="280" font-family="Segoe UI, Arial" font-size="13" fill="#26313f" text-anchor="middle" transform="rotate(-90 18 280)">impact / completion</text>
+</svg>

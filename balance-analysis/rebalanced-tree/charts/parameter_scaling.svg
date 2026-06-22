@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Parameter Scaling</text>
+<line x1="80" y1="490" x2="860" y2="490" stroke="#30343b"/>
+<line x1="80" y1="60" x2="80" y2="490" stroke="#30343b"/>
+<circle cx="80" cy="110.59" r="3" fill="#2f7d6d"/>
+<circle cx="275" cy="135.88" r="3" fill="#2f7d6d"/>
+<circle cx="470" cy="388.82" r="3" fill="#2f7d6d"/>
+<circle cx="665" cy="186.47" r="3" fill="#2f7d6d"/>
+<circle cx="860" cy="186.47" r="3" fill="#2f7d6d"/>
+<polyline points="80,110.59 275,135.88 470,388.82 665,186.47 860,186.47" fill="none" stroke="#2f7d6d" stroke-width="2"/>
+<text x="876" y="78" font-family="Segoe UI, Arial" font-size="12" fill="#2f7d6d">soft-footsteps</text>
+<circle cx="80" cy="338.24" r="3" fill="#9b5c4d"/>
+<circle cx="275" cy="60" r="3" fill="#9b5c4d"/>
+<circle cx="470" cy="110.59" r="3" fill="#9b5c4d"/>
+<circle cx="665" cy="237.06" r="3" fill="#9b5c4d"/>
+<circle cx="860" cy="237.06" r="3" fill="#9b5c4d"/>
+<polyline points="80,338.24 275,60 470,110.59 665,237.06 860,237.06" fill="none" stroke="#9b5c4d" stroke-width="2"/>
+<text x="876" y="96" font-family="Segoe UI, Arial" font-size="12" fill="#9b5c4d">tie-master</text>
+<circle cx="80" cy="237.06" r="3" fill="#5f6fb0"/>
+<circle cx="275" cy="237.06" r="3" fill="#5f6fb0"/>
+<circle cx="470" cy="338.24" r="3" fill="#5f6fb0"/>
+<circle cx="665" cy="262.35" r="3" fill="#5f6fb0"/>
+<circle cx="860" cy="287.65" r="3" fill="#5f6fb0"/>
+<polyline points="80,237.06 275,237.06 470,338.24 665,262.35 860,287.65" fill="none" stroke="#5f6fb0" stroke-width="2"/>
+<text x="876" y="114" font-family="Segoe UI, Arial" font-size="12" fill="#5f6fb0">equalizer</text>
+<circle cx="80" cy="237.06" r="3" fill="#c58d2f"/>
+<circle cx="275" cy="60" r="3" fill="#c58d2f"/>
+<circle cx="470" cy="287.65" r="3" fill="#c58d2f"/>
+<circle cx="665" cy="186.47" r="3" fill="#c58d2f"/>
+<circle cx="860" cy="186.47" r="3" fill="#c58d2f"/>
+<polyline points="80,237.06 275,60 470,287.65 665,186.47 860,186.47" fill="none" stroke="#c58d2f" stroke-width="2"/>
+<text x="876" y="132" font-family="Segoe UI, Arial" font-size="12" fill="#c58d2f">boss-bounty</text>
+<circle cx="80" cy="237.06" r="3" fill="#764f8f"/>
+<circle cx="275" cy="237.06" r="3" fill="#764f8f"/>
+<circle cx="470" cy="312.94" r="3" fill="#764f8f"/>
+<circle cx="665" cy="287.65" r="3" fill="#764f8f"/>
+<circle cx="860" cy="211.76" r="3" fill="#764f8f"/>
+<polyline points="80,237.06 275,237.06 470,312.94 665,287.65 860,211.76" fill="none" stroke="#764f8f" stroke-width="2"/>
+<text x="876" y="150" font-family="Segoe UI, Arial" font-size="12" fill="#764f8f">banco-press</text>
+<circle cx="80" cy="312.94" r="3" fill="#417c9a"/>
+<circle cx="275" cy="161.18" r="3" fill="#417c9a"/>
+<circle cx="470" cy="287.65" r="3" fill="#417c9a"/>
+<circle cx="665" cy="262.35" r="3" fill="#417c9a"/>
+<circle cx="860" cy="110.59" r="3" fill="#417c9a"/>
+<polyline points="80,312.94 275,161.18 470,287.65 665,262.35 860,110.59" fill="none" stroke="#417c9a" stroke-width="2"/>
+<text x="876" y="168" font-family="Segoe UI, Arial" font-size="12" fill="#417c9a">player-tempo</text>
+<circle cx="80" cy="135.88" r="3" fill="#8f6a3f"/>
+<circle cx="275" cy="287.65" r="3" fill="#8f6a3f"/>
+<circle cx="470" cy="211.76" r="3" fill="#8f6a3f"/>
+<circle cx="665" cy="186.47" r="3" fill="#8f6a3f"/>
+<circle cx="860" cy="338.24" r="3" fill="#8f6a3f"/>
+<polyline points="80,135.88 275,287.65 470,211.76 665,186.47 860,338.24" fill="none" stroke="#8f6a3f" stroke-width="2"/>
+<text x="876" y="186" font-family="Segoe UI, Arial" font-size="12" fill="#8f6a3f">interest-ledger</text>
+<circle cx="80" cy="135.88" r="3" fill="#b05d75"/>
+<circle cx="275" cy="338.24" r="3" fill="#b05d75"/>
+<circle cx="470" cy="85.29" r="3" fill="#b05d75"/>
+<circle cx="665" cy="312.94" r="3" fill="#b05d75"/>
+<circle cx="860" cy="186.47" r="3" fill="#b05d75"/>
+<polyline points="80,135.88 275,338.24 470,85.29 665,312.94 860,186.47" fill="none" stroke="#b05d75" stroke-width="2"/>
+<text x="876" y="204" font-family="Segoe UI, Arial" font-size="12" fill="#b05d75">last-dollar</text>
+</svg>

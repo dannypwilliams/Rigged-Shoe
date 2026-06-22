@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Trigger Rate vs Impact</text>
+<line x1="80" y1="490" x2="860" y2="490" stroke="#30343b"/>
+<line x1="80" y1="60" x2="80" y2="490" stroke="#30343b"/>
+<circle cx="156.28" cy="167.5" r="4" fill="#7b5ea7" opacity="0.78"><title>banco-press 0.568,0.8%</title></circle>
+<circle cx="201.4" cy="310.83" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-anchor 0.904,-2.4%</title></circle>
+<circle cx="80" cy="185.42" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-lock 0,0.4%</title></circle>
+<circle cx="860" cy="310.83" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge 5.808,-2.4%</title></circle>
+<circle cx="80" cy="257.08" r="4" fill="#7b5ea7" opacity="0.78"><title>dealers-nod 0,-1.2%</title></circle>
+<circle cx="96.12" cy="221.25" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller 0.12,-0.4%</title></circle>
+<circle cx="80" cy="221.25" r="4" fill="#7b5ea7" opacity="0.78"><title>press-edge 0,-0.4%</title></circle>
+<circle cx="80" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>boss-bounty 0,0%</title></circle>
+<circle cx="81.07" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>house-crack 0.008,0%</title></circle>
+<circle cx="80" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>hot-cut 0,0%</title></circle>
+<circle cx="80" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>slipstream 0,0%</title></circle>
+<circle cx="104.71" cy="185.42" r="4" fill="#7b5ea7" opacity="0.78"><title>soft-cut 0.184,0.4%</title></circle>
+<circle cx="80" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-bias 0,0%</title></circle>
+<circle cx="80" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands 0,0%</title></circle>
+<circle cx="832.07" cy="95.83" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip 5.6,2.4%</title></circle>
+<circle cx="80" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell 0,0%</title></circle>
+<circle cx="80" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>player-surge 0,0%</title></circle>
+<circle cx="80" cy="203.33" r="4" fill="#7b5ea7" opacity="0.78"><title>tie-insurance 0,0%</title></circle>
+<circle cx="375.99" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>emergency-marker 2.204,-6.4%</title></circle>
+<circle cx="118.68" cy="292.92" r="4" fill="#7b5ea7" opacity="0.78"><title>last-dollar 0.288,-2%</title></circle>
+<circle cx="459.79" cy="77.92" r="4" fill="#7b5ea7" opacity="0.78"><title>comp-points 2.828,2.8%</title></circle>
+<circle cx="500.08" cy="95.83" r="4" fill="#7b5ea7" opacity="0.78"><title>interest-ledger 3.128,2.4%</title></circle>
+<circle cx="90.21" cy="221.25" r="4" fill="#7b5ea7" opacity="0.78"><title>low-profile 0.076,-0.4%</title></circle>
+<circle cx="196.57" cy="60" r="4" fill="#7b5ea7" opacity="0.78"><title>soft-footsteps 0.868,3.2%</title></circle>
+<text x="450" y="538" font-family="Segoe UI, Arial" font-size="13" fill="#26313f" text-anchor="middle">frequency / acquisition probability</text>
+<text x="18" y="280" font-family="Segoe UI, Arial" font-size="13" fill="#26313f" text-anchor="middle" transform="rotate(-90 18 280)">impact / completion</text>
+</svg>

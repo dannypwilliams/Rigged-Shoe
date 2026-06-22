@@ -492,20 +492,8 @@ struct RunManager: Equatable {
     }
 
     private func opponentClearToleranceCents() -> Int {
-        switch currentStage.id {
-        case 1:
-            return currentStage.anteCents * 9
-        case 2:
-            return currentStage.anteCents * 3
-        case 3:
-            return currentStage.anteCents * 2
-        case 4:
-            return currentStage.anteCents / 2
-        case 7:
-            return currentStage.anteCents * 8
-        default:
-            return 0
-        }
+        StageBalanceProfile.profile(for: currentStage.id)
+            .opponentClearToleranceCents(anteCents: currentStage.anteCents)
     }
 
     private func didBeatOpponent(bankrollCents: Int) -> Bool {

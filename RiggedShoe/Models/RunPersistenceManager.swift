@@ -106,7 +106,7 @@ struct SavedRunState: Codable, Equatable {
 struct RunPersistenceManager {
     private static let storageKey = "riggedShoe.activeRun.v2"
     private static let corruptStorageKey = "riggedShoe.activeRun.corruptBackup.v1"
-    private static let currentVersion = 5
+    private static let currentVersion = 6
 
     #if DEBUG
     static var activeRunStorageKeyForTesting: String {
@@ -154,9 +154,11 @@ struct RunPersistenceManager {
             selectedBetType: state.selectedBetType,
             selectedBetAmountCents: state.selectedBetAmountCents,
             shoeCards: state.shoe.cards,
-            acquiredUpgradeNames: state.acquiredUpgrades.map(\.name),
-            pendingUpgradeNames: state.pendingUpgradeChoices.map(\.name),
-            pendingStageRewardNames: state.pendingStageRewardChoices.map(\.name),
+            acquiredUpgradeNames: [],
+            pendingUpgradeNames: [],
+            pendingStageRewardNames: state.pendingStageRewardChoices
+                .filter { !$0.isRetiredForRebalance }
+                .map(\.name),
             roundsSinceLastUpgrade: state.roundsSinceLastUpgrade,
             runManager: SavedRunManagerState(
                 startingBankrollCents: state.runManager.startingBankrollCents,
@@ -204,7 +206,9 @@ struct RunPersistenceManager {
                 activeBossID: state.bossManager.activeBoss?.id,
                 lastDefeatedBossID: state.bossManager.lastDefeatedBoss?.id,
                 defeatedBossIDs: state.bossManager.defeatedBosses.map(\.id),
-                pendingBossRewardNames: state.bossManager.pendingBossRewardChoices.map(\.name)
+                pendingBossRewardNames: state.bossManager.pendingBossRewardChoices
+                    .filter { !$0.isRetiredForRebalance }
+                    .map(\.name)
             ),
             chipRewardMultiplierPercent: state.chipRewardMultiplierPercent,
             metaChipsEarnedThisRun: state.metaChipsEarnedThisRun,
@@ -249,16 +253,18 @@ struct RunPersistenceManager {
 
     private static func restore(_ snapshot: SavedRunState, configuration: RunConfiguration) -> GameState {
         var state = GameState(configuration: configuration)
+        let legacyChipCompensation = legacyUpgradeChipCompensation(for: snapshot.acquiredUpgradeNames + snapshot.pendingUpgradeNames)
         state.bankrollCents = snapshot.bankrollCents
         state.selectedBetType = snapshot.selectedBetType
         state.selectedBetAmountCents = snapshot.selectedBetAmountCents
         state.shoe = Shoe(deckCount: 6, cards: snapshot.shoeCards)
-        state.acquiredUpgrades = snapshot.acquiredUpgradeNames.compactMap(upgrade(named:))
-        state.pendingUpgradeChoices = snapshot.pendingUpgradeNames.compactMap(upgrade(named:))
+        state.acquiredUpgrades = []
+        state.pendingUpgradeChoices = []
         state.pendingStageRewardChoices = snapshot.pendingStageRewardNames.compactMap(stageReward(named:))
         state.roundsSinceLastUpgrade = snapshot.roundsSinceLastUpgrade
         state.runManager = restoreRunManager(snapshot.runManager)
-        state.bossManager = restoreBossManager(snapshot.bossManager, acquiredUpgrades: state.acquiredUpgrades)
+        state.runManager.chips += legacyChipCompensation
+        state.bossManager = restoreBossManager(snapshot.bossManager, acquiredUpgrades: [])
         state.chipRewardMultiplierPercent = snapshot.chipRewardMultiplierPercent
         state.metaChipsEarnedThisRun = snapshot.metaChipsEarnedThisRun
         state.metaReputationEarnedThisRun = snapshot.metaReputationEarnedThisRun
@@ -291,9 +297,9 @@ struct RunPersistenceManager {
         state.runStartedAt = snapshot.runStartedAt
         state.startingContact = startingContact(id: snapshot.startingContactID)
         state.hasAppliedStartingContact = snapshot.hasAppliedStartingContact ?? false
-        state.shopState = snapshot.shopState ?? ShopState()
-        state.activeModifiers = snapshot.activeModifiers ?? []
-        state.benchModifiers = snapshot.benchModifiers ?? []
+        state.shopState = sanitizeShopState(snapshot.shopState ?? ShopState())
+        state.activeModifiers = sanitizeModifierInstances(snapshot.activeModifiers ?? [])
+        state.benchModifiers = sanitizeModifierInstances(snapshot.benchModifiers ?? [])
         state.consumables = (snapshot.consumableIDs ?? []).compactMap(Consumable.definition(id:))
         state.attachments = (snapshot.attachmentIDs ?? []).compactMap(Attachment.definition(id:))
         state.bossRelics = (snapshot.bossRelicIDs ?? []).compactMap(bossRelic(id:))
@@ -375,16 +381,51 @@ struct RunPersistenceManager {
         return manager
     }
 
-    private static func upgrade(named name: String) -> UpgradeCard? {
-        UpgradeCard.allCards.first { $0.name == name }?.copyForAcquisition()
-    }
-
     private static func stageReward(named name: String) -> StageReward? {
-        StageReward.allRewards.first { $0.name == name }
+        StageReward.productionRewards.first { $0.name == name }
     }
 
     private static func bossReward(named name: String) -> BossReward? {
-        BossReward.allRewards.first { $0.name == name }
+        BossReward.productionRewards.first { $0.name == name }
+    }
+
+    private static func legacyUpgradeChipCompensation(for names: [String]) -> Int {
+        names.reduce(0) { total, name in
+            guard let upgrade = UpgradeCard.allCards.first(where: { $0.name == name }) else {
+                return total
+            }
+
+            switch upgrade.rarity {
+            case .common:
+                return total + 1
+            case .rare:
+                return total + 3
+            case .legendary:
+                return total + 5
+            }
+        }
+    }
+
+    private static func sanitizeModifierInstances(_ instances: [ModifierInstance]) -> [ModifierInstance] {
+        instances.compactMap { instance in
+            guard ActiveModifierCatalog.isProductionAvailable(instance.modifierID),
+                  let definition = Modifier.definition(id: instance.modifierID) else {
+                return nil
+            }
+
+            var sanitized = instance
+            sanitized.level = min(max(1, sanitized.level), definition.maxLevel)
+            return sanitized
+        }
+    }
+
+    private static func sanitizeShopState(_ shopState: ShopState) -> ShopState {
+        var sanitized = shopState
+        sanitized.offers = shopState.offers.filter(ActiveModifierCatalog.productionShopOfferAllowed)
+        if sanitized.offers.count > ActiveModifierCatalog.normalShopOfferCount {
+            sanitized.offers = Array(sanitized.offers.prefix(ActiveModifierCatalog.normalShopOfferCount))
+        }
+        return sanitized
     }
 
     private static func bossRelic(id: String) -> BossRelic? {

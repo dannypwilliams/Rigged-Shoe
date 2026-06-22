@@ -13,6 +13,7 @@ enum BossRewardEffect: Equatable {
     case addRandomLegendaryUpgrade
     case casinoInsideContact(extraRounds: Int)
     case grantBossRelic(id: String)
+    case draftCapstoneModifier
 }
 
 struct BossReward: Identifiable, Equatable {
@@ -96,6 +97,11 @@ struct BossReward: Identifiable, Equatable {
                 effect: .grantBossRelic(id: "relic.surveillance-loop")
             ),
             BossReward(
+                name: "Capstone Invitation",
+                description: "Draft one capstone modifier for your active build.",
+                effect: .draftCapstoneModifier
+            ),
+            BossReward(
                 name: "Casino Inside Contact",
                 description: "Every future stage starts with +3 rounds remaining.",
                 effect: .casinoInsideContact(extraRounds: 3)
@@ -103,10 +109,45 @@ struct BossReward: Identifiable, Equatable {
         ]
     }
 
+    static var productionRewards: [BossReward] {
+        allRewards.filter { !$0.isRetiredForRebalance }
+    }
+
+    var isLegacyUpgradeReward: Bool {
+        switch effect {
+        case .duplicateRandomUpgrades, .addRandomLegendaryUpgrade:
+            return true
+        default:
+            return false
+        }
+    }
+
+    var isRetiredForRebalance: Bool {
+        if isLegacyUpgradeReward {
+            return true
+        }
+
+        switch effect {
+        case .revealCardsPermanently,
+             .setTiePayout,
+             .addRandomHighValueCards,
+             .removeAllFaceCards,
+             .doublePlayerBonuses,
+             .doubleBankerBonuses:
+            return true
+        case .gainAnteScaledCash(let multiplierPercent, let chips):
+            return multiplierPercent > 150 || chips > 3
+        case .duplicateRandomUpgrades, .addRandomLegendaryUpgrade:
+            return true
+        case .gainCash, .casinoInsideContact, .grantBossRelic, .draftCapstoneModifier:
+            return false
+        }
+    }
+
     static func randomChoices(
         count: Int = 3,
         acquiredUpgrades: [UpgradeCard],
-        unlockedRewardNames: Set<String> = Set(allRewards.map(\.name)),
+        unlockedRewardNames: Set<String> = Set(productionRewards.map(\.name)),
         unlockedUpgradeCards: [UpgradeCard] = UpgradeCard.allCards
     ) -> [BossReward] {
         var generator: SeededRandomGenerator?
@@ -122,11 +163,11 @@ struct BossReward: Identifiable, Equatable {
     static func randomChoices(
         count: Int = 3,
         acquiredUpgrades: [UpgradeCard],
-        unlockedRewardNames: Set<String> = Set(allRewards.map(\.name)),
+        unlockedRewardNames: Set<String> = Set(productionRewards.map(\.name)),
         unlockedUpgradeCards: [UpgradeCard] = UpgradeCard.allCards,
         seededGenerator: inout SeededRandomGenerator?
     ) -> [BossReward] {
-        let viableRewards = allRewards.filter { reward in
+        let viableRewards = productionRewards.filter { reward in
             guard unlockedRewardNames.contains(reward.name) else {
                 return false
             }
@@ -145,7 +186,8 @@ struct BossReward: Identifiable, Equatable {
                  .gainAnteScaledCash,
                  .removeAllFaceCards,
                  .casinoInsideContact,
-                 .grantBossRelic:
+                 .grantBossRelic,
+                 .draftCapstoneModifier:
                 return true
             }
         }

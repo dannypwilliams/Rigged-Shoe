@@ -76,6 +76,7 @@
 		AA1000000000000000000005 /* RunFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000015 /* RunFlowViews.swift */; };
 		AB1000000000000000000001 /* TutorialMechanic.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000000000000000000011 /* TutorialMechanic.swift */; };
 		AB1000000000000000000002 /* TutorialMechanicsCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000000000000000000012 /* TutorialMechanicsCatalog.swift */; };
+		AC1000000000000000000001 /* BalanceRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC1000000000000000000011 /* BalanceRules.swift */; };
 		T1000000000000000000000B /* ShopBackboneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000000A /* ShopBackboneTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -161,6 +162,7 @@
 		AA1000000000000000000015 /* RunFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunFlowViews.swift; sourceTree = "<group>"; };
 		AB1000000000000000000011 /* TutorialMechanic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialMechanic.swift; sourceTree = "<group>"; };
 		AB1000000000000000000012 /* TutorialMechanicsCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialMechanicsCatalog.swift; sourceTree = "<group>"; };
+		AC1000000000000000000011 /* BalanceRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceRules.swift; sourceTree = "<group>"; };
 		T10000000000000000000003 /* RiggedShoeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RiggedShoeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		T1000000000000000000000A /* ShopBackboneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopBackboneTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -255,6 +257,7 @@
 				AA1000000000000000000011 /* RunState.swift */,
 				AA1000000000000000000012 /* OpponentModels.swift */,
 				AA1000000000000000000013 /* ModifierModels.swift */,
+				AC1000000000000000000011 /* BalanceRules.swift */,
 				AA1000000000000000000014 /* ShopModels.swift */,
 				E10000000000000000000031 /* JuiceModels.swift */,
 				E10000000000000000000032 /* SettingsManager.swift */,
@@ -489,6 +492,7 @@
 				AA1000000000000000000001 /* RunState.swift in Sources */,
 				AA1000000000000000000002 /* OpponentModels.swift in Sources */,
 				AA1000000000000000000003 /* ModifierModels.swift in Sources */,
+				AC1000000000000000000001 /* BalanceRules.swift in Sources */,
 				AA1000000000000000000004 /* ShopModels.swift in Sources */,
 				AA1000000000000000000005 /* RunFlowViews.swift in Sources */,
 				AB1000000000000000000001 /* TutorialMechanic.swift in Sources */,

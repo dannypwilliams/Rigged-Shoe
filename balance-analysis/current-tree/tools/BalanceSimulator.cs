@@ -15,9 +15,18 @@ namespace RiggedShoeBalance
     {
         private static readonly string[] Policies = new[] { "random", "novice", "greedy", "risk_aware", "optimized" };
         internal static readonly string[] EmittedTriggers = new[] {
-            "stageStarted", "betPlaced", "beforeDeal", "playerWonBet", "playerLostBet",
-            "tieOccurred", "heatGained", "shopEntered", "shopRerolled", "modifierBought",
-            "modifierSold", "modifierLeveled"
+            "runStarted", "stageStarted", "handStarted", "beforeBet", "betPlaced", "beforeDeal",
+            "cardDrawn", "cardRevealed", "naturalOccurred", "pairOccurred", "tieOccurred",
+            "wagerWon", "wagerLost", "handResolved", "heatGained", "shopEntered", "shopRerolled",
+            "modifierBought", "modifierSold", "modifierLeveled", "bossStarted", "bossDefeated",
+            "finalHand", "runEnded"
+        };
+        internal static readonly string[] ModeledTriggers = new[] {
+            "runStarted", "stageStarted", "handStarted", "beforeBet", "betPlaced", "beforeDeal",
+            "cardDrawn", "naturalOccurred", "pairOccurred", "tieOccurred",
+            "wagerWon", "wagerLost", "handResolved", "heatGained", "shopEntered", "shopRerolled",
+            "modifierBought", "modifierLeveled", "bossStarted", "bossDefeated",
+            "finalHand", "runEnded"
         };
 
         public static void Run(string repoRoot, string analysisRoot, string mode, int runsPerPolicy, int pairedRuns, int workers, ulong seed, bool resume)
@@ -217,7 +226,7 @@ namespace RiggedShoeBalance
 
         private static string ClassifyMechanic(ModifierDef mod, MechanicEffect effect)
         {
-            if (!EmittedTriggers.Contains(mod.Trigger))
+            if (!ModeledTriggers.Contains(mod.Trigger))
             {
                 return "CUT";
             }
@@ -233,10 +242,6 @@ namespace RiggedShoeBalance
             {
                 return "TUNE";
             }
-            if (mod.Trigger == "bossStarted" || mod.Trigger == "naturalOccurred" || mod.Trigger == "pairOccurred" || mod.Trigger == "cardDrawn" || mod.Trigger == "finalHand" || mod.Trigger == "handStarted")
-            {
-                return "REDESIGN";
-            }
             if (effect.TriggerRate > 1.0 && effect.SelectionRate > 0.15)
             {
                 return "KEEP";
@@ -247,7 +252,7 @@ namespace RiggedShoeBalance
         private static string EvidenceTags(ModifierDef mod, MechanicEffect effect)
         {
             List<string> tags = new List<string>();
-            if (!EmittedTriggers.Contains(mod.Trigger)) tags.Add("DEAD / NO-OP");
+            if (!ModeledTriggers.Contains(mod.Trigger)) tags.Add("DEAD / NO-OP");
             if (effect.OfferRate < 0.02) tags.Add("TOO RARE TO MATTER");
             if (effect.SelectionRate > 0.30) tags.Add("DOMINANT PICK");
             if (effect.MarginalCompletion > 0.035) tags.Add("OVERTUNED");
@@ -257,6 +262,11 @@ namespace RiggedShoeBalance
             if (mod.Raw.IndexOf("custom(", StringComparison.OrdinalIgnoreCase) >= 0) tags.Add("CONVOLUTED");
             if (tags.Count == 0) tags.Add("SCALABLE");
             return string.Join("|", tags.ToArray());
+        }
+
+        private static string[] DeclaredButUnmodeledTriggers()
+        {
+            return EmittedTriggers.Where(t => !ModeledTriggers.Contains(t)).ToArray();
         }
 
         private static void WriteOutputs(StudyResult study, string analysisRoot, string repoRoot)
@@ -376,7 +386,7 @@ namespace RiggedShoeBalance
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("# Mechanics Catalog");
             sb.AppendLine();
-            sb.AppendLine("Generated from the current worktree. The simulator parsed modifier, shop, stage, boss, reward, and legacy upgrade source files, then mirrored the live battle flow that is visible from `GameViewModel.swift`.");
+            sb.AppendLine("Generated from the current worktree. The simulator parses the rebalanced 41-modifier roster, production shop/reward pools, stage, boss, and legacy-upgrade archive source files, then mirrors the live battle flow visible from `GameViewModel.swift`.");
             sb.AppendLine();
             sb.AppendLine("## Source Of Truth");
             sb.AppendLine();
@@ -395,9 +405,19 @@ namespace RiggedShoeBalance
             sb.AppendLine();
             sb.AppendLine("## Emitted Modifier Triggers");
             sb.AppendLine();
-            sb.AppendLine("Observed emitted triggers: `" + string.Join("`, `", EmittedTriggers) + "`.");
+            sb.AppendLine("Declared triggers: `" + string.Join("`, `", EmittedTriggers) + "`.");
             sb.AppendLine();
-            sb.AppendLine("Declared but not observed in the live battle flow: `runStarted`, `handStarted`, `cardRevealed`, `cardDrawn`, `handResolved`, `naturalOccurred`, `pairOccurred`, `bossStarted`, `bossDefeated`, `finalHand`, `runEnded`. Modifiers that depend only on these hooks are classified as dead or redesign candidates unless another path activates them.");
+            sb.AppendLine("Modeled/resolved by this command-line battle flow: `" + string.Join("`, `", ModeledTriggers) + "`.");
+            sb.AppendLine();
+            string[] unmodeled = DeclaredButUnmodeledTriggers();
+            if (unmodeled.Length > 0)
+            {
+                sb.AppendLine("Declared but not modeled by this command-line battle flow: `" + string.Join("`, `", unmodeled) + "`. Modifiers that depend only on these hooks are classified as dead or redesign candidates unless another path activates them.");
+            }
+            else
+            {
+                sb.AppendLine("Every declared trigger is modeled by this command-line battle flow.");
+            }
             sb.AppendLine();
             sb.AppendLine("## Stages");
             sb.AppendLine();
@@ -416,7 +436,7 @@ namespace RiggedShoeBalance
             sb.AppendLine("|---|---|---|---|---|---:|---|---|---|");
             foreach (ModifierDef m in study.Mechanics.Modifiers.OrderBy(x => x.Id))
             {
-                string status = EmittedTriggers.Contains(m.Trigger) ? "emitted" : "not emitted";
+                string status = ModeledTriggers.Contains(m.Trigger) ? "emitted" : "not emitted";
                 sb.Append("| ").Append(EscapeMd(m.Id)).Append(" | ").Append(EscapeMd(m.Name)).Append(" | ").Append(m.Rarity).Append(" | ").Append(m.Trigger).Append(" | ");
                 sb.Append(EscapeMd(string.Join(", ", m.Tags.ToArray()))).Append(" | ").Append(m.MinTier).Append(" | ").Append(EscapeMd(m.Source)).Append(" | ");
                 sb.Append(EscapeMd(m.BehaviorSummary())).Append(" | ").Append(status).Append(" |").AppendLine();
@@ -424,7 +444,7 @@ namespace RiggedShoeBalance
             sb.AppendLine();
             sb.AppendLine("## Legacy Upgrade Cards");
             sb.AppendLine();
-            sb.AppendLine("Legacy per-hand upgrade drafts are disabled by `shouldOfferLegacyShoeUpgradeDrafts == false`, but stage/boss rewards can still add random legacy upgrades. These remain cataloged because they are implemented and reachable.");
+            sb.AppendLine("Legacy per-hand upgrade drafts are disabled and stage/boss production rewards no longer grant legacy upgrades. Legacy cards remain cataloged as archived compatibility data.");
             sb.AppendLine();
             sb.AppendLine("| Name | Rarity | Tags | Source | Effect |");
             sb.AppendLine("|---|---|---|---|---|");
@@ -499,11 +519,13 @@ namespace RiggedShoeBalance
             List<MechanicEffect> weakest = study.MechanicEffects.OrderBy(e => e.SelectionRate + e.TriggerRate + Math.Abs(e.MarginalCompletion)).Take(10).ToList();
             List<MechanicEffect> strongest = study.MechanicEffects.OrderByDescending(e => e.MarginalCompletion).Take(10).ToList();
             List<MechanicEffect> dead = study.MechanicEffects.Where(e => e.TagsEvidence.IndexOf("DEAD", StringComparison.OrdinalIgnoreCase) >= 0).Take(20).ToList();
+            string[] unmodeledTriggers = DeclaredButUnmodeledTriggers();
+            string unmodeledText = unmodeledTriggers.Length == 0 ? "none" : "`" + string.Join("`, `", unmodeledTriggers) + "`";
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("# Executive Verdict");
             sb.AppendLine();
-            sb.AppendLine("The current tree is meaningfully volatile, but the measured strategic layer is uneven. Player choices matter: optimized play beat novice play by " + Pct(agencySimpleOpt) + " completion rate and random play by " + Pct(agencyRandomOpt) + ". Baccarat randomness still dominates individual hands and produces wide bankroll tails, but the tree also contains large dead zones because many declared modifier triggers are not emitted by the live battle flow.");
+            sb.AppendLine("The rebalanced tree remains meaningfully volatile. Player choices matter: optimized play beat novice play by " + Pct(agencySimpleOpt) + " completion rate and random play by " + Pct(agencyRandomOpt) + ". Baccarat randomness still dominates individual hands and produces wide bankroll tails; the active-roster filter prevents retired mechanics from being treated as production options.");
             sb.AppendLine();
             sb.AppendLine("The challenge curve is understandable in broad strokes, but not clean. Early stages mostly test bankroll survival, boss stages add visible pressure, and late results depend heavily on whether a player assembles a small number of economy, refund, and bet-control engines. Confidence is moderate for the measured command-line model and lower for exact production parity because Swift parity could not be executed in this Windows environment.");
             sb.AppendLine();
@@ -514,11 +536,11 @@ namespace RiggedShoeBalance
             sb.AppendLine();
             sb.AppendLine("# Most Important Findings");
             sb.AppendLine();
-            AppendFinding(sb, 1, "Several modifier trigger families are dead in the observed battle flow.", "Modifiers using `bossStarted`, `naturalOccurred`, `pairOccurred`, `cardDrawn`, `handStarted`, and `finalHand` have no matching `resolveActiveModifiers` emission.", dead.Count + " sampled effects flagged DEAD/NO-OP.", "Sampled ablations: " + study.MechanicEffects.Count, "N/A", "Players can buy or draft mechanics that never fire.", "CUT/REDESIGN", "Wire the trigger events or remove those shop entries until they are live.");
+            AppendFinding(sb, 1, "Trigger coverage is now explicit.", "Declared hooks not modeled by the command-line battle flow: " + unmodeledText + ".", dead.Count + " sampled effects flagged DEAD/NO-OP.", "Sampled ablations: " + study.MechanicEffects.Count, "N/A", "Players should not be offered mechanics whose hooks are absent from production flow.", unmodeledTriggers.Length == 0 ? "KEEP" : "CUT/REDESIGN", "Keep production modifiers on modeled hooks or add matching event emissions before making them shop-eligible.");
             AppendFinding(sb, 2, "Player agency is present but concentrated.", "Completion gap optimized vs novice is " + Pct(agencySimpleOpt) + "; optimized vs random is " + Pct(agencyRandomOpt) + ".", "Agency gap measured on paired-style deterministic policies.", "Baseline samples: " + opt.Runs + " optimized, " + novice.Runs + " novice, " + random.Runs + " random.", "See simulation_summary.csv.", "Some choices matter a lot while many catalog choices are decorative.", "TUNE", "Make dead/fake choices live before tuning win rates.");
             AppendFinding(sb, 3, "Baccarat volatility remains important.", "Fixed-shoe and fixed-tree variance experiments still show wide ending bankroll spread.", "Optimized p05/p95 bankroll: " + Money((int)opt.PercentileEnding(5)) + " / " + Money((int)opt.PercentileEnding(95)) + ".", "Variance study samples: " + (study.VarianceConfigs.Count > 0 ? study.VarianceConfigs[0].Runs.ToString() : "0") + " per config.", "See variance chart.", "Runs do not collapse into deterministic outcomes.", "KEEP", "Avoid increasing always-on reveal or payout multipliers.");
             AppendFinding(sb, 4, "Strong practical builds lean toward economy/refund/bet-control stability.", "Top build rankings repeatedly contain economy, comeback, banker, and bet-control tags.", "Best observed build completion exceeds baseline optimized mean in build_rankings.csv.", "Build samples from all baseline runs.", "See build_rankings.csv.", "Late-game success can become about assembling a narrow engine.", "TUNE", "Keep opportunity costs high for repeatable bankroll/refund pieces.");
-            AppendFinding(sb, 5, "Tie, natural, and pair content has poor practical reliability.", "Tie wins are rare, while natural/pair hooks are not emitted as modifier events.", "Many such picks show low trigger-rate or dead tags.", "Mechanic samples: " + study.MechanicEffects.Count + ".", "See mechanic_effects.csv.", "These mechanics add cognitive load without dependable payoff.", "CUT/MERGE/REDESIGN", "Merge unsupported trigger families into emitted result hooks.");
+            AppendFinding(sb, 5, "Tie, natural, and pair content is reliability-sensitive.", "Tie wins are rare; natural and pair hooks are modeled but depend on low-frequency baccarat outcomes.", "Many such picks show low trigger or selection rates.", "Mechanic samples: " + study.MechanicEffects.Count + ".", "See mechanic_effects.csv.", "These mechanics need clearer payoff framing than steady wager hooks.", "TUNE/REDESIGN", "Use low-frequency hooks for sharp moments, not as the only value in normal shop picks.");
             int findingIndex = 6;
             foreach (MechanicEffect e in strongest.Take(5))
             {
@@ -564,10 +586,10 @@ namespace RiggedShoeBalance
             sb.AppendLine();
             sb.AppendLine("# Minimal Balance Pass");
             sb.AppendLine();
-            sb.AppendLine("1. First, either emit or remove the unsupported trigger families. This is a content-validity fix, not a numeric rebalance.");
+            sb.AppendLine("1. Keep declared-but-unmodeled hooks out of production modifiers until the app and simulator both emit them.");
             sb.AppendLine("2. Keep Baccarat volatility intact by avoiding broader passive forecast counts until dead content is resolved.");
             sb.AppendLine("3. Tune high-impact economy/refund/bet-control pieces only after re-running the parameter sweeps with production Swift parity available.");
-            sb.AppendLine("4. Merge pair/natural/final-hand mechanics into emitted `handResolved`, `playerWonBet`, or `tieOccurred` paths if those fantasy lines remain desirable.");
+            sb.AppendLine("4. Keep low-frequency pair/natural/final-hand mechanics paired with broader `handResolved`, `wagerWon`, or `tieOccurred` value when they enter normal shops.");
             sb.AppendLine();
             sb.AppendLine("# Remaining Uncertainty and Required Human Playtests");
             sb.AppendLine();
@@ -1046,6 +1068,7 @@ namespace RiggedShoeBalance
             {
                 TryAddModifier(s, id, true);
             }
+            ResolveEvent(s, GameEvent.RunStarted());
 
             SimResult result = new SimResult();
             result.Seed = options.Seed;
@@ -1080,8 +1103,12 @@ namespace RiggedShoeBalance
                 s.HouseRuleShiftUsed = false;
                 ResetStageUses(s);
 
-                ApplyStageStarted(s);
                 s.ActiveBoss = stage.BossName;
+                ApplyStageStarted(s);
+                if (stage.IsBoss)
+                {
+                    ResolveEvent(s, GameEvent.BossStarted());
+                }
                 ApplyBossStageStartLegacy(s);
                 AddTrace(result, options, "stage_start stage=" + stage.Id + " hands=" + stage.Hands + " ante_cents=" + stage.AnteCents + " min_bet_cents=" + stage.MinimumBetCents + " bankroll_cents=" + s.Bankroll + " heat=" + s.Heat + " chips=" + s.Chips + " boss=" + (stage.BossName.Length == 0 ? "none" : stage.BossName) + " active_mods=" + ShortModList(s));
 
@@ -1090,12 +1117,20 @@ namespace RiggedShoeBalance
 
                 for (int hand = 1; hand <= stage.Hands; hand++)
                 {
+                    ResetHandUses(s);
+                    ResolveEvent(s, GameEvent.HandStarted());
+                    if (hand == stage.Hands)
+                    {
+                        ResolveEvent(s, GameEvent.FinalHand());
+                    }
+
                     if (s.Shoe.Count < 20)
                     {
                         s.Shoe = NewShoe(ref s.ShoeRng, 6);
                         ApplyReshuffleLegacy(s);
                     }
 
+                    ResolveEvent(s, GameEvent.BeforeBet());
                     BetDecision decision = ChooseBet(s);
                     if (decision.Amount <= 0 || s.Bankroll < decision.Amount || s.Bankroll < stage.MinimumBetCents)
                     {
@@ -1118,6 +1153,18 @@ namespace RiggedShoeBalance
                     int cardsBefore = s.Shoe.Count;
                     DealOutcome deal = DealHand(s);
                     int cardsDealt = cardsBefore - s.Shoe.Count;
+                    for (int draw = 0; draw < cardsDealt; draw++)
+                    {
+                        ResolveEvent(s, GameEvent.CardDrawn());
+                    }
+                    if (deal.Natural)
+                    {
+                        ResolveEvent(s, GameEvent.NaturalOccurred());
+                    }
+                    if (HasOpeningPair(deal))
+                    {
+                        ResolveEvent(s, GameEvent.PairOccurred());
+                    }
                     Payout payout = ResolvePayout(s, decision.Side, decision.Amount, deal, cardsDealt);
                     s.Bankroll += payout.TotalReturn;
                     bool didWin = !payout.IsPush && deal.Winner == decision.Side;
@@ -1132,7 +1179,7 @@ namespace RiggedShoeBalance
                     {
                         ResolveEvent(s, GameEvent.PlayerWon(decision.Side, deal.Winner, decision.Amount, payout.TotalReturn));
                     }
-                    else
+                    else if (!payout.IsPush)
                     {
                         ResolveEvent(s, GameEvent.PlayerLost(decision.Side, deal.Winner, decision.Amount));
                     }
@@ -1140,6 +1187,7 @@ namespace RiggedShoeBalance
                     {
                         ResolveEvent(s, GameEvent.TieOccurred());
                     }
+                    ResolveEvent(s, GameEvent.HandResolved(decision.Side, deal.Winner, decision.Amount));
 
                     int opponentDelta = OpponentProfit(stage, hand, s.LastWinner, decision.Side, deal.Winner);
                     s.StageOpponentProfit += opponentDelta;
@@ -1221,6 +1269,7 @@ namespace RiggedShoeBalance
 
                 if (stage.IsBoss)
                 {
+                    ResolveEvent(s, GameEvent.BossDefeated());
                     s.BossesDefeated++;
                     int rewardBefore = result.RewardsPicked.Count;
                     int modifierBefore = result.ModifiersPicked.Count;
@@ -1240,6 +1289,7 @@ namespace RiggedShoeBalance
                 AddTraceChoices(result, options, "shop", shopRewardBefore, shopModifierBefore);
             }
 
+            ResolveEvent(s, GameEvent.RunEnded());
             result.EndingBankroll = s.Bankroll;
             result.HighestBankroll = Math.Max(s.HighestBankroll, s.Bankroll);
             result.Heat = s.Heat;
@@ -1281,17 +1331,17 @@ namespace RiggedShoeBalance
 
         private static Contact ChooseContact(Mechanics m, string policy, ref Lcg rng)
         {
-            string id = "contact.tourist";
-            if (policy == "novice") id = "contact.accountant";
-            else if (policy == "greedy") id = "contact.whale";
-            else if (policy == "risk_aware") id = "contact.ghost";
-            else if (policy == "optimized") id = "contact.dealer";
+            string id = "contact.lucky-chip";
+            if (policy == "novice") id = "contact.lucky-chip";
+            else if (policy == "greedy") id = "contact.player-surge";
+            else if (policy == "risk_aware") id = "contact.clean-hands";
+            else if (policy == "optimized") id = "contact.lucky-chip";
             else if (policy == "random")
             {
                 List<Contact> all = m.Contacts.Values.ToList();
                 return all[rng.NextInt(all.Count)];
             }
-            return m.Contacts.ContainsKey(id) ? m.Contacts[id] : m.Contacts["contact.tourist"];
+            return m.Contacts.ContainsKey(id) ? m.Contacts[id] : m.Contacts["contact.lucky-chip"];
         }
 
         private static void ApplyStageStarted(SimState s)
@@ -1350,12 +1400,13 @@ namespace RiggedShoeBalance
                 int scale = s.Options.GlobalScalePercent;
                 if (s.Options.ScaleMap != null && s.Options.ScaleMap.ContainsKey(m.Id)) scale = s.Options.ScaleMap[m.Id];
                 int level = Math.Max(1, Math.Min(3, inst.Level));
+                int anteCents = s.Stage != null ? s.Stage.AnteCents : 0;
                 ModifierResolution r = new ModifierResolution();
                 r.ModifierId = m.Id;
                 r.ModifierName = m.Name;
                 r.HeatDelta += m.HeatCost;
 
-                r.BankrollDelta += Scaled(s.Stage.AnteCents * m.AntePercent[level - 1] / 100, scale);
+                r.BankrollDelta += Scaled(anteCents * m.AntePercent[level - 1] / 100, scale);
                 r.ChipDelta += Scaled(m.Chips[level - 1], scale);
                 if (m.ChipFirstStageOnly && inst.StageChipGranted) r.ChipDelta = 0;
                 if (m.ChipFirstStageOnly && r.ChipDelta > 0) inst.StageChipGranted = true;
@@ -1367,11 +1418,11 @@ namespace RiggedShoeBalance
                     r.HeatDelta -= prevented;
                     r.HeatPrevented = prevented;
                 }
-                if (evt.Trigger == "playerLostBet")
+                if (evt.Trigger == "wagerLost")
                 {
                     r.BankrollDelta += Scaled(evt.Amount * m.RefundPercent[level - 1] / 100, scale);
                 }
-                if (evt.Trigger == "playerWonBet")
+                if (evt.Trigger == "wagerWon")
                 {
                     int pct = m.PayoutPercentFor(evt.BetType, level);
                     r.BankrollDelta += Scaled(evt.Amount * pct / 100, scale);
@@ -1623,6 +1674,16 @@ namespace RiggedShoeBalance
         {
             int t = HandTotal(cards);
             return cards.Count == 2 && (t == 8 || t == 9);
+        }
+
+        private static bool HasOpeningPair(DealOutcome deal)
+        {
+            return HasOpeningPair(deal.PlayerCards) || HasOpeningPair(deal.BankerCards);
+        }
+
+        private static bool HasOpeningPair(List<Card> cards)
+        {
+            return cards != null && cards.Count >= 2 && cards[0].Rank == cards[1].Rank;
         }
 
         private static bool ShouldBankerDraw(int bankerTotal, Card? playerThird)
@@ -1887,9 +1948,9 @@ namespace RiggedShoeBalance
                 return f.Recommended;
             }
             Dictionary<string, int> tagCounts = s.TagCounts();
-            if (tagCounts.Get("tie") >= 3 && s.Stage.TableEventId == "tie-promo") return "tie";
-            if (tagCounts.Get("player") > tagCounts.Get("banker") + 1) return "player";
-            return BestBaseSide(s);
+            if (tagCounts.Get("tie") >= 3 && s.Stage.TableEventId == "tie-promo" && s.Bankroll >= s.Stage.AnteCents * 20) return "tie";
+            if (tagCounts.Get("player") > tagCounts.Get("banker") + 2 && s.Bankroll >= s.Stage.AnteCents * 10) return "player";
+            return "banker";
         }
 
         private static int OptimizedAmount(SimState s, List<int> amounts, string side, Forecast f)
@@ -1901,8 +1962,8 @@ namespace RiggedShoeBalance
             if (s.Heat >= 8 || s.Bankroll < s.Stage.AnteCents * 6) return amounts[0];
             if (side == "tie") return amounts[0];
             int pressure = s.StageOpponentProfit - (s.Bankroll - s.StageStartBankroll);
-            if (pressure > s.Stage.AnteCents * 2) return amounts[Math.Min(amounts.Count - 1, 1)];
-            return amounts[Math.Min(amounts.Count - 1, 1)];
+            if (pressure > s.Stage.AnteCents * 4 && s.Bankroll >= s.Stage.AnteCents * 10) return amounts[Math.Min(amounts.Count - 1, 1)];
+            return amounts[0];
         }
 
         private static double EstimateChoiceSpread(SimState s)
@@ -2040,10 +2101,15 @@ namespace RiggedShoeBalance
         private static int OpponentTolerance(Stage stage)
         {
             if (stage.Id == 1) return stage.AnteCents * 9;
-            if (stage.Id == 2) return stage.AnteCents * 3;
-            if (stage.Id == 3) return stage.AnteCents * 2;
-            if (stage.Id == 4) return stage.AnteCents / 2;
-            if (stage.Id == 7) return stage.AnteCents * 8;
+            if (stage.Id == 2) return stage.AnteCents * 5;
+            if (stage.Id == 3) return stage.AnteCents * 5;
+            if (stage.Id == 4) return stage.AnteCents * 8;
+            if (stage.Id == 5) return stage.AnteCents * 7;
+            if (stage.Id == 6) return stage.AnteCents * 7;
+            if (stage.Id == 7) return stage.AnteCents * 12;
+            if (stage.Id == 8) return stage.AnteCents * 10;
+            if (stage.Id == 9) return stage.AnteCents * 10;
+            if (stage.Id == 10) return stage.AnteCents * 10;
             return 0;
         }
 
@@ -2159,7 +2225,7 @@ namespace RiggedShoeBalance
             if (r.Kind == "cash")
             {
                 int baseCash = s.Stage.AnteCents * r.CashMultiplier / 100;
-                int cap = Math.Max(0, s.Bankroll / 2);
+                int cap = Math.Max(0, s.Bankroll);
                 int cash = Math.Min(baseCash, cap) * s.Contact.CashRewardMultiplierPercent / 100;
                 s.Bankroll += cash;
             }
@@ -2190,7 +2256,7 @@ namespace RiggedShoeBalance
             result.RewardsPicked.Add(chosen.Name);
             if (chosen.Kind == "cash")
             {
-                int cash = Math.Min(s.Stage.AnteCents * chosen.CashMultiplier / 100, s.Bankroll / 2) * s.Contact.CashRewardMultiplierPercent / 100;
+                int cash = Math.Min(s.Stage.AnteCents * chosen.CashMultiplier / 100, s.Bankroll) * s.Contact.CashRewardMultiplierPercent / 100;
                 s.Bankroll += cash;
                 s.Chips += chosen.Chips;
             }
@@ -2199,6 +2265,12 @@ namespace RiggedShoeBalance
             else if (chosen.Kind == "tiePayout") s.TiePayoutOverride = Math.Max(s.TiePayoutOverride, chosen.Multiplier);
             else if (chosen.Kind == "removeFaceAll") RemoveFaceCards(s, 1000);
             else if (chosen.Kind == "extraRounds") s.FutureStageRoundBonus += chosen.Count;
+            else if (chosen.Kind == "capstone")
+            {
+                ModifierDef mod = DraftCapstoneModifier(s);
+                if (mod != null) TryAddModifier(s, mod.Id, true);
+                else s.Chips += 3;
+            }
             else if (chosen.Kind == "legacyUpgrade")
             {
                 UpgradeDef u = DraftLegacyUpgrade(s, "legendary");
@@ -2217,6 +2289,7 @@ namespace RiggedShoeBalance
             {
                 double score = r.CashMultiplier * s.Stage.AnteCents / 100.0 + r.Chips * 9000 + r.Count * 600 + r.Multiplier * 3000;
                 if (r.Kind == "extraRounds") score += 30000;
+                if (r.Kind == "capstone") score += 45000;
                 if (r.Kind == "legacyUpgrade") score += 35000;
                 if (r.Kind == "tiePayout" && s.TagCounts().Get("tie") < 2) score *= 0.3;
                 if (score > best) { best = score; chosen = r; }
@@ -2252,21 +2325,16 @@ namespace RiggedShoeBalance
             int tier = ShopTier(s.Stage.Id, s.BossesDefeated);
             List<ShopOffer> offers = new List<ShopOffer>();
             HashSet<string> owned = new HashSet<string>(s.ActiveMods.Select(m => m.Def.Id).Concat(s.BenchMods.Select(m => m.Def.Id)));
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 3; i++)
             {
-                int roll = s.TreeRng.NextInt(100);
-                if (roll < 68 || i == 0)
+                List<ModifierDef> weighted = WeightedModifiers(s, tier, owned)
+                    .Where(m => !offers.Any(o => o.Kind == "modifier" && o.ContentId == m.Id))
+                    .ToList();
+                if (weighted.Count == 0) weighted = WeightedModifiers(s, tier, owned);
+                if (weighted.Count > 0)
                 {
-                    List<ModifierDef> weighted = WeightedModifiers(s, tier, owned);
-                    if (weighted.Count > 0)
-                    {
-                        ModifierDef m = weighted[s.TreeRng.NextInt(weighted.Count)];
-                        offers.Add(new ShopOffer("modifier", m.Id, m.Cost));
-                    }
-                }
-                else
-                {
-                    offers.Add(new ShopOffer("minor", "consumable-or-attachment", roll < 86 ? 2 : 3));
+                    ModifierDef m = weighted[s.TreeRng.NextInt(weighted.Count)];
+                    offers.Add(new ShopOffer("modifier", m.Id, m.Cost));
                 }
             }
             return offers;
@@ -2274,7 +2342,9 @@ namespace RiggedShoeBalance
 
         private static List<ModifierDef> WeightedModifiers(SimState s, int tier, HashSet<string> owned)
         {
-            List<ModifierDef> candidates = s.Mechanics.Modifiers.Where(m => m.MinTier <= tier && m.Rarity != "boss" && m.Id != s.Options.DisabledModifierId).ToList();
+            List<ModifierDef> candidates = s.Mechanics.Modifiers
+                .Where(m => m.MinTier <= tier && Mechanics.IsRegularModifierId(m.Id) && m.Id != s.Options.DisabledModifierId)
+                .ToList();
             List<ModifierDef> weighted = new List<ModifierDef>();
             HashSet<string> contactTags = new HashSet<string>(s.Contact.ShopBiasTags);
             foreach (ModifierDef m in candidates)
@@ -2337,7 +2407,7 @@ namespace RiggedShoeBalance
             ModifierDef def = s.Mechanics.ModifierById[id];
             foreach (ModifierInstance mi in s.ActiveMods)
             {
-                if (mi.Def.Id == id && mi.Level < 3)
+                if (mi.Def.Id == id && mi.Level < Mechanics.MaxLevelForModifierId(id))
                 {
                     mi.Level++;
                     ResolveEvent(s, GameEvent.ModifierLeveled(id));
@@ -2346,11 +2416,15 @@ namespace RiggedShoeBalance
             }
             foreach (ModifierInstance mi in s.BenchMods)
             {
-                if (mi.Def.Id == id && mi.Level < 3)
+                if (mi.Def.Id == id && mi.Level < Mechanics.MaxLevelForModifierId(id))
                 {
                     mi.Level++;
                     return true;
                 }
+            }
+            if (s.ActiveMods.Any(mi => mi.Def.Id == id) || s.BenchMods.Any(mi => mi.Def.Id == id))
+            {
+                return false;
             }
             if (s.ActiveMods.Count < 5)
             {
@@ -2368,7 +2442,9 @@ namespace RiggedShoeBalance
         private static ModifierDef DraftModifier(SimState s, string rarity)
         {
             int tier = ShopTier(s.Stage.Id, s.BossesDefeated);
-            List<ModifierDef> candidates = s.Mechanics.Modifiers.Where(m => m.MinTier <= tier && m.Rarity != "boss" && (rarity.Length == 0 || m.Rarity == rarity) && m.Id != s.Options.DisabledModifierId).ToList();
+            List<ModifierDef> candidates = s.Mechanics.Modifiers
+                .Where(m => m.MinTier <= tier && Mechanics.IsRegularModifierId(m.Id) && (rarity.Length == 0 || m.Rarity == rarity) && m.Id != s.Options.DisabledModifierId)
+                .ToList();
             if (candidates.Count == 0) return null;
             List<ModifierDef> weighted = new List<ModifierDef>();
             Dictionary<string, int> tags = s.TagCounts();
@@ -2376,6 +2452,24 @@ namespace RiggedShoeBalance
             {
                 weighted.Add(m);
                 foreach (string t in m.Tags) if (tags.Get(t) > 0) { weighted.Add(m); weighted.Add(m); }
+            }
+            return weighted[s.RewardRng.NextInt(weighted.Count)];
+        }
+
+        private static ModifierDef DraftCapstoneModifier(SimState s)
+        {
+            HashSet<string> owned = new HashSet<string>(s.ActiveMods.Concat(s.BenchMods).Select(m => m.Def.Id));
+            List<ModifierDef> candidates = s.Mechanics.Modifiers
+                .Where(m => Mechanics.IsCapstoneModifierId(m.Id) && !owned.Contains(m.Id) && m.Id != s.Options.DisabledModifierId)
+                .ToList();
+            if (candidates.Count == 0) return null;
+            List<ModifierDef> weighted = new List<ModifierDef>();
+            Dictionary<string, int> tags = s.TagCounts();
+            foreach (ModifierDef m in candidates)
+            {
+                int weight = 1;
+                foreach (string t in m.Tags) weight += tags.Get(t);
+                for (int i = 0; i < Math.Max(1, weight); i++) weighted.Add(m);
             }
             return weighted[s.RewardRng.NextInt(weighted.Count)];
         }
@@ -2427,6 +2521,14 @@ namespace RiggedShoeBalance
             }
         }
 
+        private static void ResetHandUses(SimState s)
+        {
+            foreach (ModifierInstance mi in s.ActiveMods.Concat(s.BenchMods))
+            {
+                mi.HandUses = 0;
+            }
+        }
+
         private static string BuildKey(SimState s)
         {
             List<string> ids = s.ActiveMods.Select(mi => mi.Def.Id).OrderBy(x => x).ToList();
@@ -2451,6 +2553,40 @@ namespace RiggedShoeBalance
         public List<BossRewardDef> BossRewards = new List<BossRewardDef>();
         public Dictionary<string, Contact> Contacts = new Dictionary<string, Contact>();
 
+        private static readonly HashSet<string> ActiveModifierIds = new HashSet<string>(new[] {
+            "core.banker-bias", "core.player-surge", "core.opening-tell", "core.tie-insurance", "core.lucky-chip", "core.clean-hands",
+            "banker.commission-dodge", "banker.banker-anchor", "banker.dealers-nod", "banker.banco-press", "banker.banker-lock",
+            "player.side-step", "player.punto-insurance", "player.reversal-read", "player.player-tempo", "player.break-pattern",
+            "tie.tie-whisperer", "tie.mirror-bet", "tie.split-signal", "tie.equalizer", "tie.tie-master",
+            "vision.soft-peek", "vision.deep-read", "vision.pattern-memory", "vision.tie-forecast", "vision.third-card-forecast",
+            "control.soft-cut", "control.slipstream", "loaded.add-nine", "loaded.marked-nine", "control.hot-cut",
+            "heat.low-profile", "heat.soft-footsteps", "bet.press-edge", "bet.high-roller", "boss.house-crack",
+            "economy.interest-ledger", "economy.comp-points", "debt.emergency-marker", "debt.last-dollar", "boss.boss-bounty"
+        });
+
+        private static readonly HashSet<string> StarterModifierIds = new HashSet<string>(new[] {
+            "core.banker-bias", "core.player-surge", "core.opening-tell", "core.tie-insurance", "core.lucky-chip", "core.clean-hands"
+        });
+
+        private static readonly HashSet<string> CapstoneModifierIds = new HashSet<string>(new[] {
+            "banker.banker-lock", "player.break-pattern", "tie.tie-master", "vision.third-card-forecast", "control.hot-cut", "boss.house-crack", "boss.boss-bounty"
+        });
+
+        internal static bool IsRegularModifierId(string id)
+        {
+            return ActiveModifierIds.Contains(id) && !StarterModifierIds.Contains(id) && !CapstoneModifierIds.Contains(id);
+        }
+
+        internal static bool IsCapstoneModifierId(string id)
+        {
+            return CapstoneModifierIds.Contains(id);
+        }
+
+        internal static int MaxLevelForModifierId(string id)
+        {
+            return CapstoneModifierIds.Contains(id) ? 1 : 3;
+        }
+
         public static Mechanics Load(string repoRoot)
         {
             Mechanics m = new Mechanics();
@@ -2459,24 +2595,19 @@ namespace RiggedShoeBalance
             LoadStageRewards(m);
             LoadBossRewards(m);
             LoadModifiers(m, Path.Combine(repoRoot, "RiggedShoe", "Models", "ModifierModels.swift"));
+            ApplyRebalancedManifest(m);
             LoadUpgrades(m, Path.Combine(repoRoot, "RiggedShoe", "Models", "UpgradeCard.swift"));
             return m;
         }
 
         private static void LoadContacts(Mechanics m)
         {
-            AddContact(m, "contact.dealer", "The Dealer", -2500, 0, 0, 100, 100, new[] { "core.opening-tell" }, new[] { "shoeVision", "natural" });
-            AddContact(m, "contact.accountant", "The Accountant", 0, 2, 0, 70, 100, new[] { "economy.interest-ledger" }, new[] { "economy", "betControl" });
-            AddContact(m, "contact.whale", "The Whale", 7500, 0, 1, 100, 100, new[] { "bet.high-roller" }, new[] { "betControl", "comeback" });
-            AddContact(m, "contact.mechanic", "The Mechanic", 0, 0, 1, 100, 100, new[] { "control.burn-notice" }, new[] { "shoeControl", "cardSculpting" });
-            AddContact(m, "contact.tourist", "The Tourist", 0, 0, 0, 100, 100, new[] { "core.lucky-chip" }, new[] { "economy", "banker", "player" });
-            AddContact(m, "contact.grifter", "The Grifter", 0, 0, 0, 100, 100, new[] { "player.side-step" }, new[] { "player", "comeback" });
-            AddContact(m, "contact.tie-chaser", "The Tie Chaser", -1500, 0, 0, 100, 100, new[] { "core.tie-insurance" }, new[] { "tie", "comeback" });
-            AddContact(m, "contact.ghost", "The Ghost", 0, 0, 0, 100, 80, new[] { "core.clean-hands" }, new[] { "heat", "opponentSabotage" });
-            AddContact(m, "contact.naturalist", "The Naturalist", 0, 0, 0, 100, 100, new[] { "natural.natural-read" }, new[] { "natural", "shoeVision" });
-            AddContact(m, "contact.pair-spotter", "The Pair Spotter", 0, 0, 0, 100, 100, new[] { "pair.pair-hunter" }, new[] { "pair", "tie", "economy" });
-            AddContact(m, "contact.marker-broker", "The Marker Broker", 2500, 0, 1, 100, 100, new[] { "debt.emergency-marker" }, new[] { "economy", "comeback", "heat" });
-            AddContact(m, "contact.closer", "The Closer", 0, 0, 0, 100, 100, new[] { "final.closer" }, new[] { "streak", "boss", "betControl" });
+            AddContact(m, "contact.banker-bias", "Banker Bias", 0, 0, 0, 100, 100, new[] { "core.banker-bias" }, new[] { "banker", "shoeVision", "economy" });
+            AddContact(m, "contact.player-surge", "Player Surge", 0, 0, 0, 100, 100, new[] { "core.player-surge" }, new[] { "player", "shoeVision", "comeback" });
+            AddContact(m, "contact.opening-tell", "Opening Tell", -1000, 0, 0, 100, 100, new[] { "core.opening-tell" }, new[] { "shoeVision", "shoeControl", "tie" });
+            AddContact(m, "contact.tie-insurance", "Tie Insurance", -1000, 0, 0, 100, 100, new[] { "core.tie-insurance" }, new[] { "tie", "comeback", "shoeVision" });
+            AddContact(m, "contact.lucky-chip", "Lucky Chip", 0, 1, 0, 100, 100, new[] { "core.lucky-chip" }, new[] { "economy", "banker", "player" });
+            AddContact(m, "contact.clean-hands", "Clean Hands", 0, 0, 0, 100, 90, new[] { "core.clean-hands" }, new[] { "heat", "betControl", "economy" });
         }
 
         private static void AddContact(Mechanics m, string id, string name, int bankroll, int chips, int heat, int early, int cash, string[] mods, string[] tags)
@@ -2489,38 +2620,24 @@ namespace RiggedShoeBalance
 
         private static void LoadStageRewards(Mechanics m)
         {
-            m.StageRewards.Add(StageRewardDef.Cash("Ante Kickback", 100));
-            m.StageRewards.Add(StageRewardDef.Cash("Table Comp", 150));
+            m.StageRewards.Add(StageRewardDef.Cash("Ante Kickback", 200));
+            m.StageRewards.Add(StageRewardDef.Cash("Table Comp", 300));
             m.StageRewards.Add(StageRewardDef.ChipReward("Chip Runner", 2));
-            m.StageRewards.Add(StageRewardDef.Cash("High Table Cut", 200));
+            m.StageRewards.Add(StageRewardDef.Cash("High Table Cut", 400));
             m.StageRewards.Add(StageRewardDef.Heat("Cool Down", 2));
             m.StageRewards.Add(StageRewardDef.Rebuild("Modifier Voucher", "modifierDraft", ""));
             m.StageRewards.Add(StageRewardDef.Rebuild("Rare Modifier Voucher", "modifierDraft", "rare"));
             m.StageRewards.Add(StageRewardDef.Rebuild("Consumable Case", "consumableDraft", ""));
             m.StageRewards.Add(StageRewardDef.Rebuild("Attachment Case", "attachmentDraft", ""));
-            m.StageRewards.Add(StageRewardDef.Legacy("Double Down", "duplicate"));
-            m.StageRewards.Add(StageRewardDef.Legacy("Rare Contact", "rare"));
-            m.StageRewards.Add(StageRewardDef.Legacy("Legendary Contact", "legendary"));
-            m.StageRewards.Add(StageRewardDef.Tie("Tie Pressure", 2));
-            m.StageRewards.Add(StageRewardDef.ShoeHigh("High Card Drop", 8));
-            m.StageRewards.Add(StageRewardDef.RemoveFace("Face Sweep", 8));
         }
 
         private static void LoadBossRewards(Mechanics m)
         {
-            m.BossRewards.Add(BossRewardDef.Simple("Player Consortium", "legacyUpgrade"));
-            m.BossRewards.Add(BossRewardDef.Simple("Banker Consortium", "legacyUpgrade"));
-            m.BossRewards.Add(BossRewardDef.CountReward("High Roller Shoe", "shoeHigh", 20));
-            m.BossRewards.Add(BossRewardDef.CountReward("Open Ledger", "reveal", 15));
-            m.BossRewards.Add(BossRewardDef.MultReward("Tie Conspiracy", "tiePayout", 30));
-            m.BossRewards.Add(BossRewardDef.Cash("Vault Leak", 500, 6));
-            m.BossRewards.Add(BossRewardDef.Simple("Echo Chamber", "legacyUpgrade"));
-            m.BossRewards.Add(BossRewardDef.Simple("Face Card Blackout", "removeFaceAll"));
-            m.BossRewards.Add(BossRewardDef.Simple("Legendary Wire", "legacyUpgrade"));
             m.BossRewards.Add(BossRewardDef.Simple("Pit Boss Nod", "relic"));
             m.BossRewards.Add(BossRewardDef.Simple("Vault Key", "relic"));
             m.BossRewards.Add(BossRewardDef.Simple("Private Room", "relic"));
             m.BossRewards.Add(BossRewardDef.Simple("Surveillance Loop", "relic"));
+            m.BossRewards.Add(BossRewardDef.Simple("Capstone Invitation", "capstone"));
             m.BossRewards.Add(BossRewardDef.CountReward("Casino Inside Contact", "extraRounds", 3));
         }
 
@@ -2539,20 +2656,80 @@ namespace RiggedShoeBalance
             }
         }
 
+        private static void ApplyRebalancedManifest(Mechanics m)
+        {
+            m.Modifiers = m.Modifiers.Where(x => ActiveModifierIds.Contains(x.Id)).ToList();
+            m.ModifierById = m.Modifiers.ToDictionary(x => x.Id, x => x);
+
+            foreach (ModifierDef d in m.Modifiers)
+            {
+                if (CapstoneModifierIds.Contains(d.Id))
+                {
+                    d.MinTier = 5;
+                    d.Cost = 0;
+                }
+
+                if (d.Id == "banker.banker-anchor" || d.Id == "player.punto-insurance" || d.Id == "tie.mirror-bet" || d.Id == "debt.last-dollar")
+                {
+                    d.Trigger = "wagerLost";
+                    d.StageLimit = new[] { 1, 1, 1 };
+                }
+
+                if (d.Id == "banker.dealers-nod" || d.Id == "player.side-step")
+                {
+                    d.Trigger = "wagerWon";
+                    d.StageLimit = new[] { 1, 2, 3 };
+                    d.Reveal = new[] { 1, 1, 1 };
+                }
+
+                if (d.Id == "banker.banco-press" || d.Id == "player.reversal-read" || d.Id == "bet.press-edge")
+                {
+                    d.Trigger = "wagerWon";
+                    if (d.PayoutAny.Max() == 0 && d.PayoutBanker.Max() == 0 && d.PayoutPlayer.Max() == 0)
+                    {
+                        d.PayoutAny = new[] { 10, 15, 20 };
+                    }
+                }
+
+                if (d.Id == "bet.high-roller")
+                {
+                    d.Trigger = "wagerWon";
+                    d.PayoutAny = new[] { 25, 35, 50 };
+                    d.StageLimit = new[] { 1, 1, 1 };
+                    d.HeatCost = 1;
+                }
+
+                if (d.Id == "boss.house-crack")
+                {
+                    d.Trigger = "wagerWon";
+                    d.PayoutAny = new[] { 50, 50, 50 };
+                    d.StageLimit = new[] { 1, 1, 1 };
+                    d.HeatCost = 2;
+                }
+
+                if (d.Id == "boss.boss-bounty")
+                {
+                    d.Trigger = "bossDefeated";
+                    d.AntePercent = new[] { 100, 100, 100 };
+                    d.Chips = new[] { 3, 3, 3 };
+                }
+            }
+        }
+
         private static void AddCoreModifiers(Mechanics m)
         {
-            ModifierDef banker = ModifierDef.Core("core.banker-bias", "Banker Bias", "common", "playerWonBet", new[] { "banker", "betControl" }, 1, 3);
-            banker.PayoutBanker = new[] { 10, 18, 25 }; banker.RequiredBet = "banker"; banker.RequiredWinner = "banker"; banker.Chips[2] = 1; banker.ChipFirstStageOnly = true; AddModifier(m, banker);
-            ModifierDef player = ModifierDef.Core("core.player-surge", "Player Surge", "common", "playerWonBet", new[] { "player", "tempo" }, 1, 3);
-            player.AntePercent = new[] { 100, 150, 200 }; player.Chips[2] = 1; player.RequiredBet = "player"; player.RequiredWinner = "player"; player.FirstPlayerSideWin = true; player.StageLimit = new[] { 1, 1, 1 }; AddModifier(m, player);
-            ModifierDef tie = ModifierDef.Core("core.tie-insurance", "Tie Insurance", "common", "playerLostBet", new[] { "tie", "comeback" }, 1, 2);
-            tie.RefundPercent = new[] { 40, 55, 70 }; tie.RequiredBet = "tie"; tie.FirstTieLoss = true; tie.StageLimit = new[] { 1, 1, 1 }; AddModifier(m, tie);
-            ModifierDef tell = ModifierDef.Core("core.opening-tell", "Opening Tell", "rare", "stageStarted", new[] { "shoeVision" }, 1, 4);
-            tell.Reveal = new[] { 3, 4, 5 }; tell.StageLimit = new[] { 1, 1, 1 }; AddModifier(m, tell);
+            ModifierDef banker = ModifierDef.Core("core.banker-bias", "Banker Bias", "common", "wagerWon", new[] { "banker", "betControl" }, 1, 3);
+            banker.PayoutBanker = new[] { 5, 5, 5 }; banker.RequiredBet = "banker"; banker.StageLimit = new[] { 1, 2, 3 }; AddModifier(m, banker);
+            ModifierDef player = ModifierDef.Core("core.player-surge", "Player Surge", "common", "wagerWon", new[] { "player", "tempo" }, 1, 3);
+            player.PayoutPlayer = new[] { 10, 15, 20 }; player.Chips = new[] { 1, 1, 1 }; player.RequiredBet = "player"; player.ChipFirstStageOnly = true; AddModifier(m, player);
+            ModifierDef tie = ModifierDef.Core("core.tie-insurance", "Tie Insurance", "common", "wagerLost", new[] { "tie", "comeback" }, 1, 2);
+            tie.RefundPercent = new[] { 20, 30, 40 }; tie.RequiredBet = "tie"; tie.StageLimit = new[] { 1, 1, 1 }; AddModifier(m, tie);
+            ModifierDef tell = ModifierDef.Core("core.opening-tell", "Opening Tell", "common", "stageStarted", new[] { "shoeVision" }, 1, 3);
+            tell.Reveal = new[] { 1, 2, 2 }; tell.StageLimit = new[] { 1, 1, 1 }; AddModifier(m, tell);
             ModifierDef clean = ModifierDef.Core("core.clean-hands", "Clean Hands", "common", "heatGained", new[] { "heat" }, 1, 3);
-            clean.PreventHeat = new[] { 99, 99, 99 }; clean.Chips[2] = 1; clean.StageLimit = new[] { 1, 2, 2 }; AddModifier(m, clean);
-            ModifierDef chip = ModifierDef.Core("core.lucky-chip", "Lucky Chip", "common", "playerWonBet", new[] { "economy" }, 1, 2);
-            chip.Chips = new[] { 1, 1, 2 }; chip.AntePercent[1] = 50; chip.FirstWinningBet = true; chip.StageLimit = new[] { 1, 1, 1 }; AddModifier(m, chip);
+            clean.Chips = new[] { 1, 1, 1 }; clean.StageLimit = new[] { 1, 2, 3 }; AddModifier(m, clean);
+            ModifierDef chip = ModifierDef.Core("core.lucky-chip", "Lucky Chip", "common", "wagerWon", new[] { "economy" }, 1, 2);
+            chip.Chips = new[] { 1, 1, 1 }; chip.StageLimit = new[] { 1, 2, 3 }; AddModifier(m, chip);
         }
 
         private static ModifierDef ParseContentModifier(string line)
@@ -3023,17 +3200,28 @@ namespace RiggedShoeBalance
     {
         public string Trigger = "", BetType = "", Winner = "", ModifierId = "";
         public int Amount, HeatAmount, BasePayout;
+        public static GameEvent RunStarted() { return new GameEvent { Trigger = "runStarted" }; }
         public static GameEvent StageStarted() { return new GameEvent { Trigger = "stageStarted" }; }
+        public static GameEvent HandStarted() { return new GameEvent { Trigger = "handStarted" }; }
+        public static GameEvent BeforeBet() { return new GameEvent { Trigger = "beforeBet" }; }
         public static GameEvent BetPlaced(string bet, int amount) { return new GameEvent { Trigger = "betPlaced", BetType = bet, Amount = amount }; }
         public static GameEvent BeforeDeal() { return new GameEvent { Trigger = "beforeDeal" }; }
-        public static GameEvent PlayerWon(string bet, string winner, int amount, int basePayout) { return new GameEvent { Trigger = "playerWonBet", BetType = bet, Winner = winner, Amount = amount, BasePayout = basePayout }; }
-        public static GameEvent PlayerLost(string bet, string winner, int amount) { return new GameEvent { Trigger = "playerLostBet", BetType = bet, Winner = winner, Amount = amount }; }
+        public static GameEvent CardDrawn() { return new GameEvent { Trigger = "cardDrawn" }; }
+        public static GameEvent NaturalOccurred() { return new GameEvent { Trigger = "naturalOccurred" }; }
+        public static GameEvent PairOccurred() { return new GameEvent { Trigger = "pairOccurred" }; }
+        public static GameEvent PlayerWon(string bet, string winner, int amount, int basePayout) { return new GameEvent { Trigger = "wagerWon", BetType = bet, Winner = winner, Amount = amount, BasePayout = basePayout }; }
+        public static GameEvent PlayerLost(string bet, string winner, int amount) { return new GameEvent { Trigger = "wagerLost", BetType = bet, Winner = winner, Amount = amount }; }
         public static GameEvent TieOccurred() { return new GameEvent { Trigger = "tieOccurred" }; }
+        public static GameEvent HandResolved(string bet, string winner, int amount) { return new GameEvent { Trigger = "handResolved", BetType = bet, Winner = winner, Amount = amount }; }
         public static GameEvent HeatGained(int amount) { return new GameEvent { Trigger = "heatGained", HeatAmount = amount }; }
         public static GameEvent ShopEntered() { return new GameEvent { Trigger = "shopEntered" }; }
         public static GameEvent ShopRerolled() { return new GameEvent { Trigger = "shopRerolled" }; }
         public static GameEvent ModifierBought(string id) { return new GameEvent { Trigger = "modifierBought", ModifierId = id }; }
         public static GameEvent ModifierLeveled(string id) { return new GameEvent { Trigger = "modifierLeveled", ModifierId = id }; }
+        public static GameEvent BossStarted() { return new GameEvent { Trigger = "bossStarted" }; }
+        public static GameEvent BossDefeated() { return new GameEvent { Trigger = "bossDefeated" }; }
+        public static GameEvent FinalHand() { return new GameEvent { Trigger = "finalHand" }; }
+        public static GameEvent RunEnded() { return new GameEvent { Trigger = "runEnded" }; }
     }
 
     internal class ModifierResolution

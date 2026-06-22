@@ -383,7 +383,7 @@ struct EconomyRewardCalculation: Equatable {
         reason: String
     ) -> EconomyRewardCalculation {
         let baseCash = max(0, stage.anteCents * multiplierPercent / 100)
-        let cap = bankrollCents > 0 ? max(0, bankrollCents / 2) : baseCash
+        let cap = bankrollCents > 0 ? max(0, bankrollCents) : baseCash
         let finalCash = min(baseCash, cap)
         return EconomyRewardCalculation(
             stageNumber: stage.id,

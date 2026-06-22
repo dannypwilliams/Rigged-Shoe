@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Major Synergy Interactions</text>
+<line x1="80" y1="410" x2="1070" y2="410" stroke="#30343b" stroke-width="1"/>
+<rect x="93.2" y="60" width="56.1" height="350" fill="#2f7d6d" rx="2"/>
+<text x="121.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 121.25 438)">player.player-tempo + vision.third-card-forecast</text>
+<text x="121.25" y="55" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">100%</text>
+<rect x="175.7" y="60" width="56.1" height="350" fill="#2f7d6d" rx="2"/>
+<text x="203.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 203.75 438)">banker.dealers-nod + boss.boss-bounty</text>
+<text x="203.75" y="55" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">100%</text>
+<rect x="258.2" y="60" width="56.1" height="350" fill="#2f7d6d" rx="2"/>
+<text x="286.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 286.25 438)">banker.banco-press + control.hot-cut</text>
+<text x="286.25" y="55" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">100%</text>
+<rect x="340.7" y="153.33" width="56.1" height="256.67" fill="#2f7d6d" rx="2"/>
+<text x="368.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 368.75 438)">heat.soft-footsteps + vision.third-card-forecast</text>
+<text x="368.75" y="148.33" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">73.333%</text>
+<rect x="423.2" y="176.67" width="56.1" height="233.33" fill="#2f7d6d" rx="2"/>
+<text x="451.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 451.25 438)">banker.commission-dodge + vision.third-card-forecast</text>
+<text x="451.25" y="171.67" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">66.667%</text>
+<rect x="505.7" y="176.67" width="56.1" height="233.33" fill="#2f7d6d" rx="2"/>
+<text x="533.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 533.75 438)">heat.low-profile + vision.third-card-forecast</text>
+<text x="533.75" y="171.67" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">66.667%</text>
+<rect x="588.2" y="176.67" width="56.1" height="233.33" fill="#2f7d6d" rx="2"/>
+<text x="616.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 616.25 438)">economy.interest-ledger + vision.third-card-forecast</text>
+<text x="616.25" y="171.67" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">66.667%</text>
+<rect x="670.7" y="176.67" width="56.1" height="233.33" fill="#2f7d6d" rx="2"/>
+<text x="698.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 698.75 438)">banker.banco-press + boss.house-crack</text>
+<text x="698.75" y="171.67" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">66.667%</text>
+<rect x="753.2" y="200" width="56.1" height="210" fill="#2f7d6d" rx="2"/>
+<text x="781.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 781.25 438)">core.clean-hands + vision.third-card-forecast</text>
+<text x="781.25" y="195" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">60%</text>
+<rect x="835.7" y="215.56" width="56.1" height="194.44" fill="#2f7d6d" rx="2"/>
+<text x="863.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 863.75 438)">tie.equalizer + vision.third-card-forecast</text>
+<text x="863.75" y="210.56" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">55.556%</text>
+<rect x="918.2" y="235" width="56.1" height="175" fill="#2f7d6d" rx="2"/>
+<text x="946.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 946.25 438)">player.reversal-read + vision.third-card-forecast</text>
+<text x="946.25" y="230" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">50%</text>
+<rect x="1000.7" y="235" width="56.1" height="175" fill="#2f7d6d" rx="2"/>
+<text x="1028.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 1028.75 438)">banker.dealers-nod + vision.third-card-forecast</text>
+<text x="1028.75" y="230" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">50%</text>
+</svg>

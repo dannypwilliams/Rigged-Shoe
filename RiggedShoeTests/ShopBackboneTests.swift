@@ -35,10 +35,15 @@ final class ShopBackboneTests: XCTestCase {
     }
 
     func testContentCatalogCountsAndIdentityAreStable() {
-        XCTAssertGreaterThanOrEqual(Modifier.allContent.count, 120)
+        XCTAssertGreaterThanOrEqual(Modifier.allContent.count, 100)
+        XCTAssertEqual(Modifier.productionContent.count, 41)
+        XCTAssertEqual(ActiveModifierCatalog.starterIDs.count, 6)
+        XCTAssertEqual(ActiveModifierCatalog.regularIDs.count, 28)
+        XCTAssertEqual(ActiveModifierCatalog.capstoneIDs.count, 7)
+        XCTAssertEqual(Set(ActiveModifierCatalog.activeIDs).count, 41)
         XCTAssertGreaterThanOrEqual(Consumable.allContent.count, 30)
         XCTAssertGreaterThanOrEqual(Attachment.allContent.count, 30)
-        XCTAssertGreaterThanOrEqual(StartingContact.allContacts.count, 12)
+        XCTAssertEqual(StartingContact.allContacts.count, 6)
         XCTAssertGreaterThanOrEqual(OpponentState.allOpponents.count, 16)
         XCTAssertGreaterThanOrEqual(Boss.allBosses.count, 6)
         XCTAssertGreaterThanOrEqual(TableEvent.allEvents.count, 16)
@@ -55,6 +60,7 @@ final class ShopBackboneTests: XCTestCase {
         )
 
         XCTAssertEqual(Set(Modifier.allContent.map(\.id)).count, Modifier.allContent.count)
+        XCTAssertEqual(Set(Modifier.productionContent.map(\.id)), Set(ActiveModifierCatalog.activeIDs))
         XCTAssertEqual(Set(Consumable.allContent.map(\.id)).count, Consumable.allContent.count)
         XCTAssertEqual(Set(Attachment.allContent.map(\.id)).count, Attachment.allContent.count)
         XCTAssertEqual(Set(StartingContact.allContacts.map(\.id)).count, StartingContact.allContacts.count)
@@ -74,11 +80,11 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertEqual(ShopState.tier(for: 9, defeatedBosses: 2), 5)
     }
 
-    func testGeneratedShopKeepsFrozenOffersAndCreatesFourOffers() {
+    func testGeneratedShopKeepsFrozenOffersAndCreatesThreeProductionModifierOffers() {
         var generator: SeededRandomGenerator? = SeededRandomGenerator(seed: 99)
         let frozenOffer = ShopOffer(
             kind: .modifier,
-            contentID: "core.banker-bias",
+            contentID: "banker.commission-dodge",
             priceChips: 3,
             isFrozen: true
         )
@@ -93,10 +99,13 @@ final class ShopBackboneTests: XCTestCase {
             seededGenerator: &generator
         )
 
-        XCTAssertEqual(shop.offers.count, 4)
+        XCTAssertEqual(shop.offers.count, 3)
         XCTAssertTrue(shop.offers.contains { $0.id == frozenOffer.id && $0.isFrozen })
         XCTAssertTrue(shop.offers.allSatisfy { !$0.contentID.isEmpty })
         XCTAssertTrue(shop.offers.allSatisfy { $0.priceChips >= 0 })
+        XCTAssertTrue(shop.offers.allSatisfy { offer in
+            offer.kind != .modifier || ActiveModifierCatalog.acquisitionClass(for: offer.contentID) == .regular
+        })
     }
 
     func testStartingContactsResolveTheirStartingContent() {
@@ -106,6 +115,7 @@ final class ShopBackboneTests: XCTestCase {
                     Modifier.definition(id: modifierID),
                     "\(contact.name) references unknown modifier \(modifierID)"
                 )
+                XCTAssertEqual(ActiveModifierCatalog.acquisitionClass(for: modifierID), .starter)
             }
 
             for consumableID in contact.startingConsumables {
@@ -156,10 +166,10 @@ final class ShopBackboneTests: XCTestCase {
 
     func testEarlyModifierShopMechanicTextNamesActualEffects() {
         XCTAssertTrue(Modifier.definition(id: "core.lucky-chip")?.shopMechanicText.contains("Gain 1 Chips") == true)
-        XCTAssertTrue(Modifier.definition(id: "banker.house-favorite")?.shopMechanicText.contains("First Banker win each stage") == true)
-        XCTAssertTrue(Modifier.definition(id: "player.countertrend")?.shopMechanicText.contains("Gain 60% of ante") == true)
-        XCTAssertTrue(Modifier.definition(id: "player.punto-insurance")?.shopMechanicText.contains("Refund 20%") == true)
-        XCTAssertTrue(Modifier.definition(id: "economy.freeze-discount")?.shopMechanicText.contains("Shop prices -5%") == true)
+        XCTAssertTrue(Modifier.definition(id: "banker.banker-anchor")?.shopMechanicText.contains("Refund 10%") == true)
+        XCTAssertTrue(Modifier.definition(id: "player.punto-insurance")?.shopMechanicText.contains("Refund 10%") == true)
+        XCTAssertTrue(Modifier.definition(id: "economy.interest-ledger")?.shopMechanicText.contains("Gain 25% of ante") == true)
+        XCTAssertTrue(Modifier.definition(id: "bet.high-roller")?.shopMechanicText.contains("Maximum legal wager") == true)
     }
 
     func testBossScheduleAndRelicRewardsAreDeterministic() {
@@ -168,7 +178,7 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertEqual(BossManager.boss(forStageID: 8)?.name, "The Inspector")
         XCTAssertEqual(BossManager.boss(forStageID: 10)?.name, "The House")
 
-        let relicRewardIDs = BossReward.allRewards.compactMap { reward -> String? in
+        let relicRewardIDs = BossReward.productionRewards.compactMap { reward -> String? in
             if case .grantBossRelic(let id) = reward.effect {
                 return id
             }
@@ -278,16 +288,22 @@ final class ShopBackboneTests: XCTestCase {
         bossManager.activeBoss = .pitBoss
         bossManager.defeatActiveBoss(
             acquiredUpgrades: [],
-            unlockedRewardNames: Set(BossReward.allRewards.map(\.name)),
+            unlockedRewardNames: Set(BossReward.productionRewards.map(\.name)),
             unlockedUpgradeCards: UpgradeCard.allCards
         )
         XCTAssertEqual(bossManager.pendingBossRewardChoices.count, 3)
-        XCTAssertTrue(BossReward.allRewards.contains { reward in
+        XCTAssertTrue(BossReward.productionRewards.contains { reward in
             if case .grantBossRelic = reward.effect {
                 return true
             }
             return false
         })
+        XCTAssertTrue(bossManager.pendingBossRewardChoices.allSatisfy { !$0.isLegacyUpgradeReward && !$0.isRetiredForRebalance })
+    }
+
+    func testProductionRewardPoolsExcludeLegacyUpgradeRewards() {
+        XCTAssertTrue(StageReward.productionRewards.allSatisfy { !$0.isLegacyUpgradeReward && !$0.isRetiredForRebalance })
+        XCTAssertTrue(BossReward.productionRewards.allSatisfy { !$0.isLegacyUpgradeReward && !$0.isRetiredForRebalance })
     }
 
     func testModifierEngineDebugSuitePasses() {

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Build Concentration</text>
+<line x1="80" y1="410" x2="1070" y2="410" stroke="#30343b" stroke-width="1"/>
+<rect x="93.2" y="89.4" width="56.1" height="320.6" fill="#2f7d6d" rx="2"/>
+<text x="121.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 121.25 438)">lucky-chip</text>
+<text x="121.25" y="84.4" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">4.58%</text>
+<rect x="175.7" y="222.4" width="56.1" height="187.6" fill="#2f7d6d" rx="2"/>
+<text x="203.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 203.75 438)">clean-hands</text>
+<text x="203.75" y="217.4" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">2.68%</text>
+<rect x="258.2" y="256" width="56.1" height="154" fill="#2f7d6d" rx="2"/>
+<text x="286.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 286.25 438)">player-surge</text>
+<text x="286.25" y="251" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">2.2%</text>
+<rect x="340.7" y="298" width="56.1" height="112" fill="#2f7d6d" rx="2"/>
+<text x="368.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 368.75 438)">clean-hands + soft-footsteps</text>
+<text x="368.75" y="293" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">1.6%</text>
+<rect x="423.2" y="333" width="56.1" height="77" fill="#2f7d6d" rx="2"/>
+<text x="451.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 451.25 438)">clean-hands + low-profile</text>
+<text x="451.25" y="328" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">1.1%</text>
+<rect x="505.7" y="340" width="56.1" height="70" fill="#2f7d6d" rx="2"/>
+<text x="533.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 533.75 438)">clean-hands + low-profile + soft-footsteps</text>
+<text x="533.75" y="335" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">1%</text>
+<rect x="588.2" y="342.8" width="56.1" height="67.2" fill="#2f7d6d" rx="2"/>
+<text x="616.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 616.25 438)">player-surge + emergency-marker</text>
+<text x="616.25" y="337.8" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.96%</text>
+<rect x="670.7" y="361" width="56.1" height="49" fill="#2f7d6d" rx="2"/>
+<text x="698.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 698.75 438)">clean-hands + emergency-marker</text>
+<text x="698.75" y="356" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.7%</text>
+<rect x="753.2" y="363.8" width="56.1" height="46.2" fill="#2f7d6d" rx="2"/>
+<text x="781.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 781.25 438)">lucky-chip + interest-ledger</text>
+<text x="781.25" y="358.8" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.66%</text>
+<rect x="835.7" y="363.8" width="56.1" height="46.2" fill="#2f7d6d" rx="2"/>
+<text x="863.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 863.75 438)">player-surge + punto-insurance</text>
+<text x="863.75" y="358.8" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.66%</text>
+<rect x="918.2" y="372.2" width="56.1" height="37.8" fill="#2f7d6d" rx="2"/>
+<text x="946.25" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 946.25 438)">player-surge + side-step</text>
+<text x="946.25" y="367.2" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.54%</text>
+<rect x="1000.7" y="372.2" width="56.1" height="37.8" fill="#2f7d6d" rx="2"/>
+<text x="1028.75" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 1028.75 438)">player-surge + punto-insurance + side-step</text>
+<text x="1028.75" y="367.2" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.54%</text>
+</svg>

@@ -263,7 +263,7 @@ struct RewardDraftState: Identifiable, Codable, Equatable {
             return [.economy]
         case .duplicateRandomUpgrades, .addRandomLegendaryUpgrade:
             return [.economy, .boss]
-        case .casinoInsideContact, .grantBossRelic:
+        case .casinoInsideContact, .grantBossRelic, .draftCapstoneModifier:
             return [.boss]
         }
     }
@@ -306,6 +306,8 @@ struct RewardDraftState: Identifiable, Codable, Equatable {
         switch reward.effect {
         case .gainCash, .gainAnteScaledCash:
             return .bankroll
+        case .draftCapstoneModifier:
+            return .modifier
         case .grantBossRelic:
             return .bossRelic
         case .addRandomHighValueCards, .removeAllFaceCards:
@@ -333,7 +335,7 @@ struct RewardDraftState: Identifiable, Codable, Equatable {
 
     private static func rarity(for reward: BossReward) -> ModifierRarity? {
         switch reward.effect {
-        case .addRandomLegendaryUpgrade, .grantBossRelic:
+        case .addRandomLegendaryUpgrade, .grantBossRelic, .draftCapstoneModifier:
             return .legendary
         case .gainAnteScaledCash, .casinoInsideContact:
             return .rare
@@ -383,13 +385,13 @@ struct StageReward: Identifiable, Codable, Equatable {
         [
             StageReward(
                 name: "Ante Kickback",
-                description: "Gain bankroll equal to 1x this stage's ante, capped by current bankroll.",
-                effect: .gainAnteScaledCash(multiplierPercent: 100)
+                description: "Gain bankroll equal to 2x this stage's ante, capped by current bankroll.",
+                effect: .gainAnteScaledCash(multiplierPercent: 200)
             ),
             StageReward(
                 name: "Table Comp",
-                description: "Gain bankroll equal to 1.5x this stage's ante, capped by current bankroll.",
-                effect: .gainAnteScaledCash(multiplierPercent: 150)
+                description: "Gain bankroll equal to 3x this stage's ante, capped by current bankroll.",
+                effect: .gainAnteScaledCash(multiplierPercent: 300)
             ),
             StageReward(
                 name: "Chip Runner",
@@ -398,8 +400,8 @@ struct StageReward: Identifiable, Codable, Equatable {
             ),
             StageReward(
                 name: "High Table Cut",
-                description: "Gain bankroll equal to 2x this stage's ante, capped by current bankroll.",
-                effect: .gainAnteScaledCash(multiplierPercent: 200)
+                description: "Gain bankroll equal to 4x this stage's ante, capped by current bankroll.",
+                effect: .gainAnteScaledCash(multiplierPercent: 400)
             ),
             StageReward(
                 name: "Cool Down",
@@ -467,12 +469,40 @@ struct StageReward: Identifiable, Codable, Equatable {
         ]
     }
 
+    static var productionRewards: [StageReward] {
+        allRewards.filter { !$0.isRetiredForRebalance }
+    }
+
+    var isLegacyUpgradeReward: Bool {
+        switch effect {
+        case .duplicateRandomAcquiredUpgrade, .addRandomUpgrade:
+            return true
+        default:
+            return false
+        }
+    }
+
+    var isRetiredForRebalance: Bool {
+        if isLegacyUpgradeReward {
+            return true
+        }
+
+        switch effect {
+        case .increaseTiePayout, .addRandomHighValueCards, .removeRandomFaceCards, .removeRandomAcquiredUpgrade:
+            return true
+        case .gainCash, .gainAnteScaledCash, .gainChips, .reduceHeat:
+            return false
+        case .duplicateRandomAcquiredUpgrade, .addRandomUpgrade:
+            return true
+        }
+    }
+
     static func randomDraftChoices(
         count: Int = 3,
         stage: Stage,
         activeModifiers: [ModifierInstance],
         acquiredUpgrades: [UpgradeCard],
-        unlockedRewardNames: Set<String> = Set(allRewards.map(\.name)),
+        unlockedRewardNames: Set<String> = Set(productionRewards.map(\.name)),
         unlockedUpgradeCards: [UpgradeCard] = UpgradeCard.allCards,
         seededGenerator: inout SeededRandomGenerator?
     ) -> [StageReward] {
@@ -533,7 +563,7 @@ struct StageReward: Identifiable, Codable, Equatable {
     static func randomChoices(
         count: Int = 3,
         acquiredUpgrades: [UpgradeCard],
-        unlockedRewardNames: Set<String> = Set(allRewards.map(\.name)),
+        unlockedRewardNames: Set<String> = Set(productionRewards.map(\.name)),
         unlockedUpgradeCards: [UpgradeCard] = UpgradeCard.allCards
     ) -> [StageReward] {
         var generator: SeededRandomGenerator?
@@ -549,7 +579,7 @@ struct StageReward: Identifiable, Codable, Equatable {
     static func randomChoices(
         count: Int = 3,
         acquiredUpgrades: [UpgradeCard],
-        unlockedRewardNames: Set<String> = Set(allRewards.map(\.name)),
+        unlockedRewardNames: Set<String> = Set(productionRewards.map(\.name)),
         unlockedUpgradeCards: [UpgradeCard] = UpgradeCard.allCards,
         seededGenerator: inout SeededRandomGenerator?
     ) -> [StageReward] {
@@ -573,7 +603,7 @@ struct StageReward: Identifiable, Codable, Equatable {
         unlockedRewardNames: Set<String>,
         unlockedUpgradeCards: [UpgradeCard]
     ) -> [StageReward] {
-        allRewards.filter { reward in
+        productionRewards.filter { reward in
             guard unlockedRewardNames.contains(reward.name) else {
                 return false
             }

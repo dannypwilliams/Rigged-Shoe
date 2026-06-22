@@ -95,12 +95,10 @@ struct MetaProgressionManager {
             .max() ?? 100
         let challengeMultiplier = challengeID.chipRewardMultiplierPercent
 
-        let startingUpgradeNames = activeModifiers.flatMap(\.startingUpgradeNames)
-
         return RunConfiguration(
             startingBankrollCents: startingBankroll,
             chipRewardMultiplierPercent: max(chipMultiplier, challengeMultiplier),
-            startingUpgradeNames: startingUpgradeNames,
+            startingUpgradeNames: [],
             activeRunModifierIDs: Set(activeModifiers.map(\.rawValue)),
             challengeID: challengeID,
             isDailyRun: profile.isDailyRunEnabled,

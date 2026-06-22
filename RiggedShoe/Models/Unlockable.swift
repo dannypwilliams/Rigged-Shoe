@@ -74,14 +74,7 @@ enum RunModifierID: String, CaseIterable, Codable, Identifiable {
     }
 
     var startingUpgradeNames: [String] {
-        switch self {
-        case .openingTell:
-            return ["Marked Shoe"]
-        case .tieChaser:
-            return ["Tie Hunter"]
-        case .highRoller, .lowRoller:
-            return []
-        }
+        []
     }
 
     var conflictingIDs: Set<RunModifierID> {
