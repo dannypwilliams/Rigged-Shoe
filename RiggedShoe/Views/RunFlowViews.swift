@@ -153,14 +153,14 @@ struct StagePreviewView: View {
     var body: some View {
         RunFlowOverlay(accentColor: preview.isBossStage ? CasinoTheme.red : CasinoTheme.emerald) {
             VStack(spacing: 16) {
-                Text(preview.isBossStage ? "Boss Table" : "Stage Preview")
+                Text(preview.isBossStage ? "Boss Scout Report" : "Scout Report")
                     .font(.system(size: 34, weight: .black, design: .rounded))
                     .foregroundStyle(preview.isBossStage ? CasinoTheme.red : CasinoTheme.gold)
 
                 VStack(alignment: .leading, spacing: 12) {
-                    HStack {
+                    HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Stage \(preview.stageNumber)")
+                            Text("Stage \(preview.stageNumber) - \(preview.handCount) hands")
                                 .font(.title2.weight(.black))
                                 .foregroundStyle(.white)
 
@@ -175,7 +175,7 @@ struct StagePreviewView: View {
 
                         Spacer()
 
-                        Text("ANTE \(preview.ante)")
+                        Text("ANTE $\(preview.ante)")
                             .font(.caption.weight(.black))
                             .foregroundStyle(CasinoTheme.ink)
                             .padding(.horizontal, 10)
@@ -183,16 +183,21 @@ struct StagePreviewView: View {
                             .background(Capsule().fill(CasinoTheme.gold))
                     }
 
-                    RunFlowDetailRow(title: "Battle Length", value: "\(preview.handCount) hands")
-                    RunFlowDetailRow(title: "Opponent Style", value: preview.opponentStyle)
-                    RunFlowDetailRow(title: "Known Weakness", value: preview.opponentWeakness)
+                    RunFlowDetailRow(title: "Objective", value: preview.primaryObjectiveTitle)
+                    Text(preview.primaryObjectiveSummary)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white.opacity(0.62))
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    RunFlowDetailRow(title: "Opponent Lean", value: preview.opponentStyle)
+                    RunFlowDetailRow(title: "Pressure Point", value: preview.opponentWeakness)
                     RunFlowDetailRow(title: "Table Event", value: preview.tableRule)
                     Text(preview.tableRuleDetail)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white.opacity(0.62))
                         .fixedSize(horizontal: false, vertical: true)
-                    RunFlowDetailRow(title: "Reward Tier", value: preview.rewardTier)
-                    RunFlowDetailRow(title: "Optional", value: "\(preview.secondaryObjectiveTitle) · \(preview.secondaryObjectiveReward)")
+                    RunFlowDetailRow(title: "Clear Reward", value: "\(preview.rewardTier) draft")
+                    RunFlowDetailRow(title: "Optional Bonus", value: "\(preview.secondaryObjectiveTitle) - \(preview.secondaryObjectiveReward)")
                     Text(preview.secondaryObjectiveSummary)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white.opacity(0.62))
@@ -325,7 +330,7 @@ struct ShopPhaseView: View {
                 }
 
                 HStack(spacing: 8) {
-                    Button("Reroll · \(viewModel.state.shopState.rerollCostChips) Chip") {
+                    Button(rerollButtonTitle) {
                         viewModel.rerollShop()
                     }
                     .buttonStyle(CompactShopButtonStyle(isPrimary: false))
@@ -336,7 +341,7 @@ struct ShopPhaseView: View {
 
                 VStack(spacing: 8) {
                     ShopInventorySection(
-                        title: "Active Modifiers \(viewModel.state.activeModifiers.count)/\(viewModel.state.activeModifierSlotLimit)",
+                        title: "Current Build \(viewModel.state.activeModifiers.count)/\(viewModel.state.activeModifierSlotLimit)",
                         instances: viewModel.state.activeModifiers,
                         emptyText: "Buy modifiers to build your engine.",
                         actionTitle: "Bench",
@@ -344,14 +349,16 @@ struct ShopPhaseView: View {
                         onSell: viewModel.sellModifier
                     )
 
-                    ShopInventorySection(
-                        title: "Bench \(viewModel.state.benchModifiers.count)/\(viewModel.state.benchModifierSlotLimit)",
-                        instances: viewModel.state.benchModifiers,
-                        emptyText: "Bench overflow or future synergies.",
-                        actionTitle: "Equip",
-                        onAction: viewModel.moveModifierToActive,
-                        onSell: viewModel.sellModifier
-                    )
+                    if !viewModel.state.benchModifiers.isEmpty {
+                        ShopInventorySection(
+                            title: "Bench \(viewModel.state.benchModifiers.count)/\(viewModel.state.benchModifierSlotLimit)",
+                            instances: viewModel.state.benchModifiers,
+                            emptyText: "",
+                            actionTitle: "Equip",
+                            onAction: viewModel.moveModifierToActive,
+                            onSell: viewModel.sellModifier
+                        )
+                    }
                 }
 
                 if !viewModel.state.consumables.isEmpty {
@@ -386,6 +393,11 @@ struct ShopPhaseView: View {
 
     private var nextStageButtonTitle: String {
         viewModel.state.runManager.currentStageIndex + 1 >= viewModel.state.runManager.stages.count ? "Finish Run" : "Next Stage"
+    }
+
+    private var rerollButtonTitle: String {
+        let cost = viewModel.state.shopState.rerollCostChips
+        return "Reroll for \(cost) Chip\(cost == 1 ? "" : "s")"
     }
 
     private func ownedLevel(for offer: ShopOffer) -> Int? {
@@ -453,7 +465,7 @@ private struct ShopOfferCard: View {
             }
 
             if let ownedLevel {
-                Text("Owned L\(ownedLevel) · duplicate levels up")
+                Text("Owned L\(ownedLevel) - duplicate levels up")
                     .font(.system(size: 8, weight: .bold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.55))
                     .lineLimit(1)
@@ -509,7 +521,7 @@ private struct ShopOfferCard: View {
     private var summary: String {
         switch offer.kind {
         case .modifier:
-            return Modifier.definition(id: offer.contentID)?.summary ?? "No data."
+            return Modifier.definition(id: offer.contentID)?.shopMechanicText ?? "No data."
         case .consumable:
             return Consumable.definition(id: offer.contentID)?.summary ?? "No data."
         case .attachment:
@@ -525,7 +537,7 @@ private struct ShopOfferCard: View {
             return nil
         }
 
-        return modifier.tags.map(\.displayName).sorted().prefix(3).joined(separator: " · ")
+        return modifier.tags.map(\.displayName).sorted().prefix(3).joined(separator: " - ")
     }
 
     private var kindText: String {
@@ -599,13 +611,18 @@ private struct ShopInventorySection: View {
                                 Text("\(modifier.name) L\(instance.level)")
                                     .font(.caption.weight(.black))
                                     .foregroundStyle(.white)
+                                Text(modifier.shopMechanicText)
+                                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.58))
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
                                 if !instance.attachedIDs.isEmpty {
                                     Text(instance.attachedIDs.compactMap { Attachment.definition(id: $0)?.name }.joined(separator: ", "))
                                         .font(.system(size: 9, weight: .bold, design: .rounded))
                                         .foregroundStyle(CasinoTheme.gold.opacity(0.78))
                                         .lineLimit(1)
                                 } else {
-                                    Text(modifier.tags.map(\.displayName).sorted().prefix(3).joined(separator: " · "))
+                                    Text(modifier.tags.map(\.displayName).sorted().prefix(3).joined(separator: " - "))
                                         .font(.system(size: 9, weight: .bold, design: .rounded))
                                         .foregroundStyle(.white.opacity(0.48))
                                         .lineLimit(1)

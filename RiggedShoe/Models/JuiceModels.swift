@@ -174,6 +174,9 @@ struct ModifierTriggerFeedback: Identifiable, Equatable {
 struct BattleLogEntry: Identifiable, Equatable {
     let id = UUID()
     var handNumber: Int
+    var stageNumber: Int
+    var stageHandNumber: Int
+    var stageHandLimit: Int
     var betSide: BetType
     var betAmountCents: Int
     var playerCards: [Card]
@@ -193,6 +196,10 @@ struct BattleLogEntry: Identifiable, Equatable {
 
     var outcomeText: String {
         "\(baccaratResult.displayName) wins"
+    }
+
+    var handLabel: String {
+        "Stage \(stageNumber) - Hand \(stageHandNumber)/\(stageHandLimit)"
     }
 
     var cardSummary: String {

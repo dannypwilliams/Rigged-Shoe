@@ -366,6 +366,7 @@ struct GameRoomView: View {
                             CurrentResultStrip(
                                 result: viewModel.state.latestRound,
                                 presentation: viewModel.state.roundPresentation,
+                                payoutRules: viewModel.currentPayoutRules,
                                 selectedBetType: viewModel.state.selectedBetType,
                                 selectedBetAmountCents: viewModel.state.selectedBetAmountCents,
                                 isResultRevealed: isResultRevealed,
@@ -388,6 +389,7 @@ struct GameRoomView: View {
                         bankrollCents: displayedBankrollCents,
                         betAmountsCents: visibleBetAmounts,
                         allowedBetTypes: allowedBetTypes,
+                        payoutRules: viewModel.currentPayoutRules,
                         dealButtonTitle: dealButtonTitle,
                         dealGuidanceText: dealGuidanceText,
                         rewardProgressText: dockStatusText,
@@ -504,7 +506,7 @@ struct GameRoomView: View {
     private func gameRoomTopBar(isCompact: Bool) -> some View {
         VStack(spacing: isCompact ? 4 : 6) {
             HStack(spacing: 10) {
-                CasinoCurrencyStrip(profile: viewModel.metaProgression.profile, compact: true)
+                RunCurrencyStrip(runManager: viewModel.state.runManager, compact: true)
 
                 Spacer(minLength: 0)
 
@@ -964,10 +966,15 @@ private struct CompactGameStatusBar: View {
 
     private var objectiveText: String {
         if let objective = runManager.currentStage.teachingObjective {
-            return "Goal: \(objective.progressText(in: runManager, bankrollCents: bankrollCents))"
+            return "Objective: \(objective.progressText(in: runManager, bankrollCents: bankrollCents))"
         }
 
-        return "Goal: \(MoneyFormatter.signed(runManager.stageProfitCents(bankrollCents: bankrollCents))) / +\(MoneyFormatter.format(runManager.currentStage.targetProfitCents))"
+        return "Objective: \(MoneyFormatter.signed(runManager.stageProfitCents(bankrollCents: bankrollCents))) / +\(MoneyFormatter.format(runManager.currentStage.targetProfitCents))"
+    }
+
+    private var handText: String {
+        let nextHand = min(runManager.currentStageRoundsPlayed + 1, runManager.currentRoundLimit)
+        return "Stage \(runManager.stageReached) - Hand \(max(1, nextHand)) of \(runManager.currentRoundLimit)"
     }
 
     private var deltaText: String {
@@ -989,7 +996,7 @@ private struct CompactGameStatusBar: View {
     var body: some View {
         VStack(spacing: 5) {
             HStack(spacing: 6) {
-                Text("Stage \(runManager.stageReached)")
+                Text(handText)
                     .foregroundStyle(CasinoTheme.gold)
 
                 Text("·")
@@ -1730,7 +1737,7 @@ private struct RecentBattleLogChip: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Text("H\(entry.handNumber)")
+            Text("S\(entry.stageNumber) H\(entry.stageHandNumber)")
                 .foregroundStyle(CasinoTheme.gold)
             Text(entry.outcomeText)
                 .foregroundStyle(.white)
@@ -1751,6 +1758,9 @@ private struct BattleLogSheet: View {
     let entries: [BattleLogEntry]
     let debugEvents: [String]
     @Environment(\.dismiss) private var dismiss
+#if DEBUG
+    @State private var showsDebugEvents = false
+#endif
 
     var body: some View {
         NavigationStack {
@@ -1780,7 +1790,25 @@ private struct BattleLogSheet: View {
 
 #if DEBUG
                             if !debugEvents.isEmpty {
-                                BattleDebugEventSection(events: debugEvents)
+                                Button {
+                                    showsDebugEvents.toggle()
+                                } label: {
+                                    Label(
+                                        showsDebugEvents ? "Hide Developer Events" : "Show Developer Events",
+                                        systemImage: showsDebugEvents ? "ladybug.slash.fill" : "ladybug.fill"
+                                    )
+                                    .font(.caption.weight(.black))
+                                    .foregroundStyle(CasinoTheme.neonBlue)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.black.opacity(0.30)))
+                                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(CasinoTheme.neonBlue.opacity(0.18), lineWidth: 1))
+                                }
+                                .buttonStyle(.plain)
+
+                                if showsDebugEvents {
+                                    BattleDebugEventSection(events: debugEvents)
+                                }
                             }
 #endif
                         }
@@ -1809,10 +1837,10 @@ private struct BattleLogEntryCard: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Hand \(entry.handNumber)")
+                    Text(entry.handLabel)
                         .font(.headline.weight(.black))
                         .foregroundStyle(CasinoTheme.gold)
-                    Text("Bet \(MoneyFormatter.format(entry.betAmountCents)) on \(entry.betSide.displayName)")
+                    Text("Run Hand \(entry.handNumber) - Bet \(MoneyFormatter.format(entry.betAmountCents)) on \(entry.betSide.displayName)")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white.opacity(0.66))
                 }
@@ -2015,6 +2043,7 @@ private struct BattleDebugEventSection: View {
 private struct CurrentResultStrip: View {
     let result: RoundResult?
     let presentation: RoundPresentationState
+    let payoutRules: TablePayoutRules
     let selectedBetType: BetType
     let selectedBetAmountCents: Int
     let isResultRevealed: Bool
@@ -2133,18 +2162,11 @@ private struct CurrentResultStrip: View {
     }
 
     private var baseWinProfitCents: Int {
-        selectedBetType.totalReturnCents(for: selectedBetAmountCents) - selectedBetAmountCents
+        payoutRules.profitCents(for: selectedBetType, betAmountCents: selectedBetAmountCents)
     }
 
     private var preDealPayoutText: String {
-        switch selectedBetType {
-        case .player:
-            return "Pays 1:1. Tie refunds; Banker win loses \(MoneyFormatter.format(selectedBetAmountCents))."
-        case .banker:
-            return "Pays 0.95:1. Tie refunds; Player win loses \(MoneyFormatter.format(selectedBetAmountCents))."
-        case .tie:
-            return "Pays 8:1. Any non-tie result loses \(MoneyFormatter.format(selectedBetAmountCents))."
-        }
+        payoutRules.preDealText(for: selectedBetType, betAmountCents: selectedBetAmountCents)
     }
 }
 
@@ -2615,7 +2637,7 @@ private struct TableReadStrip: View {
         case .player:
             return "Clean 1:1 payout with no commission. Good for learning steady bets."
         case .banker:
-            return "Slightly steadier hand, but wins pay 0.95:1 after commission."
+            return "Slightly steadier hand. Banker usually pays less unless a house rule removes commission."
         case .tie:
             return "Rare and swingy. Base payout is 8:1, so bet small unless built for Tie."
         }
@@ -2663,6 +2685,7 @@ private struct GameRoomBetDock: View {
     let bankrollCents: Int
     let betAmountsCents: [Int]
     let allowedBetTypes: Set<BetType>
+    let payoutRules: TablePayoutRules
     let dealButtonTitle: String
     let dealGuidanceText: String
     let rewardProgressText: String
@@ -2777,14 +2800,7 @@ private struct GameRoomBetDock: View {
     }
 
     private func betTypeSubtitle(for betType: BetType) -> String {
-        switch betType {
-        case .player:
-            return "Pays 1:1"
-        case .banker:
-            return "Pays 0.95:1"
-        case .tie:
-            return "Pays 8:1"
-        }
+        payoutRules.payoutLabel(for: betType)
     }
 }
 

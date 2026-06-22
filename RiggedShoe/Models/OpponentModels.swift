@@ -483,11 +483,11 @@ struct OpponentState: Identifiable, Codable, Equatable {
 
         switch opponentBet {
         case .player:
-            return amount
+            return stage.tablePayoutRules.profitCents(for: .player, betAmountCents: amount)
         case .banker:
-            return amount * 95 / 100
+            return stage.tablePayoutRules.profitCents(for: .banker, betAmountCents: amount)
         case .tie:
-            return amount * 8
+            return stage.tablePayoutRules.profitCents(for: .tie, betAmountCents: amount)
         }
     }
 }

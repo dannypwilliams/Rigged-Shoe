@@ -106,6 +106,28 @@ final class GameViewModel: ObservableObject {
         state.runManager.stagePreviewData
     }
 
+    var currentPayoutRules: TablePayoutRules {
+        var bankerCommissionPercent = activeBankerCommissionPercent()
+
+        if activeUpgradeEffects.removesBankerCommission,
+           !state.bossManager.restoresBankerCommission {
+            bankerCommissionPercent = 0
+        }
+
+        return TablePayoutRules(
+            bankerCommissionPercent: bankerCommissionPercent,
+            tiePayoutMultiplier: effectiveTiePayoutMultiplier(upgrades: activeUpgradeEffects)
+        )
+    }
+
+    func baseWinProfitCents(for betType: BetType, betAmountCents: Int) -> Int {
+        currentPayoutRules.profitCents(for: betType, betAmountCents: betAmountCents)
+    }
+
+    func preDealPayoutText(for betType: BetType, betAmountCents: Int) -> String {
+        currentPayoutRules.preDealText(for: betType, betAmountCents: betAmountCents)
+    }
+
     var startingContacts: [StartingContact] {
         StartingContact.allContacts
     }
@@ -532,6 +554,7 @@ final class GameViewModel: ObservableObject {
 
     var shoeControlOptions: [ShoeControlOption] {
         let upgrades = activeUpgradeEffects
+        let payoutRules = currentPayoutRules
         var options: [ShoeControlOption] = []
 
         if upgrades.moveTopCardDeeperPositions > 0 {
@@ -586,15 +609,16 @@ final class GameViewModel: ObservableObject {
             if isLocked {
                 subtitle = state.bossManager.suppressesReveal ? "Suppressed by boss" : "Reveal locked"
             } else if state.isXRayActiveForNextHand && state.xRayChargesRemainingThisStage > 0 {
-                subtitle = "Active this hand"
+                subtitle = "Active: next \(chargedReveal.normalizedMaxCards)"
             } else {
-                subtitle = "\(state.xRayChargesRemainingThisStage) charge\(state.xRayChargesRemainingThisStage == 1 ? "" : "s")"
+                let chargeText = "\(state.xRayChargesRemainingThisStage) charge\(state.xRayChargesRemainingThisStage == 1 ? "" : "s")"
+                subtitle = "\(chargeText) - reveal next \(chargedReveal.normalizedMaxCards)"
             }
 
             options.append(
                 ShoeControlOption(
                     kind: .xRay,
-                    title: chargedReveal.title,
+                    title: "\(chargedReveal.title) Read",
                     subtitle: subtitle,
                     systemImage: "eye.fill",
                     isReady: isReady
@@ -2712,6 +2736,9 @@ final class GameViewModel: ObservableObject {
         let heatPrevented = modifierResolutions.reduce(0) { $0 + $1.heatPrevented }
         let entry = BattleLogEntry(
             handNumber: handNumber,
+            stageNumber: state.runManager.currentStage.id,
+            stageHandNumber: max(1, state.runManager.currentStageRoundsPlayed),
+            stageHandLimit: state.runManager.currentRoundLimit,
             betSide: result.betType,
             betAmountCents: result.betAmountCents,
             playerCards: result.playerHand.cards,
@@ -3181,24 +3208,26 @@ final class GameViewModel: ObservableObject {
                 ledgerLines.append(PayoutLedgerLine(title: source, detail: "Player win bonus", amountCents: playerBonus))
             }
         case .banker:
-            let commissionPercent = activeBankerCommissionPercent()
-            let tableNoCommission = commissionPercent == 0 && !state.bossManager.restoresBankerCommission
-            let noCommission = (upgrades.removesBankerCommission || tableNoCommission) && !state.bossManager.restoresBankerCommission
-            let commissionedProfit = betAmountCents * (100 - commissionPercent) / 100
-            profitCents = commissionedProfit
-            ledgerLines.append(PayoutLedgerLine(title: "Base Payout", detail: commissionPercent == 0 ? "Banker pays 1:1" : "Banker pays \(100 - commissionPercent)% after commission", amountCents: commissionedProfit, isStructural: true))
-            if noCommission && commissionPercent > 0 {
-                let commissionRefund = betAmountCents - commissionedProfit
-                profitCents += commissionRefund
+            let tableCommissionPercent = activeBankerCommissionPercent()
+            profitCents = payoutRules.profitCents(for: .banker, betAmountCents: betAmountCents)
+            ledgerLines.append(
+                PayoutLedgerLine(
+                    title: "Base Payout",
+                    detail: payoutRules.payoutDetail(for: .banker),
+                    amountCents: profitCents,
+                    isStructural: true
+                )
+            )
+            if payoutRules.bankerCommissionPercent == 0,
+               tableCommissionPercent == 0 {
+                activationMessages.append("\(state.runManager.currentStage.tableEvent.name): Banker pays 1:1")
+            } else if payoutRules.bankerCommissionPercent == 0,
+                      upgrades.removesBankerCommission {
                 let source = upgradeSourceLabel(matching: { effect in
                     if case .noCommission = effect { return true }
                     return false
                 }, fallback: "No Commission")
-                activationMessages.append("\(source): commission removed")
-                ledgerLines.append(PayoutLedgerLine(title: source, detail: "Banker commission removed", amountCents: commissionRefund))
-            } else if tableNoCommission {
-                activationMessages.append("\(state.runManager.currentStage.tableEvent.name): Banker pays 1:1")
-                ledgerLines.append(PayoutLedgerLine(title: state.runManager.currentStage.tableEvent.name, detail: "Table event removed Banker commission", amountCents: 0))
+                activationMessages.append("\(source): Banker pays 1:1")
             } else if state.bossManager.restoresBankerCommission && upgrades.removesBankerCommission {
                 activationMessages.append("No Commission suppressed by boss")
             }

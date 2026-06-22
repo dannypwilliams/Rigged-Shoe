@@ -187,6 +187,44 @@ struct CasinoCurrencyStrip: View {
     }
 }
 
+struct RunCurrencyStrip: View {
+    let runManager: RunManager
+    var compact = false
+
+    var body: some View {
+        HStack(spacing: compact ? 6 : 8) {
+            resourcePill(title: "Chips", value: "\(runManager.chips)", color: CasinoTheme.gold)
+            resourcePill(title: "Heat", value: "\(runManager.heat)/\(runManager.maxHeat)", color: CasinoTheme.red)
+        }
+    }
+
+    private func resourcePill(title: String, value: String, color: Color) -> some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(color)
+                .frame(width: compact ? 6 : 7, height: compact ? 6 : 7)
+
+            Text(title)
+                .font(.system(size: compact ? 8 : 9, weight: .black, design: .rounded))
+                .foregroundStyle(.white.opacity(0.52))
+                .textCase(.uppercase)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+
+            Text(value)
+                .font(.system(size: compact ? 10 : 12, weight: .black, design: .rounded).monospacedDigit())
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(.horizontal, compact ? 8 : 10)
+        .padding(.vertical, compact ? 5 : 7)
+        .background(Capsule().fill(Color.black.opacity(0.28)))
+        .overlay(Capsule().stroke(color.opacity(0.22), lineWidth: 1))
+        .accessibilityLabel("\(title) \(value)")
+    }
+}
+
 private struct CasinoRoomPage: View {
     @ObservedObject var viewModel: GameViewModel
     @Binding var selectedPage: CasinoFloorPage
