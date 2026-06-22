@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Mechanic Marginal Effects</text>
+<line x1="80" y1="235" x2="1070" y2="235" stroke="#30343b" stroke-width="1"/>
+<rect x="89.9" y="60" width="42.08" height="175" fill="#2f7d6d" rx="2"/>
+<text x="110.94" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 110.94 438)">opening-tell</text>
+<text x="110.94" y="55" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">11.633%</text>
+<rect x="151.78" y="167.81" width="42.08" height="67.19" fill="#2f7d6d" rx="2"/>
+<text x="172.81" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 172.81 438)">soft-footsteps</text>
+<text x="172.81" y="162.81" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">4.467%</text>
+<rect x="213.65" y="174.83" width="42.08" height="60.17" fill="#2f7d6d" rx="2"/>
+<text x="234.69" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 234.69 438)">clean-hands</text>
+<text x="234.69" y="169.83" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">4%</text>
+<rect x="275.53" y="210.93" width="42.08" height="24.07" fill="#2f7d6d" rx="2"/>
+<text x="296.56" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 296.56 438)">careful-hands</text>
+<text x="296.56" y="205.93" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">1.6%</text>
+<rect x="337.4" y="235" width="42.08" height="23.07" fill="#b85c4d" rx="2"/>
+<text x="358.44" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 358.44 438)">false-read</text>
+<text x="358.44" y="230" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">-1.533%</text>
+<rect x="399.28" y="212.94" width="42.08" height="22.06" fill="#2f7d6d" rx="2"/>
+<text x="420.31" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 420.31 438)">dealer-slip</text>
+<text x="420.31" y="207.94" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">1.467%</text>
+<rect x="461.15" y="235" width="42.08" height="20.56" fill="#b85c4d" rx="2"/>
+<text x="482.19" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 482.19 438)">house-favorite</text>
+<text x="482.19" y="230" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">-1.367%</text>
+<rect x="523.03" y="235" width="42.08" height="19.56" fill="#b85c4d" rx="2"/>
+<text x="544.06" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 544.06 438)">side-step</text>
+<text x="544.06" y="230" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">-1.3%</text>
+<rect x="584.9" y="218.95" width="42.08" height="16.05" fill="#2f7d6d" rx="2"/>
+<text x="605.94" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 605.94 438)">sharp-turn</text>
+<text x="605.94" y="213.95" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">1.067%</text>
+<rect x="646.78" y="235" width="42.08" height="15.04" fill="#b85c4d" rx="2"/>
+<text x="667.81" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 667.81 438)">high-roller</text>
+<text x="667.81" y="230" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">-1%</text>
+<rect x="708.65" y="220.46" width="42.08" height="14.54" fill="#2f7d6d" rx="2"/>
+<text x="729.69" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 729.69 438)">shop-regular</text>
+<text x="729.69" y="215.46" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.967%</text>
+<rect x="770.53" y="220.46" width="42.08" height="14.54" fill="#2f7d6d" rx="2"/>
+<text x="791.56" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 791.56 438)">equalizer</text>
+<text x="791.56" y="215.46" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.967%</text>
+<rect x="832.4" y="235" width="42.08" height="12.03" fill="#b85c4d" rx="2"/>
+<text x="853.44" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 853.44 438)">add-nine</text>
+<text x="853.44" y="230" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">-0.8%</text>
+<rect x="894.28" y="222.97" width="42.08" height="12.03" fill="#2f7d6d" rx="2"/>
+<text x="915.31" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 915.31 438)">mirror-bet</text>
+<text x="915.31" y="217.97" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.8%</text>
+<rect x="956.15" y="222.97" width="42.08" height="12.03" fill="#2f7d6d" rx="2"/>
+<text x="977.19" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 977.19 438)">comp-points</text>
+<text x="977.19" y="217.97" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.8%</text>
+<rect x="1018.03" y="235" width="42.08" height="12.03" fill="#b85c4d" rx="2"/>
+<text x="1039.06" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 1039.06 438)">closer</text>
+<text x="1039.06" y="230" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">-0.8%</text>
+</svg>

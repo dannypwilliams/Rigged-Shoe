@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Parameter Scaling</text>
+<line x1="80" y1="490" x2="860" y2="490" stroke="#30343b"/>
+<line x1="80" y1="60" x2="80" y2="490" stroke="#30343b"/>
+<circle cx="80" cy="92.76" r="3" fill="#2f7d6d"/>
+<circle cx="275" cy="92.76" r="3" fill="#2f7d6d"/>
+<circle cx="470" cy="162.38" r="3" fill="#2f7d6d"/>
+<circle cx="665" cy="92.76" r="3" fill="#2f7d6d"/>
+<circle cx="860" cy="143.95" r="3" fill="#2f7d6d"/>
+<polyline points="80,92.76 275,92.76 470,162.38 665,92.76 860,143.95" fill="none" stroke="#2f7d6d" stroke-width="2"/>
+<text x="876" y="78" font-family="Segoe UI, Arial" font-size="12" fill="#2f7d6d">clean-hands</text>
+<circle cx="80" cy="66.14" r="3" fill="#9b5c4d"/>
+<circle cx="275" cy="119.38" r="3" fill="#9b5c4d"/>
+<circle cx="470" cy="135.76" r="3" fill="#9b5c4d"/>
+<circle cx="665" cy="90.71" r="3" fill="#9b5c4d"/>
+<circle cx="860" cy="139.86" r="3" fill="#9b5c4d"/>
+<polyline points="80,66.14 275,119.38 470,135.76 665,90.71 860,139.86" fill="none" stroke="#9b5c4d" stroke-width="2"/>
+<text x="876" y="96" font-family="Segoe UI, Arial" font-size="12" fill="#9b5c4d">soft-footsteps</text>
+<circle cx="80" cy="88.67" r="3" fill="#5f6fb0"/>
+<circle cx="275" cy="103" r="3" fill="#5f6fb0"/>
+<circle cx="470" cy="64.1" r="3" fill="#5f6fb0"/>
+<circle cx="665" cy="127.57" r="3" fill="#5f6fb0"/>
+<circle cx="860" cy="125.52" r="3" fill="#5f6fb0"/>
+<polyline points="80,88.67 275,103 470,64.1 665,127.57 860,125.52" fill="none" stroke="#5f6fb0" stroke-width="2"/>
+<text x="876" y="114" font-family="Segoe UI, Arial" font-size="12" fill="#5f6fb0">tie-master</text>
+<circle cx="80" cy="143.95" r="3" fill="#c58d2f"/>
+<circle cx="275" cy="98.9" r="3" fill="#c58d2f"/>
+<circle cx="470" cy="96.86" r="3" fill="#c58d2f"/>
+<circle cx="665" cy="123.48" r="3" fill="#c58d2f"/>
+<circle cx="860" cy="80.48" r="3" fill="#c58d2f"/>
+<polyline points="80,143.95 275,98.9 470,96.86 665,123.48 860,80.48" fill="none" stroke="#c58d2f" stroke-width="2"/>
+<text x="876" y="132" font-family="Segoe UI, Arial" font-size="12" fill="#c58d2f">boss-bounty</text>
+<circle cx="80" cy="103" r="3" fill="#764f8f"/>
+<circle cx="275" cy="103" r="3" fill="#764f8f"/>
+<circle cx="470" cy="117.33" r="3" fill="#764f8f"/>
+<circle cx="665" cy="139.86" r="3" fill="#764f8f"/>
+<circle cx="860" cy="139.86" r="3" fill="#764f8f"/>
+<polyline points="80,103 275,103 470,117.33 665,139.86 860,139.86" fill="none" stroke="#764f8f" stroke-width="2"/>
+<text x="876" y="150" font-family="Segoe UI, Arial" font-size="12" fill="#764f8f">equalizer</text>
+<circle cx="80" cy="117.33" r="3" fill="#417c9a"/>
+<circle cx="275" cy="127.57" r="3" fill="#417c9a"/>
+<circle cx="470" cy="111.19" r="3" fill="#417c9a"/>
+<circle cx="665" cy="123.48" r="3" fill="#417c9a"/>
+<circle cx="860" cy="60" r="3" fill="#417c9a"/>
+<polyline points="80,117.33 275,127.57 470,111.19 665,123.48 860,60" fill="none" stroke="#417c9a" stroke-width="2"/>
+<text x="876" y="168" font-family="Segoe UI, Arial" font-size="12" fill="#417c9a">perfect-nine</text>
+<circle cx="80" cy="94.81" r="3" fill="#8f6a3f"/>
+<circle cx="275" cy="123.48" r="3" fill="#8f6a3f"/>
+<circle cx="470" cy="98.9" r="3" fill="#8f6a3f"/>
+<circle cx="665" cy="96.86" r="3" fill="#8f6a3f"/>
+<circle cx="860" cy="88.67" r="3" fill="#8f6a3f"/>
+<polyline points="80,94.81 275,123.48 470,98.9 665,96.86 860,88.67" fill="none" stroke="#8f6a3f" stroke-width="2"/>
+<text x="876" y="186" font-family="Segoe UI, Arial" font-size="12" fill="#8f6a3f">dead-heat</text>
+<circle cx="80" cy="94.81" r="3" fill="#b05d75"/>
+<circle cx="275" cy="78.43" r="3" fill="#b05d75"/>
+<circle cx="470" cy="164.43" r="3" fill="#b05d75"/>
+<circle cx="665" cy="123.48" r="3" fill="#b05d75"/>
+<circle cx="860" cy="146" r="3" fill="#b05d75"/>
+<polyline points="80,94.81 275,78.43 470,164.43 665,123.48 860,146" fill="none" stroke="#b05d75" stroke-width="2"/>
+<text x="876" y="204" font-family="Segoe UI, Arial" font-size="12" fill="#b05d75">twin-engine</text>
+</svg>

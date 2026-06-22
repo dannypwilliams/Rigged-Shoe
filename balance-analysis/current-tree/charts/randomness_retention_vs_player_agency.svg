@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Randomness Retention vs Agency</text>
+<line x1="80" y1="410" x2="1070" y2="410" stroke="#30343b" stroke-width="1"/>
+<rect x="111.68" y="406.2" width="134.64" height="3.8" fill="#2f7d6d" rx="2"/>
+<text x="179" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 179 438)">random</text>
+<text x="179" y="401.2" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0.132%</text>
+<rect x="309.68" y="367.06" width="134.64" height="42.94" fill="#2f7d6d" rx="2"/>
+<text x="377" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 377 438)">novice</text>
+<text x="377" y="362.06" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">1.492%</text>
+<rect x="507.68" y="410" width="134.64" height="1" fill="#2f7d6d" rx="2"/>
+<text x="575" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 575 438)">greedy</text>
+<text x="575" y="405" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">0%</text>
+<rect x="705.68" y="363.87" width="134.64" height="46.13" fill="#2f7d6d" rx="2"/>
+<text x="773" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 773 438)">risk_aware</text>
+<text x="773" y="358.87" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">1.603%</text>
+<rect x="903.68" y="60" width="134.64" height="350" fill="#2f7d6d" rx="2"/>
+<text x="971" y="438" font-family="Segoe UI, Arial" font-size="11" fill="#26313f" text-anchor="middle" transform="rotate(-35 971 438)">optimized</text>
+<text x="971" y="55" font-family="Segoe UI, Arial" font-size="10" fill="#26313f" text-anchor="middle">12.162%</text>
+</svg>

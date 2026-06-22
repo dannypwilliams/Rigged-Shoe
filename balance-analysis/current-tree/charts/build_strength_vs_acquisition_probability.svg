@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="100%" height="100%" fill="#f7f4ee"/>
+<text x="30" y="34" font-family="Segoe UI, Arial" font-size="22" fill="#1c2430">Build Strength vs Acquisition</text>
+<line x1="80" y1="490" x2="860" y2="490" stroke="#30343b"/>
+<line x1="80" y1="60" x2="80" y2="490" stroke="#30343b"/>
+<circle cx="860" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands 0.046,0%</title></circle>
+<circle cx="658.84" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell 0.034,0%</title></circle>
+<circle cx="544.64" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller 0.028,0%</title></circle>
+<circle cx="511.25" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>interest-ledger 0.026,0%</title></circle>
+<circle cx="316.86" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + soft-footsteps 0.014,0%</title></circle>
+<circle cx="249.33" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + low-profile 0.01,0%</title></circle>
+<circle cx="211.64" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + opening-tell 0.008,0%</title></circle>
+<circle cx="179.06" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + small-ball 0.006,0%</title></circle>
+<circle cx="171.09" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + banker-bias 0.005,0%</title></circle>
+<circle cx="166.65" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + interest-ledger 0.005,0%</title></circle>
+<circle cx="157.36" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>flat-better + high-roller 0.005,0%</title></circle>
+<circle cx="147.1" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>burn-notice 0.004,0%</title></circle>
+<circle cx="145.75" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + countertrend 0.004,0%</title></circle>
+<circle cx="144.04" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + opening-tell + soft-footsteps 0.004,0%</title></circle>
+<circle cx="143.46" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>careful-hands + high-roller 0.004,0%</title></circle>
+<circle cx="142.55" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>side-step 0.004,0%</title></circle>
+<circle cx="142.25" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + soft-footsteps 0.004,0%</title></circle>
+<circle cx="139.96" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + tie-insurance 0.004,0%</title></circle>
+<circle cx="139.63" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>pair-hunter 0.004,0%</title></circle>
+<circle cx="138.15" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>closer 0.003,0%</title></circle>
+<circle cx="138.05" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + player-surge 0.003,0%</title></circle>
+<circle cx="137.71" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + low-profile + soft-footsteps 0.003,0%</title></circle>
+<circle cx="136.87" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip 0.003,0%</title></circle>
+<circle cx="133.77" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>house-favorite + interest-ledger 0.003,0%</title></circle>
+<circle cx="133.23" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>natural-read 0.003,0%</title></circle>
+<circle cx="132.19" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>tie-insurance 0.003,0%</title></circle>
+<circle cx="130.58" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>comp-points + interest-ledger 0.003,0%</title></circle>
+<circle cx="129.9" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + player-surge 0.003,0%</title></circle>
+<circle cx="129.6" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + countertrend 0.003,0%</title></circle>
+<circle cx="129.57" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>emergency-marker 0.003,0%</title></circle>
+<circle cx="128.96" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + emergency-marker 0.003,0%</title></circle>
+<circle cx="126.84" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + small-ball + opening-tell 0.003,0%</title></circle>
+<circle cx="125.93" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + clean-hands 0.003,0%</title></circle>
+<circle cx="125.12" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + interest-ledger 0.003,0%</title></circle>
+<circle cx="124.22" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + opening-tell 0.003,0%</title></circle>
+<circle cx="121.79" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + soft-peek 0.002,0%</title></circle>
+<circle cx="120.21" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + opening-tell 0.002,0%</title></circle>
+<circle cx="120.08" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + interest-ledger 0.002,0%</title></circle>
+<circle cx="119.44" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + banker-bias + opening-tell 0.002,0%</title></circle>
+<circle cx="118.87" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>emergency-marker + interest-ledger 0.002,0%</title></circle>
+<circle cx="118.02" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + soft-footsteps 0.002,0%</title></circle>
+<circle cx="117.62" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + emergency-marker 0.002,0%</title></circle>
+<circle cx="117.18" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + lucky-chip 0.002,0%</title></circle>
+<circle cx="115.67" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + false-read 0.002,0%</title></circle>
+<circle cx="115.47" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + punto-insurance 0.002,0%</title></circle>
+<circle cx="115.37" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>small-ball + interest-ledger 0.002,0%</title></circle>
+<circle cx="115.13" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + opening-tell + low-profile 0.002,0%</title></circle>
+<circle cx="113.75" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>flat-better + high-roller + opening-tell 0.002,0%</title></circle>
+<circle cx="112.98" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + player-surge 0.002,0%</title></circle>
+<circle cx="112.74" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + countertrend 0.002,0%</title></circle>
+<circle cx="110.59" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>commission-dodge + interest-ledger 0.002,0%</title></circle>
+<circle cx="110.25" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + side-step 0.002,0%</title></circle>
+<circle cx="110.15" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-anchor + clean-hands 0.002,0%</title></circle>
+<circle cx="109.88" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + false-read 0.002,0%</title></circle>
+<circle cx="109.14" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>careful-hands + clean-hands 0.002,0%</title></circle>
+<circle cx="108.67" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + opening-tell + interest-ledger 0.002,0%</title></circle>
+<circle cx="108.1" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>flat-better + high-roller + small-ball 0.002,0%</title></circle>
+<circle cx="108.06" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>house-favorite + lucky-chip + interest-ledger 0.002,0%</title></circle>
+<circle cx="107.76" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + mirror-bet 0.002,0%</title></circle>
+<circle cx="107.66" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>interest-ledger + soft-footsteps 0.002,0%</title></circle>
+<circle cx="107.53" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>careful-hands + high-roller + opening-tell 0.002,0%</title></circle>
+<circle cx="107.32" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + small-ball + banker-bias 0.002,0%</title></circle>
+<circle cx="106.48" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + reversal-read 0.002,0%</title></circle>
+<circle cx="105.64" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>freeze-discount + interest-ledger 0.002,0%</title></circle>
+<circle cx="105.44" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + lucky-chip 0.002,0%</title></circle>
+<circle cx="104.3" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>house-favorite + high-roller 0.001,0%</title></circle>
+<circle cx="102.68" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + interest-ledger 0.001,0%</title></circle>
+<circle cx="102.65" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>house-favorite + opening-tell 0.001,0%</title></circle>
+<circle cx="102.28" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + tie-insurance 0.001,0%</title></circle>
+<circle cx="102.18" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>flat-better + high-roller + banker-bias 0.001,0%</title></circle>
+<circle cx="101.3" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + opening-tell + countertrend 0.001,0%</title></circle>
+<circle cx="100.76" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + opening-tell + player-surge 0.001,0%</title></circle>
+<circle cx="100.56" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>banker-bias + interest-ledger 0.001,0%</title></circle>
+<circle cx="100.22" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>high-roller + opening-tell + emergency-marker 0.001,0%</title></circle>
+<circle cx="100.02" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + natural-read 0.001,0%</title></circle>
+<circle cx="99.89" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>careful-hands + high-roller + small-ball 0.001,0%</title></circle>
+<circle cx="99.72" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>house-favorite + opening-tell + interest-ledger 0.001,0%</title></circle>
+<circle cx="99.62" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>lucky-chip + comp-points + interest-ledger 0.001,0%</title></circle>
+<circle cx="99.31" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>clean-hands + soft-footsteps + countertrend 0.001,0%</title></circle>
+<circle cx="99.08" cy="490" r="4" fill="#7b5ea7" opacity="0.78"><title>opening-tell + tie-whisperer 0.001,0%</title></circle>
+<text x="450" y="538" font-family="Segoe UI, Arial" font-size="13" fill="#26313f" text-anchor="middle">frequency / acquisition probability</text>
+<text x="18" y="280" font-family="Segoe UI, Arial" font-size="13" fill="#26313f" text-anchor="middle" transform="rotate(-90 18 280)">impact / completion</text>
+</svg>
