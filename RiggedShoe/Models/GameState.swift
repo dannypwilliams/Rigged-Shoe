@@ -10,6 +10,7 @@ struct GameState: Equatable {
     var acquiredUpgrades: [UpgradeCard] = []
     var pendingUpgradeChoices: [UpgradeCard] = []
     var pendingStageRewardChoices: [StageReward] = []
+    var rewardDraftState: RewardDraftState?
     var roundsSinceLastUpgrade: Int = 0
     var runManager: RunManager
     var bossManager = BossManager()
@@ -18,6 +19,18 @@ struct GameState: Equatable {
     var metaReputationEarnedThisRun: Int = 0
     var didRecordRunEnd: Bool = false
     var roundPresentation = RoundPresentationState()
+    var battleLog: [BattleLogEntry] = []
+    var debugGameEventLog: [String] = []
+    var shopState = ShopState()
+    var activeModifiers: [ModifierInstance] = []
+    var benchModifiers: [ModifierInstance] = []
+    var consumables: [Consumable] = []
+    var attachments: [Attachment] = []
+    var bossRelics: [BossRelic] = []
+    var activeModifierSlotLimit = 5
+    var benchModifierSlotLimit = 2
+    var consumableSlotLimit = 1
+    var bossRelicSlotLimit = 1
     var challengeID: ChallengeModeID
     var isDailyRun: Bool
     var dailySeed: UInt64?
@@ -40,11 +53,18 @@ struct GameState: Equatable {
     var hasMovedCardThisStage = false
     var xRayChargesRemainingThisStage = 0
     var isXRayActiveForNextHand = false
+    var modifierRevealCount = 0
     var isGuidedFirstRun: Bool
     var guidedExcitingWinDelivered = false
     var hasOfferedGuidedUpgrade = false
     var runStartedAt = Date()
     var startingContact: StartingContact = .defaultFloorHost
+    var hasAppliedStartingContact = false
+    var bossLastBetType: BetType?
+    var bossSameSideBetCount = 0
+    var bossInspectorPressureUsedThisStage = false
+    var houseAdaptivePressureUsedThisStage = false
+    var houseRuleShiftAppliedThisStage = false
 
     init(configuration: RunConfiguration = RunConfiguration(
         startingBankrollCents: RunManager.defaultStartingBankrollCents,
@@ -66,6 +86,7 @@ struct GameState: Equatable {
         self.seededGenerator = configuration.dailySeed.map(SeededRandomGenerator.init(seed:))
         self.themeID = configuration.themeID
         self.isGuidedFirstRun = configuration.isGuidedFirstRun
+        self.startingContact = .defaultFloorHost
         self.acquiredUpgrades = configuration.startingUpgradeNames.compactMap { name in
             UpgradeCard.allCards.first { $0.name == name }?.copyForAcquisition()
         }

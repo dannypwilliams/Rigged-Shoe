@@ -1,283 +1,201 @@
 #!/usr/bin/env python3
-"""Lightweight Rigged Shoe balance simulator.
+"""Headless balance simulator for the rebuilt Rigged Shoe roguelite loop.
 
-This intentionally mirrors the current model layer at a compact level instead
-of launching the UI. It keeps only run summaries so it stays safe on low-RAM
-machines, and it parses upgrade values from the Swift source so balance passes
-do not drift silently.
+This is intentionally compact and RAM-conscious. It mirrors the current Swift
+model layer at the level needed for balance work: 10 short baccarat battles,
+opponent scoring, bankroll, Chips, Heat, boss pressure, reward/shop drafting,
+and simplified modifier effects. It does not launch the iOS app.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import random
 import re
 import resource
 import time
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from statistics import mean
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 
 ROOT = Path(__file__).resolve().parents[2]
-UPGRADE_SWIFT = ROOT / "RiggedShoe" / "Models" / "UpgradeCard.swift"
-PROFILE_SWIFT = ROOT / "RiggedShoe" / "Models" / "PlayerProfile.swift"
-VM_SWIFT = ROOT / "RiggedShoe" / "ViewModels" / "GameViewModel.swift"
-
+MODIFIER_SWIFT = ROOT / "RiggedShoe" / "Models" / "ModifierModels.swift"
+SHOP_SWIFT = ROOT / "RiggedShoe" / "Models" / "ShopModels.swift"
+REPORT_PATH = ROOT / "Docs" / "BalanceReport.md"
 
 SUITS = ["C", "D", "H", "S"]
 RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 VALUES = {"A": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 0, "J": 0, "Q": 0, "K": 0}
+BET_TYPES = ["player", "banker", "tie"]
 
 
 @dataclass(frozen=True)
 class Stage:
     id: int
-    round_limit: int
+    hands: int
+    ante: int
+    max_bet: int
     allowed_bets: Tuple[int, ...]
-    objective: str
-    target: int
-    min_bankroll: int = 0
-    target_profit: int = 0
-    loss_limit: int = 0
+    opponent: str
+    opponent_style: str
+    table_event: str
+    secondary: str
+    is_boss: bool = False
+
+    def min_bet(self) -> int:
+        return self.ante
 
 
-STAGES = [
-    Stage(1, 10, (1000,), "survive", 10, min_bankroll=20_000),
-    Stage(2, 10, (1000, 2000), "loss_limit", 10, loss_limit=6_000),
-    Stage(3, 12, (1000, 2000, 3000), "grow_by", 1_500),
-    Stage(4, 12, (1000, 2000, 3000, 5000), "upgrade_win", 1, target_profit=6_000),
-    Stage(5, 12, (1000, 2000, 3000, 5000, 7500), "grow_by", 12_500),
-    Stage(6, 12, (1000, 2000, 3000, 5000, 7500, 10_000), "profit", 15_000),
-    Stage(7, 12, (1000, 2000, 3000, 5000, 7500, 10_000, 20_000), "profit", 25_000),
-    Stage(8, 12, (1000, 2000, 3000, 5000, 7500, 10_000, 20_000, 30_000), "profit", 45_000),
-    Stage(9, 12, (1000, 2000, 3000, 5000, 7500, 10_000, 20_000, 30_000, 50_000), "profit", 75_000),
-    Stage(10, 12, (1000, 2000, 3000, 5000, 7500, 10_000, 20_000, 30_000, 50_000, 100_000), "profit", 125_000),
-]
+STAGES: Tuple[Stage, ...] = (
+    Stage(1, 5, 2_500, 10_000, (2_500, 5_000, 7_500, 10_000), "Nervous Tourist", "randomTourist", "Tourist Rush", "Clean Run"),
+    Stage(2, 6, 5_000, 15_000, (5_000, 10_000, 15_000), "Weekend Regular", "conservativeBanker", "No Commission Night", "Ahead of Schedule"),
+    Stage(3, 7, 7_500, 25_000, (7_500, 15_000, 22_500, 25_000), "Card Room Grinder", "smallBallGrinder", "Tie Promo", "Engine Online"),
+    Stage(4, 8, 10_000, 40_000, (10_000, 20_000, 30_000, 40_000), "Tie Chaser", "tieChaser", "High Minimums", "Longshot Hit"),
+    Stage(5, 8, 15_000, 60_000, (15_000, 30_000, 45_000, 60_000), "Pattern Player", "streakBetter", "Tight Surveillance", "Stay Small", True),
+    Stage(6, 8, 20_000, 80_000, (20_000, 40_000, 60_000, 80_000), "The Counter", "counterBetter", "Private Table", "Use the Layout"),
+    Stage(7, 9, 30_000, 120_000, (30_000, 60_000, 90_000, 120_000), "The Whale Junior", "highRoller", "Rich Crowd", "Beat the Spread"),
+    Stage(8, 10, 40_000, 175_000, (40_000, 80_000, 120_000, 160_000, 175_000), "Quiet Regular", "smallBallGrinder", "Bad Cut", "Close Strong", True),
+    Stage(9, 10, 60_000, 250_000, (60_000, 120_000, 180_000, 240_000, 250_000), "The Cooler", "conservativeBanker", "Cold Table", "No Props"),
+    Stage(10, 12, 80_000, 400_000, (80_000, 160_000, 240_000, 320_000, 400_000), "The Floor Favorite", "conservativeBanker", "Final Hand Spotlight", "Comeback Table", True),
+)
+
+TARGET_CLEAR_RATES = {
+    1: (0.90, 0.95),
+    2: (0.80, 0.90),
+    3: (0.70, 0.80),
+    4: (0.60, 0.70),
+    5: (0.50, 0.65),
+    6: (0.45, 0.60),
+    7: (0.35, 0.50),
+    8: (0.30, 0.45),
+    9: (0.20, 0.35),
+    10: (0.10, 0.25),
+}
 
 
 @dataclass
-class Upgrade:
+class ModifierDef:
+    id: str
     name: str
-    description: str
     rarity: str
     tags: Tuple[str, ...]
-    effect: str
-    money_score: int = 0
-    reveal_count: int = 0
-    charged_reveal_count: int = 0
-    player_bonus: int = 0
-    banker_bonus: int = 0
-    chosen_bonus: int = 0
-    forecast_bonus: int = 0
-    round_stipend: int = 0
-    stage_start_cash: int = 0
-    card_exit_income: int = 0
-    loss_rebate_percent: int = 0
-    damage_rebate_percent: int = 0
-    small_bet_multiplier: int = 100
-    small_bet_max: int = 0
-    small_streak_required: int = 0
-    small_streak_bonus: int = 0
-    press_multiplier: int = 100
-    profit_multiplier_all: int = 100
-    profit_multiplier_player: int = 100
-    profit_multiplier_banker: int = 100
-    profit_multiplier_tie: int = 100
-    loss_multiplier: int = 100
-    tie_multiplier: int = 8
-    no_commission: bool = False
-    low_value_duplicate: bool = False
+    trigger: str
+    min_tier: int
+    cost: int
+    side: Optional[str] = None
+    payout_percent: int = 0
+    bankroll_ante_percent: int = 0
+    chips: int = 0
+    reveal: int = 0
+    refund_percent: int = 0
+    prevent_heat: int = 0
+    heat_cost: int = 0
+
+    @property
+    def score(self) -> int:
+        return (
+            self.payout_percent
+            + self.bankroll_ante_percent // 2
+            + self.chips * 45
+            + self.reveal * 12
+            + self.refund_percent
+            + self.prevent_heat * 25
+            - self.heat_cost * 20
+        )
 
 
 @dataclass
-class Effects:
-    player_bonus: int = 0
-    banker_bonus: int = 0
-    chosen_bonus: int = 0
-    forecast_bonus: int = 0
-    round_stipend: int = 0
-    stage_start_cash: int = 0
-    card_exit_income: int = 0
-    loss_rebate_percent: int = 0
-    damage_rebate_percent: int = 0
-    damage_every_hands: int = 3
-    small_bet_multiplier: int = 100
-    small_bet_max: int = 0
-    small_streak_required: int = 0
-    small_streak_bonus: int = 0
-    press_multiplier: int = 100
-    profit_multiplier_all: int = 100
-    profit_multiplier_player: int = 100
-    profit_multiplier_banker: int = 100
-    profit_multiplier_tie: int = 100
-    loss_multiplier: int = 100
-    reveal_count: int = 0
-    charged_reveal_count: int = 0
-    tie_multiplier: int = 8
-    no_commission: bool = False
+class Contact:
+    id: str
+    name: str
+    starting_modifiers: Tuple[str, ...]
+    tags: Tuple[str, ...]
+    bankroll_adjust: int = 0
+    chips_adjust: int = 0
+    heat_adjust: int = 0
+    cash_multiplier: float = 1.0
+    early_max_bet_multiplier: float = 1.0
+
+
+@dataclass
+class SimState:
+    rng: random.Random
+    strategy: str
+    contact: Contact
+    bankroll: int
+    chips: int
+    heat: int
+    active_mods: List[str]
+    bench_mods: List[str] = field(default_factory=list)
+    bosses_defeated: int = 0
+    highest_bankroll: int = 0
+    total_hands: int = 0
+    modifiers_triggered: Dict[str, int] = field(default_factory=dict)
+    picked_modifiers: List[str] = field(default_factory=list)
+    shop_offers_seen: int = 0
+    last_winner: Optional[str] = None
+    last_bet_side: Optional[str] = None
+    repeated_side_count: int = 0
+    heat_deaths: int = 0
+    bankruptcies: int = 0
+
+    def trigger(self, modifier_id: str) -> None:
+        self.modifiers_triggered[modifier_id] = self.modifiers_triggered.get(modifier_id, 0) + 1
+
+
+@dataclass
+class StageRecord:
+    stage: int
+    clear: bool
+    boss: bool
+    bankroll_start: int
+    bankroll_end: int
+    heat_start: int
+    heat_end: int
+    chips_start: int
+    chips_end: int
+    player_profit: int
+    opponent_profit: int
+    hands: int
+    failure: str = ""
 
 
 @dataclass
 class RunSummary:
     seed: int
     strategy: str
-    pool: str
+    contact: str
+    final_stage: int
+    completed: bool
+    failure: str
     starting_bankroll: int
     ending_bankroll: int
     highest_bankroll: int
-    stage_reached: int
-    rounds_played: int
+    heat: int
+    chips: int
+    hands: int
     bosses_defeated: int
-    upgrade_choices_offered: int
-    upgrades_taken: List[str]
-    useful_upgrade_triggers: Dict[str, int]
-    failure_point: str
-    cleared_first_three: bool
-    used_max_bet_ratio: float
+    picked_modifiers: List[str]
+    triggered_modifiers: Dict[str, int]
+    stages: List[StageRecord]
 
 
-def cents(amount: int) -> str:
-    return f"${amount / 100:,.0f}" if amount % 100 == 0 else f"${amount / 100:,.2f}"
+def cents(value: int) -> str:
+    sign = "-" if value < 0 else ""
+    value = abs(value)
+    dollars = value / 100
+    return f"{sign}${dollars:,.0f}" if value % 100 == 0 else f"{sign}${dollars:,.2f}"
 
 
-def parse_int(token: str) -> int:
-    return int(token.replace("_", ""))
+def rank_value(card: Tuple[str, str]) -> int:
+    return VALUES[card[0]]
 
 
-def parse_card_line(line: str) -> Optional[Tuple[str, str, str, str, Tuple[str, ...]]]:
-    match = re.search(r'card\("([^"]+)",\s*"([^"]+)",\s*\.(\w+),\s*(.*),\s*\[([^\]]*)\]\)', line.strip())
-    if not match:
-        return None
-    tags = tuple(re.findall(r"\.(\w+)", match.group(5)))
-    return match.group(1), match.group(2), match.group(3), match.group(4), tags
-
-
-def parse_upgrades() -> List[Upgrade]:
-    upgrades: List[Upgrade] = []
-    for line in UPGRADE_SWIFT.read_text().splitlines():
-        parsed = parse_card_line(line)
-        if not parsed:
-            continue
-        name, description, rarity, effect, tags = parsed
-        upgrade = Upgrade(name=name, description=description, rarity=rarity, tags=tags, effect=effect)
-        apply_effect_parse(upgrade)
-        upgrade.low_value_duplicate = not has_meaningful_duplicate_value(effect)
-        upgrade.money_score = (
-            upgrade.player_bonus
-            + upgrade.banker_bonus
-            + upgrade.chosen_bonus
-            + upgrade.forecast_bonus
-            + upgrade.round_stipend * 6
-            + upgrade.stage_start_cash
-            + upgrade.card_exit_income * 24
-            + upgrade.small_streak_bonus
-        )
-        upgrades.append(upgrade)
-    return upgrades
-
-
-def has_meaningful_duplicate_value(effect: str) -> bool:
-    stackable_tokens = (
-        ".addExtraNines", ".addExtraEights", ".addCards", ".addRandomCards", ".addTiePairCards",
-        ".removeZeroValueCards", ".removeCards", ".playerWinBonus", ".bankerWinBonus",
-        ".chosenBetWinBonus", ".forecastWinBonus", ".tiePayoutBonus", ".revealAfterRound",
-        ".hotShoe", ".coldShoe", ".profitMultiplier", ".lossMultiplier", ".lossRebatePercent",
-        ".roundStipend", ".stageStartCash", ".cardExitIncome", ".streakBonus",
-        ".firstTieEachStageMultiplier", ".consecutiveTiePayoutBonus", ".previousLossRefundOnTie",
-        ".bossStageCash", ".safetyNet", ".smallBetWinMultiplier", ".smallBetStreakBonus",
-        ".pressAfterWinMultiplier", ".lossRebateEveryHands", ".bankerInitialTotalBonus",
-        ".firstNaturalEachStageBonus", ".comebackWinBonus", ".firstLargeBetStageMultiplier",
-        ".steadyBetWinBonus", ".raiseWinBonus",
-    )
-    return any(token in effect for token in stackable_tokens)
-
-
-def apply_effect_parse(upgrade: Upgrade) -> None:
-    effect = upgrade.effect
-    for value in re.findall(r"\.playerWinBonus\(cents:\s*([0-9_]+)\)", effect):
-        upgrade.player_bonus += parse_int(value)
-    for value in re.findall(r"\.bankerWinBonus\(cents:\s*([0-9_]+)\)", effect):
-        upgrade.banker_bonus += parse_int(value)
-    for value in re.findall(r"\.chosenBetWinBonus\(cents:\s*([0-9_]+)\)", effect):
-        upgrade.chosen_bonus += parse_int(value)
-    for value in re.findall(r"\.forecastWinBonus\(cents:\s*([0-9_]+)\)", effect):
-        upgrade.forecast_bonus += parse_int(value)
-    for value in re.findall(r"\.roundStipend\(cents:\s*([0-9_]+)\)", effect):
-        upgrade.round_stipend += parse_int(value)
-    for value in re.findall(r"\.stageStartCash\(cents:\s*([0-9_]+)\)", effect):
-        upgrade.stage_start_cash += parse_int(value)
-    for value in re.findall(r"\.cardExitIncome\(centsPerCard:\s*([0-9_]+)\)", effect):
-        upgrade.card_exit_income += parse_int(value)
-    for value in re.findall(r"\.lossRebatePercent\(percent:\s*([0-9_]+)\)", effect):
-        upgrade.loss_rebate_percent = max(upgrade.loss_rebate_percent, parse_int(value))
-    for value in re.findall(r"\.lossMultiplier\(percent:\s*([0-9_]+)\)", effect):
-        upgrade.loss_multiplier += max(0, parse_int(value) - 100)
-    for max_bet, percent in re.findall(r"\.smallBetWinMultiplier\(maxBetCents:\s*([0-9_]+),\s*percent:\s*([0-9_]+)\)", effect):
-        upgrade.small_bet_max = max(upgrade.small_bet_max, parse_int(max_bet))
-        upgrade.small_bet_multiplier += max(0, parse_int(percent) - 100)
-    for max_bet, wins, value in re.findall(r"\.smallBetStreakBonus\(maxBetCents:\s*([0-9_]+),\s*requiredWins:\s*([0-9_]+),\s*cents:\s*([0-9_]+)\)", effect):
-        upgrade.small_bet_max = max(upgrade.small_bet_max, parse_int(max_bet))
-        upgrade.small_streak_required = parse_int(wins)
-        upgrade.small_streak_bonus += parse_int(value)
-    for percent in re.findall(r"\.pressAfterWinMultiplier\(percent:\s*([0-9_]+)\)", effect):
-        upgrade.press_multiplier += max(0, parse_int(percent) - 100)
-    for percent, every in re.findall(r"\.lossRebateEveryHands\(percent:\s*([0-9_]+),\s*everyHands:\s*([0-9_]+)\)", effect):
-        upgrade.damage_rebate_percent = max(upgrade.damage_rebate_percent, parse_int(percent))
-    for multiplier in re.findall(r"\.improveTiePayout\(multiplier:\s*([0-9_]+)\)", effect):
-        upgrade.tie_multiplier = max(upgrade.tie_multiplier, parse_int(multiplier))
-    for amount in re.findall(r"\.tiePayoutBonus\(amount:\s*([0-9_]+)\)", effect):
-        upgrade.tie_multiplier += parse_int(amount)
-    if ".noCommission" in effect:
-        upgrade.no_commission = True
-    for bet, percent in re.findall(r"\.profitMultiplier\(betType:\s*([^,]+),\s*percent:\s*([0-9_]+)\)", effect):
-        value = parse_int(percent)
-        if ".player" in bet:
-            upgrade.profit_multiplier_player += max(0, value - 100)
-        elif ".banker" in bet:
-            upgrade.profit_multiplier_banker += max(0, value - 100)
-        elif ".tie" in bet:
-            upgrade.profit_multiplier_tie += max(0, value - 100)
-        else:
-            upgrade.profit_multiplier_all += max(0, value - 100)
-    for value in re.findall(r"\.revealCards\(count:\s*([0-9_]+)\)", effect):
-        upgrade.reveal_count = max(upgrade.reveal_count, min(5, parse_int(value)))
-    reveal_map = {
-        ".peek": 1,
-        ".readTheShoe": 2,
-        ".smudgedLens": 3,
-        ".bentCorner": 3,
-        ".xRay": 0,
-        ".fullXRay": 0,
-    }
-    for key, count in reveal_map.items():
-        if key in effect:
-            upgrade.reveal_count = max(upgrade.reveal_count, count)
-    if ".xRay" in effect:
-        upgrade.charged_reveal_count = max(upgrade.charged_reveal_count, 3)
-    if ".fullXRay" in effect:
-        upgrade.charged_reveal_count = max(upgrade.charged_reveal_count, 4)
-
-
-def parse_default_unlocked() -> set[str]:
-    text = PROFILE_SWIFT.read_text()
-    match = re.search(r"defaultUnlockedUpgradeNames:\s*Set<String>\s*=\s*\[(.*?)\]", text, re.S)
-    if not match:
-        return set()
-    return set(re.findall(r'"([^"]+)"', match.group(1)))
-
-
-def parse_guided_bonus() -> int:
-    text = VM_SWIFT.read_text()
-    match = re.search(r"private func guidedFirstWinBonusIfNeeded.*?\n    \}", text, re.S)
-    if not match:
-        return 7_500
-    returns = re.findall(r"return\s+([0-9_]+)", match.group(0))
-    non_zero_returns = [parse_int(value) for value in returns if parse_int(value) > 0]
-    return non_zero_returns[-1] if non_zero_returns else 0
+def hand_total(cards: Sequence[Tuple[str, str]]) -> int:
+    return sum(rank_value(card) for card in cards) % 10
 
 
 def new_shoe(rng: random.Random) -> List[Tuple[str, str]]:
@@ -286,502 +204,933 @@ def new_shoe(rng: random.Random) -> List[Tuple[str, str]]:
     return cards
 
 
-def baccarat_value(card: Tuple[str, str]) -> int:
-    return VALUES[card[0]]
-
-
-def hand_total(cards: Sequence[Tuple[str, str]]) -> int:
-    return sum(baccarat_value(card) for card in cards) % 10
-
-
-def should_banker_draw(banker_total: int, player_third: Optional[Tuple[str, str]]) -> bool:
+def should_banker_draw(total: int, player_third: Optional[Tuple[str, str]]) -> bool:
     if player_third is None:
-        return banker_total <= 5
-    value = baccarat_value(player_third)
-    if banker_total <= 2:
+        return total <= 5
+    value = rank_value(player_third)
+    if total <= 2:
         return True
-    if banker_total == 3:
+    if total == 3:
         return value != 8
-    if banker_total == 4:
+    if total == 4:
         return 2 <= value <= 7
-    if banker_total == 5:
+    if total == 5:
         return 4 <= value <= 7
-    if banker_total == 6:
+    if total == 6:
         return 6 <= value <= 7
     return False
 
 
-def deal_hand(shoe: List[Tuple[str, str]]) -> Tuple[str, int, int, int, bool]:
+def deal_hand(shoe: List[Tuple[str, str]]) -> Tuple[str, int, int, bool, int]:
     p1 = shoe.pop(0)
     b1 = shoe.pop(0)
     p2 = shoe.pop(0)
     b2 = shoe.pop(0)
     player = [p1, p2]
     banker = [b1, b2]
-    p_total = hand_total(player)
-    b_total = hand_total(banker)
-    natural = p_total in (8, 9) or b_total in (8, 9)
-    dealt = 4
+    player_total = hand_total(player)
+    banker_total = hand_total(banker)
+    natural = player_total in (8, 9) or banker_total in (8, 9)
+    cards_dealt = 4
     if not natural:
         player_third = None
-        if p_total <= 5:
+        if player_total <= 5:
             player_third = shoe.pop(0)
             player.append(player_third)
-            dealt += 1
-            p_total = hand_total(player)
+            player_total = hand_total(player)
+            cards_dealt += 1
         if should_banker_draw(hand_total(banker), player_third):
             banker.append(shoe.pop(0))
-            dealt += 1
-            b_total = hand_total(banker)
-    if p_total > b_total:
-        winner = "player"
-    elif b_total > p_total:
-        winner = "banker"
-    else:
-        winner = "tie"
-    return winner, p_total, b_total, dealt, natural
+            banker_total = hand_total(banker)
+            cards_dealt += 1
+    if player_total > banker_total:
+        return "player", player_total, banker_total, natural, cards_dealt
+    if banker_total > player_total:
+        return "banker", player_total, banker_total, natural, cards_dealt
+    return "tie", player_total, banker_total, natural, cards_dealt
 
 
-def forecast_from_preview(shoe: Sequence[Tuple[str, str]], count: int) -> Optional[str]:
-    if count < 4 or len(shoe) < 4:
+def forecast(shoe: Sequence[Tuple[str, str]], reveal_count: int) -> Optional[str]:
+    if reveal_count < 4 or len(shoe) < 6:
         return None
-    copy = list(shoe[:6])
+    preview = list(shoe[:6])
     try:
-        winner, _, _, _, _ = deal_hand(copy)
-        return winner
+        return deal_hand(preview)[0]
     except IndexError:
         return None
 
 
-def combine_effects(upgrades: Iterable[Upgrade]) -> Effects:
-    effects = Effects()
-    for upgrade in upgrades:
-        effects.player_bonus += upgrade.player_bonus
-        effects.banker_bonus += upgrade.banker_bonus
-        effects.chosen_bonus += upgrade.chosen_bonus
-        effects.forecast_bonus += upgrade.forecast_bonus
-        effects.round_stipend += upgrade.round_stipend
-        effects.stage_start_cash += upgrade.stage_start_cash
-        effects.card_exit_income += upgrade.card_exit_income
-        effects.loss_rebate_percent = max(effects.loss_rebate_percent, upgrade.loss_rebate_percent)
-        effects.damage_rebate_percent = max(effects.damage_rebate_percent, upgrade.damage_rebate_percent)
-        effects.small_bet_multiplier += max(0, upgrade.small_bet_multiplier - 100)
-        effects.small_bet_max = max(effects.small_bet_max, upgrade.small_bet_max)
-        if upgrade.small_streak_required:
-            effects.small_streak_required = upgrade.small_streak_required if effects.small_streak_required == 0 else min(effects.small_streak_required, upgrade.small_streak_required)
-        effects.small_streak_bonus += upgrade.small_streak_bonus
-        effects.press_multiplier += max(0, upgrade.press_multiplier - 100)
-        effects.profit_multiplier_all += max(0, upgrade.profit_multiplier_all - 100)
-        effects.profit_multiplier_player += max(0, upgrade.profit_multiplier_player - 100)
-        effects.profit_multiplier_banker += max(0, upgrade.profit_multiplier_banker - 100)
-        effects.profit_multiplier_tie += max(0, upgrade.profit_multiplier_tie - 100)
-        effects.loss_multiplier += max(0, upgrade.loss_multiplier - 100)
-        effects.reveal_count = max(effects.reveal_count, upgrade.reveal_count)
-        effects.charged_reveal_count = max(effects.charged_reveal_count, upgrade.charged_reveal_count)
-        effects.tie_multiplier = max(effects.tie_multiplier, upgrade.tie_multiplier)
-        effects.no_commission = effects.no_commission or upgrade.no_commission
-    return effects
+def rarity_cost(rarity: str) -> int:
+    return {
+        "common": 3,
+        "uncommon": 4,
+        "rare": 5,
+        "epic": 6,
+        "legendary": 8,
+        "boss": 0,
+    }.get(rarity, 3)
 
 
-def weighted_upgrade_choices(rng: random.Random, pool: List[Upgrade], acquired: List[Upgrade], count: int = 3) -> List[Upgrade]:
-    choices: List[Upgrade] = []
-    used: set[str] = set()
-    low_value_duplicate_names = {upgrade.name for upgrade in acquired if upgrade.low_value_duplicate}
-    for _ in range(160):
-        if len(choices) == count:
-            break
-        roll = rng.randint(1, 100)
-        rarity = "common" if roll <= 70 else "rare" if roll <= 95 else "legendary"
-        candidates = [
-            card for card in pool
-            if card.rarity == rarity and card.name not in used and card.name not in low_value_duplicate_names
-        ]
-        if not candidates:
+def parse_tags(raw: str) -> Tuple[str, ...]:
+    return tuple(re.findall(r"\.([A-Za-z][A-Za-z0-9_]*)", raw))
+
+
+def extract_side(raw: str) -> Optional[str]:
+    if ".banker" in raw:
+        return "banker"
+    if ".player" in raw:
+        return "player"
+    if ".tie" in raw:
+        return "tie"
+    return None
+
+
+def parse_ints(raw: str, pattern: str) -> List[int]:
+    return [int(value.replace("_", "")) for value in re.findall(pattern, raw)]
+
+
+def parse_modifiers() -> Dict[str, ModifierDef]:
+    text = MODIFIER_SWIFT.read_text()
+    mods: Dict[str, ModifierDef] = {}
+
+    # Six core engine-test modifiers are deliberately small and reliable.
+    core = [
+        ModifierDef("core.banker-bias", "Banker Bias", "common", ("banker", "betControl"), "playerWonBet", 1, 3, side="banker", payout_percent=10),
+        ModifierDef("core.player-surge", "Player Surge", "common", ("player", "tempo"), "playerWonBet", 1, 3, side="player", bankroll_ante_percent=100),
+        ModifierDef("core.tie-insurance", "Tie Insurance", "common", ("tie", "comeback"), "playerLostBet", 1, 3, side="tie", refund_percent=40),
+        ModifierDef("core.opening-tell", "Opening Tell", "rare", ("shoeVision",), "stageStarted", 1, 5, reveal=3),
+        ModifierDef("core.clean-hands", "Clean Hands", "common", ("heat",), "heatGained", 1, 3, prevent_heat=1),
+        ModifierDef("core.lucky-chip", "Lucky Chip", "common", ("economy",), "playerWonBet", 1, 3, chips=1),
+    ]
+    mods.update({item.id: item for item in core})
+
+    # Expanded catalog entries mostly live on one line through contentModifier.
+    for line in text.splitlines():
+        if "contentModifier(" not in line:
             continue
-        card = rng.choice(candidates)
-        choices.append(card)
-        used.add(card.name)
-    if len(choices) < count:
-        for card in rng.sample(pool, len(pool)):
-            if card.name not in used and card.name not in low_value_duplicate_names:
-                choices.append(card)
-                used.add(card.name)
-                if len(choices) == count:
-                    break
-    if len(choices) < count:
-        for card in rng.sample(pool, len(pool)):
-            if card.name not in used:
-                choices.append(card)
-                used.add(card.name)
-                if len(choices) == count:
-                    break
-    return choices
+        id_match = re.search(r'id:\s*"([^"]+)"', line)
+        name_match = re.search(r'name:\s*"([^"]+)"', line)
+        rarity_match = re.search(r'rarity:\s*\.(\w+)', line)
+        trigger_match = re.search(r'trigger:\s*\.(\w+)', line)
+        tier_match = re.search(r'minShopTier:\s*([0-9]+)', line)
+        tags_match = re.search(r'tags:\s*\[([^\]]*)\]', line)
+        if not (id_match and name_match and rarity_match and trigger_match and tier_match and tags_match):
+            continue
+        mod_id = id_match.group(1)
+        raw_effects = line
+        payout_values = parse_ints(raw_effects, r"payoutLevels\([^,]+,\s*([0-9_]+)")
+        ante_values = parse_ints(raw_effects, r"anteLevels\(\s*([0-9_]+)")
+        grant_bankroll = parse_ints(raw_effects, r"grantBankrollFromAnte\(percent:\s*([0-9_]+)")
+        grant_chips = parse_ints(raw_effects, r"grantChips(?:OnFirstStageTrigger)?\(amount:\s*([0-9_]+)")
+        reveals = parse_ints(raw_effects, r"revealUpcomingCards(?:WithForecast)?\(count:\s*([0-9_]+)")
+        refunds = parse_ints(raw_effects, r"lossRefund\(percent:\s*([0-9_]+)")
+        prevents = parse_ints(raw_effects, r"preventHeat\(amount:\s*([0-9_]+)")
+        heat_cost = parse_ints(raw_effects, r"heatCost:\s*([0-9_]+)")
+        mod = ModifierDef(
+            id=mod_id,
+            name=name_match.group(1),
+            rarity=rarity_match.group(1),
+            tags=parse_tags(tags_match.group(1)),
+            trigger=trigger_match.group(1),
+            min_tier=int(tier_match.group(1)),
+            cost=rarity_cost(rarity_match.group(1)),
+            side=extract_side(raw_effects),
+            payout_percent=max(payout_values or [0]),
+            bankroll_ante_percent=max((ante_values + grant_bankroll) or [0]),
+            chips=max(grant_chips or [0]),
+            reveal=max(reveals or [0]),
+            refund_percent=max(refunds or [0]),
+            prevent_heat=max(prevents or ([1] if "preventHeat(amount: nil)" in raw_effects else [0])),
+            heat_cost=max(heat_cost or [0]),
+        )
+        mods[mod.id] = mod
+    return mods
 
 
-def choose_upgrade(strategy: str, choices: List[Upgrade], acquired: List[Upgrade]) -> Upgrade:
-    preferred_tags = {
-        "conservative": ["conservative", "economy", "comeback", "reveal"],
-        "aggressive": ["risk", "aggressive", "economy", "banker"],
-        "synergy": most_common_tags(acquired) + ["reveal", "economy", "shoe"],
-        "unclear": ["reveal", "shoe", "tie"],
-    }.get(strategy, ["economy", "reveal"])
-    def score(card: Upgrade) -> Tuple[int, int]:
-        tag_score = sum(12 for tag in card.tags if tag in preferred_tags)
-        rarity_score = {"common": 0, "rare": 4, "legendary": 8}.get(card.rarity, 0)
-        return tag_score + rarity_score + min(20, card.money_score // 2_500), card.money_score
-    return max(choices, key=score)
+def parse_contacts() -> Dict[str, Contact]:
+    text = SHOP_SWIFT.read_text()
+    contacts: Dict[str, Contact] = {}
+    pattern = re.compile(r'StartingContact\(id:\s*"([^"]+)".*?\)', re.S)
+    for match in pattern.finditer(text):
+        raw = match.group(0)
+        id_match = re.search(r'id:\s*"([^"]+)"', raw)
+        name_match = re.search(r'name:\s*"([^"]+)"', raw)
+        mods_match = re.search(r'startingModifiers:\s*\[([^\]]*)\]', raw)
+        tags_match = re.search(r'shopBiasTags:\s*\[([^\]]*)\]', raw)
+        bankroll = parse_ints(raw, r"bankrollAdjustmentCents:\s*(-?[0-9_]+)")
+        chips = parse_ints(raw, r"chipsAdjustment:\s*(-?[0-9_]+)")
+        heat = parse_ints(raw, r"heatAdjustment:\s*(-?[0-9_]+)")
+        cash_multiplier = parse_ints(raw, r"cashRewardMultiplierPercent:\s*([0-9_]+)")
+        early_cap = parse_ints(raw, r"earlyMaxBetMultiplierPercent:\s*([0-9_]+)")
+        if not (id_match and name_match):
+            continue
+        contacts[id_match.group(1)] = Contact(
+            id=id_match.group(1),
+            name=name_match.group(1),
+            starting_modifiers=tuple(re.findall(r'"([^"]+)"', mods_match.group(1) if mods_match else "")),
+            tags=parse_tags(tags_match.group(1) if tags_match else ""),
+            bankroll_adjust=bankroll[0] if bankroll else 0,
+            chips_adjust=chips[0] if chips else 0,
+            heat_adjust=heat[0] if heat else 0,
+            cash_multiplier=(cash_multiplier[0] / 100.0) if cash_multiplier else 1.0,
+            early_max_bet_multiplier=(early_cap[0] / 100.0) if early_cap else 1.0,
+        )
+    if not contacts:
+        contacts["contact.tourist"] = Contact("contact.tourist", "The Tourist", ("core.lucky-chip",), ("economy", "banker", "player"))
+    return contacts
 
 
-def most_common_tags(upgrades: List[Upgrade]) -> List[str]:
-    counts: Dict[str, int] = {}
-    for upgrade in upgrades:
-        for tag in upgrade.tags:
-            counts[tag] = counts.get(tag, 0) + 1
-    return [tag for tag, _ in sorted(counts.items(), key=lambda item: -item[1])[:2]]
+def shop_tier(stage_id: int, bosses_defeated: int) -> int:
+    if stage_id >= 9 or bosses_defeated >= 2:
+        return 5
+    if stage_id >= 8 or bosses_defeated >= 2:
+        return 4
+    if stage_id >= 5 or bosses_defeated >= 1:
+        return 3
+    if stage_id >= 3:
+        return 2
+    return 1
 
 
-def choose_bet(strategy: str, stage: Stage, bankroll: int, stage_start: int, effects: Effects, shoe: List[Tuple[str, str]], xray_active: bool) -> Tuple[str, int, bool]:
-    legal_amounts = [amount for amount in stage.allowed_bets if amount <= bankroll]
-    if not legal_amounts:
+def choose_contact(strategy: str, contacts: Dict[str, Contact]) -> Contact:
+    preferred = {
+        "random_beginner": "contact.tourist",
+        "conservative_banker": "contact.accountant",
+        "build_aware_simple": "contact.dealer",
+        "greedy_high_roller": "contact.whale",
+        "tie_hunter": "contact.tie-chaser",
+        "small_ball": "contact.accountant",
+    }.get(strategy, "contact.tourist")
+    return contacts.get(preferred) or next(iter(contacts.values()))
+
+
+def legal_bets(stage: Stage, bankroll: int, contact: Contact) -> List[int]:
+    cap = min(stage.max_bet, bankroll // 4)
+    if stage.id <= 2:
+        cap = int(cap * contact.early_max_bet_multiplier)
+    if bankroll >= stage.min_bet():
+        cap = max(stage.min_bet(), cap)
+    return [amount for amount in stage.allowed_bets if stage.min_bet() <= amount <= cap and amount <= bankroll]
+
+
+def active_defs(state: SimState, mods: Dict[str, ModifierDef]) -> List[ModifierDef]:
+    return [mods[mid] for mid in state.active_mods if mid in mods]
+
+
+def reveal_count(state: SimState, mods: Dict[str, ModifierDef]) -> int:
+    return max([mod.reveal for mod in active_defs(state, mods)] + [0])
+
+
+def choose_bet(state: SimState, stage: Stage, shoe: List[Tuple[str, str]], mods: Dict[str, ModifierDef]) -> Tuple[str, int, bool]:
+    options = legal_bets(stage, state.bankroll, state.contact)
+    if not options:
         return "banker", 0, False
-    min_bet = min(legal_amounts)
-    max_bet = max(legal_amounts)
-    reveal_count = effects.charged_reveal_count if xray_active else effects.reveal_count
-    forecast = forecast_from_preview(shoe, reveal_count)
-    used_max = False
+    low, high = min(options), max(options)
+    read = forecast(shoe, reveal_count(state, mods))
 
-    if strategy == "aggressive":
-        bet = max_bet if bankroll >= stage_start else min(max_bet, max(min_bet, bankroll // 4))
-        used_max = bet == max_bet
-    elif strategy == "synergy":
-        bet = min(max_bet, legal_amounts[min(1, len(legal_amounts) - 1)])
+    if state.strategy == "random_beginner":
+        side = state.rng.choice(BET_TYPES)
+        amount = state.rng.choice(options[: min(2, len(options))])
+    elif state.strategy == "conservative_banker":
+        side = "banker"
+        amount = low
+    elif state.strategy == "build_aware_simple":
+        tag_counts: Dict[str, int] = {}
+        for mod in active_defs(state, mods):
+            for tag in mod.tags:
+                tag_counts[tag] = tag_counts.get(tag, 0) + 1
+        side = read or ("tie" if tag_counts.get("tie", 0) >= 2 and state.rng.random() < 0.18 else "banker")
+        if tag_counts.get("player", 0) > tag_counts.get("banker", 0):
+            side = read or "player"
+        amount = options[min(1, len(options) - 1)]
+    elif state.strategy == "greedy_high_roller":
+        side = read or "banker"
+        amount = high
+    elif state.strategy == "tie_hunter":
+        side = "tie" if state.rng.random() < (0.28 if read != "tie" else 0.75) else (read or "banker")
+        amount = low if side == "tie" else options[min(1, len(options) - 1)]
+    else:  # small_ball
+        side = read or "banker"
+        amount = low
+    return side, amount, amount == high
+
+
+def opponent_side(style: str, hand_index: int, previous_winner: Optional[str], player_side: str, actual_winner: str) -> str:
+    if style == "conservativeBanker":
+        return "player" if hand_index % 5 == 0 else "banker"
+    if style == "playerPivot":
+        return "player" if previous_winner == "banker" else "banker"
+    if style == "tieChaser":
+        return "tie" if hand_index % 4 == 0 else "banker"
+    if style == "highRoller":
+        return actual_winner if hand_index % 3 == 0 else "banker"
+    if style == "smallBallGrinder":
+        return ("banker", "player", "banker", "banker")[(hand_index - 1) % 4]
+    if style == "streakBetter":
+        return previous_winner or "banker"
+    if style == "counterBetter":
+        return "player" if previous_winner == "banker" else "banker"
+    if style == "randomTourist":
+        return BET_TYPES[(hand_index * 7 + len(actual_winner)) % len(BET_TYPES)]
+    if style == "bossStyle":
+        return player_side
+    if style == "houseStyle":
+        return "banker" if actual_winner == "tie" else actual_winner
+    return "banker"
+
+
+def opponent_profit(stage: Stage, hand_index: int, previous_winner: Optional[str], player_side: str, winner: str) -> int:
+    side = opponent_side(stage.opponent_style, hand_index, previous_winner, player_side, winner)
+    multiplier = 1
+    if stage.opponent_style == "highRoller":
+        multiplier = 3 if hand_index % 3 == 0 else 1
+    elif stage.opponent_style in ("bossStyle", "houseStyle"):
+        multiplier = 2 if hand_index <= 6 else 3
+    amount = min(stage.max_bet, max(stage.ante, stage.ante * multiplier))
+    if winner == "tie" and side != "tie":
+        return 0
+    if side != winner:
+        return -amount
+    if side == "player":
+        return amount
+    if side == "banker":
+        return amount * 95 // 100
+    return amount * 8
+
+
+def trigger_stage_start(state: SimState, stage: Stage, mods: Dict[str, ModifierDef]) -> int:
+    reveal = 0
+    for mod in active_defs(state, mods):
+        if mod.trigger != "stageStarted":
+            continue
+        if mod.bankroll_ante_percent:
+            state.bankroll += stage.ante * mod.bankroll_ante_percent // 100
+            state.trigger(mod.id)
+        if mod.chips:
+            state.chips += mod.chips
+            state.trigger(mod.id)
+        if mod.prevent_heat and state.heat > 0:
+            state.heat = max(0, state.heat - mod.prevent_heat)
+            state.trigger(mod.id)
+        if mod.reveal:
+            reveal = max(reveal, mod.reveal)
+            state.trigger(mod.id)
+    return reveal
+
+
+def apply_heat(state: SimState, amount: int, mods: Dict[str, ModifierDef]) -> None:
+    remaining = amount
+    for mod in active_defs(state, mods):
+        if remaining <= 0:
+            break
+        if mod.trigger == "heatGained" and mod.prevent_heat:
+            blocked = min(remaining, mod.prevent_heat)
+            remaining -= blocked
+            state.trigger(mod.id)
+    state.heat += remaining
+
+
+def resolve_payout(
+    state: SimState,
+    stage: Stage,
+    mods: Dict[str, ModifierDef],
+    bet_side: str,
+    amount: int,
+    winner: str,
+    natural: bool,
+) -> Tuple[int, int]:
+    if winner == "tie" and bet_side != "tie":
+        return amount, 0
+    if winner != bet_side:
+        refund = 0
+        for mod in active_defs(state, mods):
+            if mod.trigger == "playerLostBet" and (mod.side is None or mod.side == bet_side):
+                if mod.refund_percent:
+                    refund += amount * mod.refund_percent // 100
+                    state.trigger(mod.id)
+                if mod.heat_cost:
+                    apply_heat(state, mod.heat_cost, mods)
+        return refund, -amount + refund
+
+    base = amount if bet_side == "player" else amount * 95 // 100 if bet_side == "banker" else amount * 8
+    bonus = 0
+    for mod in active_defs(state, mods):
+        if mod.trigger not in ("playerWonBet", "tieOccurred", "naturalOccurred"):
+            continue
+        if mod.side is not None and mod.side != bet_side:
+            continue
+        if mod.payout_percent:
+            bonus += base * mod.payout_percent // 100
+            state.trigger(mod.id)
+        if mod.bankroll_ante_percent:
+            bonus += stage.ante * mod.bankroll_ante_percent // 100
+            state.trigger(mod.id)
+        if mod.chips:
+            state.chips += mod.chips
+            state.trigger(mod.id)
+        if mod.heat_cost:
+            apply_heat(state, mod.heat_cost, mods)
+    if natural:
+        for mod in active_defs(state, mods):
+            if "natural" in mod.tags and mod.bankroll_ante_percent:
+                bonus += stage.ante * mod.bankroll_ante_percent // 100
+                state.trigger(mod.id)
+    payout = amount + base + bonus
+    return payout, base + bonus
+
+
+def reward_cash(stage: Stage, bankroll: int, contact: Contact) -> int:
+    multiplier = 3 if stage.id == 5 else 4 if stage.id == 8 else 5 if stage.id == 10 else 2 if stage.id <= 2 else 2
+    raw = int(stage.ante * multiplier * contact.cash_multiplier)
+    return min(raw, max(raw if bankroll <= 0 else bankroll // 2, 0))
+
+
+def reward_chips(stage: Stage, secondary_complete: bool) -> int:
+    if stage.is_boss:
+        base = 5 if stage.id == 5 else 6 if stage.id == 8 else 8
     else:
-        bet = min_bet
-
-    if xray_active:
-        bet = min(bet, min_bet * 3)
-    bet_type = forecast if forecast in ("player", "banker") else "banker"
-    if strategy == "unclear" and forecast is None:
-        bet_type = "player"
-    return bet_type, bet, used_max
+        base = 2 if stage.id <= 3 else 3 if stage.id <= 7 else 4
+    return base + (1 if secondary_complete else 0) + (1 if stage.table_event == "Private Table" else 0)
 
 
-def payout_for_round(winner: str, bet_type: str, bet: int, effects: Effects, cards_dealt: int, forecast: Optional[str], was_natural: bool, last_win: bool, last_bet: int, small_win_streak: int) -> Tuple[int, Dict[str, int], bool]:
-    triggers: Dict[str, int] = {}
-    passive = effects.round_stipend + effects.card_exit_income * cards_dealt
-    if passive:
-        triggers["passive_income"] = passive
+def choose_shop_modifier(state: SimState, stage: Stage, mods: Dict[str, ModifierDef]) -> Optional[ModifierDef]:
+    tier = shop_tier(stage.id, state.bosses_defeated)
+    owned = set(state.active_mods + state.bench_mods)
+    candidates = [
+        mod for mod in mods.values()
+        if mod.min_tier <= tier and mod.rarity != "boss" and (mod.id not in owned or state.rng.random() < 0.18)
+    ]
+    if not candidates:
+        return None
+    state.rng.shuffle(candidates)
+    offered = candidates[:4]
+    state.shop_offers_seen += len(offered)
+    tag_bias = set(state.contact.tags)
+    strategy_tags = {
+        "conservative_banker": {"banker", "economy", "heat"},
+        "build_aware_simple": tag_bias | {"shoeVision", "economy"},
+        "greedy_high_roller": {"betControl", "comeback", "banker"},
+        "tie_hunter": {"tie", "comeback", "shoeVision"},
+        "small_ball": {"economy", "betControl", "heat"},
+        "random_beginner": tag_bias | {"economy"},
+    }.get(state.strategy, tag_bias)
 
-    if winner == "tie" and bet_type != "tie":
-        return bet + passive, triggers, True
+    def score(mod: ModifierDef) -> Tuple[int, int, int]:
+        tag_score = sum(18 for tag in mod.tags if tag in strategy_tags)
+        duplicate_bonus = 35 if mod.id in owned else 0
+        affordability = 10 if mod.cost <= state.chips else -30
+        return tag_score + duplicate_bonus + mod.score + affordability, -mod.cost, state.rng.randint(0, 20)
 
-    if winner != bet_type:
-        rebate = bet * effects.loss_rebate_percent // 100
-        if effects.damage_rebate_percent:
-            rebate = max(rebate, bet * effects.damage_rebate_percent // 100)
-        extra_loss = bet * max(0, effects.loss_multiplier - 100) // 100
-        if rebate:
-            triggers["loss_rebate"] = rebate
-        if extra_loss:
-            triggers["risk_penalty"] = -extra_loss
-        return passive + rebate - extra_loss, triggers, False
-
-    if bet_type == "player":
-        profit = bet
-    elif bet_type == "banker":
-        profit = bet if effects.no_commission else bet * 95 // 100
-    else:
-        profit = bet * effects.tie_multiplier
-
-    multiplier = effects.profit_multiplier_all
-    if bet_type == "player":
-        multiplier += effects.profit_multiplier_player - 100
-    elif bet_type == "banker":
-        multiplier += effects.profit_multiplier_banker - 100
-    else:
-        multiplier += effects.profit_multiplier_tie - 100
-    profit = profit * multiplier // 100
-
-    flat = passive + effects.chosen_bonus
-    if effects.chosen_bonus:
-        triggers["chosen_bonus"] = effects.chosen_bonus
-    if bet_type == "player" and effects.player_bonus:
-        flat += effects.player_bonus
-        triggers["player_bonus"] = effects.player_bonus
-    if bet_type == "banker" and effects.banker_bonus:
-        flat += effects.banker_bonus
-        triggers["banker_bonus"] = effects.banker_bonus
-    if forecast == winner and effects.forecast_bonus:
-        flat += effects.forecast_bonus
-        triggers["forecast_bonus"] = effects.forecast_bonus
-    if bet <= effects.small_bet_max and effects.small_bet_multiplier > 100:
-        before = profit
-        profit = profit * effects.small_bet_multiplier // 100
-        triggers["small_bet_multiplier"] = profit - before
-    if last_win and bet > last_bet and effects.press_multiplier > 100:
-        before = profit
-        profit = profit * effects.press_multiplier // 100
-        triggers["press_multiplier"] = profit - before
-    if effects.small_streak_required and (small_win_streak + 1) % effects.small_streak_required == 0:
-        flat += effects.small_streak_bonus
-        triggers["small_streak"] = effects.small_streak_bonus
-    return bet + profit + flat, triggers, False
+    pick = max(offered, key=score)
+    if pick.cost > state.chips:
+        return None
+    state.chips -= pick.cost
+    state.picked_modifiers.append(pick.id)
+    if pick.id in owned:
+        # Duplicate leveling is represented by an extra trigger weight copy.
+        if len(state.active_mods) < 5:
+            state.active_mods.append(pick.id)
+        return pick
+    if len(state.active_mods) < 5:
+        state.active_mods.append(pick.id)
+    elif len(state.bench_mods) < 2:
+        state.bench_mods.append(pick.id)
+    return pick
 
 
-def stage_complete(stage: Stage, bankroll: int, stage_start: int, rounds: int, min_bankroll: int, upgrade_wins: int) -> bool:
-    profit = bankroll - stage_start
-    if stage.target_profit and profit >= stage.target_profit:
+def secondary_complete(stage: Stage, stage_profit: int, heat_start: int, heat_end: int, winning_sides: set[str], trigger_count: int, final_hand_won: bool, fell_behind: bool, used_consumable: bool) -> bool:
+    key = stage.secondary
+    if key == "Clean Run":
+        return heat_end <= heat_start
+    if key == "Ahead of Schedule":
+        return stage_profit > 0
+    if key == "Engine Online":
+        return trigger_count >= 3
+    if key == "Longshot Hit":
+        return "tie" in winning_sides
+    if key == "Stay Small":
         return True
-    if stage.objective == "survive":
-        return rounds >= stage.target and min_bankroll >= stage.min_bankroll
-    if stage.objective == "break_even":
-        return rounds >= stage.target and profit >= 0
-    if stage.objective == "loss_limit":
-        return rounds >= stage.target and profit >= -stage.loss_limit
-    if stage.objective == "grow_percent":
-        return profit * 100 >= stage_start * stage.target
-    if stage.objective == "upgrade_win":
-        return upgrade_wins >= stage.target
-    if stage.objective == "grow_by":
-        return profit >= stage.target
-    if stage.objective == "profit":
-        return profit >= stage.target
+    if key == "Use the Layout":
+        return len(winning_sides) >= 2
+    if key == "Beat the Spread":
+        return stage_profit >= stage.ante * 2
+    if key == "Close Strong":
+        return final_hand_won
+    if key == "No Props":
+        return not used_consumable
+    if key == "Comeback Table":
+        return fell_behind and stage_profit >= 0
     return False
 
 
-def stage_failed(stage: Stage, bankroll: int, rounds: int, min_bankroll: int) -> bool:
-    if stage.objective == "survive" and min_bankroll < stage.min_bankroll:
-        return True
-    return rounds >= stage.round_limit
+def opponent_tolerance(stage: Stage) -> int:
+    if stage.id == 1:
+        return stage.ante * 9
+    if stage.id == 2:
+        return stage.ante * 3
+    if stage.id == 3:
+        return stage.ante * 2
+    if stage.id == 4:
+        return stage.ante // 2
+    if stage.id == 7:
+        return stage.ante * 8
+    return 0
 
 
-def simulate_run(seed: int, strategy: str, pool_name: str, upgrades: List[Upgrade], default_unlocked: set[str], guided_bonus: int) -> RunSummary:
+def simulate_run(seed: int, strategy: str, modifiers: Dict[str, ModifierDef], contacts: Dict[str, Contact]) -> RunSummary:
     rng = random.Random(seed)
-    pool = [u for u in upgrades if pool_name == "all" or u.name in default_unlocked]
-    bankroll = 25_000
-    starting = bankroll
-    highest = bankroll
+    contact = choose_contact(strategy, contacts)
+    state = SimState(
+        rng=rng,
+        strategy=strategy,
+        contact=contact,
+        bankroll=max(5_000, 25_000 + contact.bankroll_adjust),
+        chips=max(0, 3 + contact.chips_adjust),
+        heat=max(0, contact.heat_adjust),
+        active_mods=[mid for mid in contact.starting_modifiers if mid in modifiers],
+    )
+    state.highest_bankroll = state.bankroll
+    starting_bankroll = state.bankroll
     shoe = new_shoe(rng)
-    acquired: List[Upgrade] = []
-    rounds_since_upgrade = 0
-    total_rounds = 0
-    bosses_defeated = 0
-    choices_offered = 0
-    useful_triggers: Dict[str, int] = {}
-    max_bet_uses = 0
-    last_win = False
-    last_bet = 0
-    small_win_streak = 0
-    guided_first = True
-    guided_upgrade_offered = False
-    failure = "season_completed"
+    stage_records: List[StageRecord] = []
+    failure = "run_complete"
 
-    stage_index = 0
-    while stage_index < len(STAGES):
-        stage = STAGES[stage_index]
-        stage_start = bankroll
-        stage_rounds = 0
-        min_bankroll = bankroll
-        upgrade_wins = 0
-        effects = combine_effects(acquired)
-        bankroll += effects.stage_start_cash
-        highest = max(highest, bankroll)
-        xray_charges = 2 if effects.charged_reveal_count else 0
+    for stage in STAGES:
+        stage_start_bankroll = state.bankroll
+        stage_start_heat = state.heat
+        stage_start_chips = state.chips
+        opponent_score = 0
+        stage_trigger_start = sum(state.modifiers_triggered.values())
+        winning_sides: set[str] = set()
+        final_hand_won = False
+        fell_behind = False
+        used_consumable = False
+        cold_table_triggered = False
+        trigger_stage_start(state, stage, modifiers)
 
-        while True:
+        for hand in range(1, stage.hands + 1):
             if len(shoe) < 20:
                 shoe = new_shoe(rng)
-
-            if rounds_since_upgrade >= (2 if not acquired else 3):
-                if not guided_upgrade_offered:
-                    curated_names = ["Opening Tell", "Conservative Edge", "Press the Advantage"]
-                    choices = [card for name in curated_names for card in pool if card.name == name]
-                    guided_upgrade_offered = True
-                else:
-                    choices = weighted_upgrade_choices(rng, pool, acquired)
-                choices_offered += 1
-                pick = choose_upgrade(strategy, choices, acquired)
-                acquired.append(pick)
-                rounds_since_upgrade = 0
-                effects = combine_effects(acquired)
-                xray_charges = max(xray_charges, 2 if effects.charged_reveal_count else 0)
-
-            xray_active = effects.charged_reveal_count > 0 and xray_charges > 0 and strategy in ("aggressive", "synergy", "unclear")
-            bet_type, bet, used_max = choose_bet(strategy, stage, bankroll, stage_start, effects, shoe, xray_active)
-            if bet <= 0:
+            bet_side, amount, used_max = choose_bet(state, stage, shoe, modifiers)
+            if amount <= 0 or state.bankroll < amount or state.bankroll < stage.min_bet():
+                state.bankruptcies += 1
                 failure = f"stage_{stage.id}_bankrupt"
-                return summarize(seed, strategy, pool_name, starting, bankroll, highest, stage, total_rounds, bosses_defeated, choices_offered, acquired, useful_triggers, failure, max_bet_uses)
-            if used_max:
-                max_bet_uses += 1
-
-            if guided_first:
-                bet_type = "player"
-                bet = 1_000
-                winner, p_total, b_total, dealt, natural = "player", 9, 5, 4, True
-                guided_first = False
-            else:
-                preview_count = effects.charged_reveal_count if xray_active else effects.reveal_count
-                forecast = forecast_from_preview(shoe, preview_count)
-                winner, p_total, b_total, dealt, natural = deal_hand(shoe)
-
-            preview_count = effects.charged_reveal_count if xray_active else effects.reveal_count
-            forecast = forecast_from_preview(shoe, preview_count) if not guided_first else None
-            bankroll_before = bankroll
-            bankroll -= bet
-            payout, triggers, push = payout_for_round(winner, bet_type, bet, effects, dealt, forecast, natural, last_win, last_bet, small_win_streak)
-            if guided_first is False and total_rounds == 0 and winner == bet_type:
-                payout += guided_bonus
-                triggers["tutorial_bonus"] = guided_bonus
-            bankroll += payout
-
-            for key, value in triggers.items():
-                if value:
-                    useful_triggers[key] = useful_triggers.get(key, 0) + 1
-            won = (winner == bet_type and not push)
-            if won and (triggers or preview_count > 0):
-                upgrade_wins += 1
-            if won and bet <= 1_000:
-                small_win_streak += 1
-            elif not push:
-                small_win_streak = 0
-            last_win = won
-            last_bet = bet
-            total_rounds += 1
-            stage_rounds += 1
-            rounds_since_upgrade += 1
-            if xray_active:
-                xray_charges -= 1
-            highest = max(highest, bankroll)
-            min_bankroll = min(min_bankroll, bankroll)
-
-            if bankroll <= 0:
-                failure = f"stage_{stage.id}_bankrupt"
-                return summarize(seed, strategy, pool_name, starting, bankroll, highest, stage, total_rounds, bosses_defeated, choices_offered, acquired, useful_triggers, failure, max_bet_uses)
-            if stage_complete(stage, bankroll, stage_start, stage_rounds, min_bankroll, upgrade_wins):
-                if stage.id in (3, 6, 9, 10):
-                    bosses_defeated += 1
-                bankroll += choose_stage_reward_cash(strategy, rng)
-                highest = max(highest, bankroll)
-                stage_index += 1
                 break
-            if stage_failed(stage, bankroll, stage_rounds, min_bankroll):
-                failure = f"stage_{stage.id}_{stage.objective}"
-                return summarize(seed, strategy, pool_name, starting, bankroll, highest, stage, total_rounds, bosses_defeated, choices_offered, acquired, useful_triggers, failure, max_bet_uses)
-    return summarize(seed, strategy, pool_name, starting, bankroll, highest, STAGES[-1], total_rounds, bosses_defeated, choices_offered, acquired, useful_triggers, failure, max_bet_uses)
 
+            if stage.id == 5:
+                if state.last_bet_side == bet_side:
+                    state.repeated_side_count += 1
+                else:
+                    state.repeated_side_count = 1
+                if state.repeated_side_count >= 3:
+                    opponent_score += stage.ante // 5
+                    if state.repeated_side_count % 4 == 0:
+                        apply_heat(state, 1, modifiers)
+            elif stage.id == 8:
+                if reveal_count(state, modifiers) > 0 and hand == 1:
+                    opponent_score += stage.ante * 4
+                    apply_heat(state, 2, modifiers)
+            elif stage.id == 10:
+                if state.last_bet_side == bet_side:
+                    state.repeated_side_count += 1
+                    if state.repeated_side_count >= 3:
+                        # Mirror the live House pressure: repeated-side bets add
+                        # small opponent score every time, but Heat only lands
+                        # on every fourth repeated bet. The previous simulation
+                        # applied Heat every hand after the third repeat, making
+                        # the final boss mathematically unwinnable for stable
+                        # Banker/Small Ball policies even when profit beat the
+                        # opponent benchmark.
+                        opponent_score += stage.ante * 3 // 4
+                        if state.repeated_side_count % 4 == 0:
+                            apply_heat(state, 1, modifiers)
+                else:
+                    state.repeated_side_count = 1
 
-def choose_stage_reward_cash(strategy: str, rng: random.Random) -> int:
-    base = [2_500, 4_000, 7_500, 0, 0, 0]
-    sample = rng.sample(base, 3)
-    return max(sample)
+            state.last_bet_side = bet_side
+            state.bankroll -= amount
+            winner, _, _, natural, _ = deal_hand(shoe)
+            payout, profit = resolve_payout(state, stage, modifiers, bet_side, amount, winner, natural)
+            state.bankroll += payout
+            did_win_bet = winner == bet_side
+            is_push = winner == "tie" and bet_side != "tie"
+            if stage.table_event == "Cold Table" and not cold_table_triggered and not did_win_bet and not is_push:
+                cold_table_triggered = True
+                opponent_score += stage.ante * 2
+                apply_heat(state, 2, modifiers)
+            if winner == bet_side:
+                winning_sides.add(bet_side)
+            if hand == stage.hands:
+                final_hand_won = winner == bet_side
+            opponent_score += opponent_profit(stage, hand, state.last_winner, bet_side, winner)
+            stage_profit = state.bankroll - stage_start_bankroll
+            fell_behind = fell_behind or stage_profit < opponent_score
+            state.last_winner = winner
+            state.total_hands += 1
+            state.highest_bankroll = max(state.highest_bankroll, state.bankroll)
 
+            if stage.table_event == "Tight Surveillance" and profit > stage.ante * 2:
+                apply_heat(state, 1, modifiers)
+            if stage.table_event == "Rich Crowd" and profit >= stage.ante * 2:
+                state.chips += 1
+            if state.heat >= 10:
+                state.heat_deaths += 1
+                failure = f"stage_{stage.id}_heat"
+                break
+            if state.bankroll < stage.min_bet():
+                state.bankruptcies += 1
+                failure = f"stage_{stage.id}_bankroll_minimum"
+                break
+        stage_profit = state.bankroll - stage_start_bankroll
+        tolerance = opponent_tolerance(stage)
+        clear = failure == "run_complete" and stage_profit >= opponent_score - tolerance
+        stage_triggers = sum(state.modifiers_triggered.values()) - stage_trigger_start
+        secondary = secondary_complete(stage, stage_profit, stage_start_heat, state.heat, winning_sides, stage_triggers, final_hand_won, fell_behind, used_consumable)
+        if clear:
+            if stage.is_boss:
+                state.bosses_defeated += 1
+            cash = reward_cash(stage, state.bankroll, contact)
+            chips = reward_chips(stage, secondary)
+            state.bankroll += cash
+            state.chips += chips
+            state.highest_bankroll = max(state.highest_bankroll, state.bankroll)
+        else:
+            if failure == "run_complete":
+                failure = f"stage_{stage.id}_opponent_loss"
+            if stage.is_boss and "stage_" in failure:
+                failure = f"stage_{stage.id}_boss_loss"
 
-def summarize(seed: int, strategy: str, pool: str, starting: int, bankroll: int, highest: int, stage: Stage, rounds: int, bosses: int, choices: int, acquired: List[Upgrade], triggers: Dict[str, int], failure: str, max_bet_uses: int) -> RunSummary:
+        stage_records.append(
+            StageRecord(
+                stage=stage.id,
+                clear=clear,
+                boss=stage.is_boss,
+                bankroll_start=stage_start_bankroll,
+                bankroll_end=state.bankroll,
+                heat_start=stage_start_heat,
+                heat_end=state.heat,
+                chips_start=stage_start_chips,
+                chips_end=state.chips,
+                player_profit=stage_profit,
+                opponent_profit=opponent_score,
+                hands=stage.hands,
+                failure="" if clear else failure,
+            )
+        )
+
+        if not clear:
+            break
+        choose_shop_modifier(state, stage, modifiers)
+
+    completed = len(stage_records) == len(STAGES) and stage_records[-1].clear
     return RunSummary(
         seed=seed,
         strategy=strategy,
-        pool=pool,
-        starting_bankroll=starting,
-        ending_bankroll=bankroll,
-        highest_bankroll=highest,
-        stage_reached=stage.id,
-        rounds_played=rounds,
-        bosses_defeated=bosses,
-        upgrade_choices_offered=choices,
-        upgrades_taken=[u.name for u in acquired],
-        useful_upgrade_triggers=triggers,
-        failure_point=failure,
-        cleared_first_three=stage.id > 3 or failure == "season_completed",
-        used_max_bet_ratio=max_bet_uses / max(1, rounds),
+        contact=contact.name,
+        final_stage=stage_records[-1].stage if stage_records else 1,
+        completed=completed,
+        failure="run_complete" if completed else failure,
+        starting_bankroll=starting_bankroll,
+        ending_bankroll=state.bankroll,
+        highest_bankroll=state.highest_bankroll,
+        heat=state.heat,
+        chips=state.chips,
+        hands=state.total_hands,
+        bosses_defeated=state.bosses_defeated,
+        picked_modifiers=state.picked_modifiers,
+        triggered_modifiers=state.modifiers_triggered,
+        stages=stage_records,
     )
 
 
 def aggregate(runs: List[RunSummary]) -> Dict[str, object]:
+    clear_counts = {stage.id: 0 for stage in STAGES}
+    attempts = {stage.id: 0 for stage in STAGES}
+    boss_clear_counts = {stage.id: 0 for stage in STAGES if stage.is_boss}
+    modifier_picks: Dict[str, int] = {}
+    modifier_triggers: Dict[str, int] = {}
     failures: Dict[str, int] = {}
-    upgrades: Dict[str, int] = {}
-    triggers: Dict[str, int] = {}
+    bankroll_by_stage: Dict[int, List[int]] = {stage.id: [] for stage in STAGES}
+    heat_by_stage: Dict[int, List[int]] = {stage.id: [] for stage in STAGES}
+    chips_by_stage: Dict[int, List[int]] = {stage.id: [] for stage in STAGES}
+
     for run in runs:
-        failures[run.failure_point] = failures.get(run.failure_point, 0) + 1
-        for upgrade in run.upgrades_taken:
-            upgrades[upgrade] = upgrades.get(upgrade, 0) + 1
-        for key, value in run.useful_upgrade_triggers.items():
-            triggers[key] = triggers.get(key, 0) + value
+        failures[run.failure] = failures.get(run.failure, 0) + 1
+        for picked in run.picked_modifiers:
+            modifier_picks[picked] = modifier_picks.get(picked, 0) + 1
+        for modifier_id, count in run.triggered_modifiers.items():
+            modifier_triggers[modifier_id] = modifier_triggers.get(modifier_id, 0) + count
+        for record in run.stages:
+            attempts[record.stage] += 1
+            if record.clear:
+                clear_counts[record.stage] += 1
+                if record.boss:
+                    boss_clear_counts[record.stage] += 1
+            bankroll_by_stage[record.stage].append(record.bankroll_end)
+            heat_by_stage[record.stage].append(record.heat_end)
+            chips_by_stage[record.stage].append(record.chips_end)
+
+    def rate(stage_id: int) -> float:
+        return clear_counts[stage_id] / attempts[stage_id] if attempts[stage_id] else 0.0
+
     return {
         "runs": len(runs),
-        "avg_stage": round(mean(r.stage_reached for r in runs), 2) if runs else 0,
-        "avg_rounds": round(mean(r.rounds_played for r in runs), 2) if runs else 0,
-        "avg_ending_bankroll": round(mean(r.ending_bankroll for r in runs), 1) if runs else 0,
-        "stage_1_clear_rate": round(sum(r.stage_reached > 1 or r.failure_point == "season_completed" for r in runs) / max(1, len(runs)), 2),
-        "stage_2_clear_rate": round(sum(r.stage_reached > 2 or r.failure_point == "season_completed" for r in runs) / max(1, len(runs)), 2),
-        "stage_3_clear_rate": round(sum(r.cleared_first_three for r in runs) / max(1, len(runs)), 2),
-        "avg_max_bet_ratio": round(mean(r.used_max_bet_ratio for r in runs), 3) if runs else 0,
-        "failure_points": dict(sorted(failures.items(), key=lambda item: (-item[1], item[0]))),
-        "top_upgrades": dict(sorted(upgrades.items(), key=lambda item: (-item[1], item[0]))[:10]),
-        "upgrade_triggers": dict(sorted(triggers.items(), key=lambda item: (-item[1], item[0]))[:10]),
+        "completion_rate": sum(1 for run in runs if run.completed) / max(1, len(runs)),
+        "avg_final_stage": mean(run.final_stage for run in runs) if runs else 0,
+        "avg_hands": mean(run.hands for run in runs) if runs else 0,
+        "avg_ending_bankroll": mean(run.ending_bankroll for run in runs) if runs else 0,
+        "avg_highest_bankroll": mean(run.highest_bankroll for run in runs) if runs else 0,
+        "stage_attempts": {str(stage.id): attempts[stage.id] for stage in STAGES},
+        "stage_clears": {str(stage.id): clear_counts[stage.id] for stage in STAGES},
+        "stage_clear_rates": {str(stage.id): round(rate(stage.id), 3) for stage in STAGES},
+        "boss_clear_rates": {
+            str(stage.id): round((boss_clear_counts[stage.id] / attempts[stage.id]) if attempts[stage.id] else 0, 3)
+            for stage in STAGES if stage.is_boss
+        },
+        "avg_bankroll_by_stage": {
+            str(stage_id): round(mean(values), 1) for stage_id, values in bankroll_by_stage.items() if values
+        },
+        "avg_heat_by_stage": {
+            str(stage_id): round(mean(values), 2) for stage_id, values in heat_by_stage.items() if values
+        },
+        "avg_chips_by_stage": {
+            str(stage_id): round(mean(values), 2) for stage_id, values in chips_by_stage.items() if values
+        },
+        "failures": dict(sorted(failures.items(), key=lambda item: (-item[1], item[0]))[:12]),
+        "most_picked_modifiers": dict(sorted(modifier_picks.items(), key=lambda item: (-item[1], item[0]))[:12]),
+        "most_triggered_modifiers": dict(sorted(modifier_triggers.items(), key=lambda item: (-item[1], item[0]))[:12]),
+        "least_triggered_picked_modifiers": {
+            key: modifier_triggers.get(key, 0)
+            for key, _ in sorted(modifier_picks.items(), key=lambda item: (-item[1], item[0]))[:20]
+            if modifier_triggers.get(key, 0) == 0
+        },
     }
 
 
-def suspicious_upgrades(upgrades: List[Upgrade]) -> List[Dict[str, object]]:
-    rows = []
-    for upgrade in upgrades:
-        if upgrade.money_score >= 20_000 and upgrade.rarity in ("common", "rare"):
-            rows.append({
-                "name": upgrade.name,
-                "rarity": upgrade.rarity,
-                "money_score": upgrade.money_score,
-                "description": upgrade.description,
-            })
-    return sorted(rows, key=lambda row: (-int(row["money_score"]), str(row["name"])))[:20]
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Run compact deterministic Rigged Shoe balance simulations.")
-    parser.add_argument("--runs", type=int, default=8, help="Runs per strategy/pool. Keep small on low-RAM machines.")
-    parser.add_argument("--seed", type=int, default=70121)
-    parser.add_argument("--pool", choices=["fresh", "all", "both"], default="both")
-    parser.add_argument("--json", type=Path, default=None)
-    args = parser.parse_args()
-
-    start = time.perf_counter()
-    upgrades = parse_upgrades()
-    default_unlocked = parse_default_unlocked()
-    guided_bonus = parse_guided_bonus()
-    pools = ["fresh", "all"] if args.pool == "both" else [args.pool]
-    strategies = ["conservative", "aggressive", "synergy", "unclear"]
-    all_runs: List[RunSummary] = []
-    seed_log: List[int] = []
-
-    for pool in pools:
-        for strategy in strategies:
-            for offset in range(args.runs):
-                seed = args.seed + len(seed_log) * 37
-                seed_log.append(seed)
-                all_runs.append(simulate_run(seed, strategy, pool, upgrades, default_unlocked, guided_bonus))
-
+def grouped_aggregates(runs: List[RunSummary]) -> Dict[str, Dict[str, object]]:
     groups: Dict[str, List[RunSummary]] = {}
-    for run in all_runs:
-        key = f"{run.pool}:{run.strategy}"
-        groups.setdefault(key, []).append(run)
+    for run in runs:
+        groups.setdefault(run.strategy, []).append(run)
+    return {key: aggregate(value) for key, value in sorted(groups.items())}
 
+
+def diagnose(summary: Dict[str, object]) -> List[str]:
+    notes: List[str] = []
+    stage_rates = summary["stage_clear_rates"]
+    assert isinstance(stage_rates, dict)
+    for stage_id, target in TARGET_CLEAR_RATES.items():
+        key = str(stage_id)
+        if key not in stage_rates:
+            continue
+        rate = float(stage_rates[key])
+        low, high = target
+        if rate < low:
+            notes.append(f"Stage {stage_id} clear rate {rate:.0%} is below target {low:.0%}-{high:.0%}.")
+        elif rate > high:
+            notes.append(f"Stage {stage_id} clear rate {rate:.0%} is above target {low:.0%}-{high:.0%}.")
+    if float(summary["completion_rate"]) > 0.35:
+        notes.append("Completion rate is high for an early vertical slice; late stages may be too forgiving.")
+    if float(summary["avg_highest_bankroll"]) > float(summary["avg_ending_bankroll"]) * 4:
+        notes.append("Large bankroll spikes are appearing; inspect high-roller and payout multiplier stacks.")
+    if not notes:
+        notes.append("No major clear-rate alarms in this batch.")
+    return notes
+
+
+def render_markdown(report: Dict[str, object], output_json: Path) -> str:
+    generated = time.strftime("%Y-%m-%d %H:%M:%S")
+    aggregate_report = report["aggregate"]
+    assert isinstance(aggregate_report, dict)
+    diagnostics = report["diagnostics"]
+    assert isinstance(diagnostics, list)
+    lines = [
+        "# Rigged Shoe Balance Report",
+        "",
+        f"Generated: {generated}",
+        "",
+        "## Simulator",
+        "",
+        "- Runner: `Tools/Simulation/rigged_shoe_sim.py`",
+        f"- JSON output: `{output_json}`",
+        f"- Runs: {report['run_count']}",
+        f"- Strategies: {', '.join(report['strategies'])}",
+        f"- Seed: {report['seed']}",
+        f"- Elapsed: {report['elapsed_seconds']}s",
+        f"- Peak RSS: {report['max_rss_mb']} MB",
+        "",
+        "## Summary",
+        "",
+        f"- Completion rate: {float(aggregate_report['completion_rate']):.1%}",
+        f"- Average final stage: {float(aggregate_report['avg_final_stage']):.2f}",
+        f"- Average hands: {float(aggregate_report['avg_hands']):.1f}",
+        f"- Average ending bankroll: {cents(int(float(aggregate_report['avg_ending_bankroll'])))}",
+        f"- Average highest bankroll: {cents(int(float(aggregate_report['avg_highest_bankroll'])))}",
+        "",
+        "## Stage Clear Rates",
+        "",
+        "| Stage | Attempts | Clears | Actual | Target | Notes |",
+        "|---|---:|---:|---:|---:|---|",
+    ]
+    stage_rates = aggregate_report["stage_clear_rates"]
+    stage_attempts = aggregate_report["stage_attempts"]
+    stage_clears = aggregate_report["stage_clears"]
+    assert isinstance(stage_rates, dict)
+    assert isinstance(stage_attempts, dict)
+    assert isinstance(stage_clears, dict)
+    for stage in STAGES:
+        low, high = TARGET_CLEAR_RATES[stage.id]
+        key = str(stage.id)
+        actual = float(stage_rates.get(key, 0))
+        status = "OK" if low <= actual <= high else ("Too hard" if actual < low else "Too easy")
+        lines.append(
+            f"| {stage.id}{' Boss' if stage.is_boss else ''} | "
+            f"{int(stage_attempts.get(key, 0))} | {int(stage_clears.get(key, 0))} | "
+            f"{actual:.1%} | {low:.0%}-{high:.0%} | {status} |"
+        )
+    lines += [
+        "",
+        "## Strategy Comparison",
+        "",
+        "| Strategy | Completion | Avg Final Stage | Stage 1 | Stage 2 | Stage 3 | Boss 1 |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    by_strategy = report.get("by_strategy", {})
+    assert isinstance(by_strategy, dict)
+    for strategy, strategy_report in by_strategy.items():
+        assert isinstance(strategy_report, dict)
+        rates = strategy_report["stage_clear_rates"]
+        assert isinstance(rates, dict)
+        lines.append(
+            f"| {strategy} | {float(strategy_report['completion_rate']):.1%} | "
+            f"{float(strategy_report['avg_final_stage']):.2f} | "
+            f"{float(rates.get('1', 0)):.1%} | {float(rates.get('2', 0)):.1%} | "
+            f"{float(rates.get('3', 0)):.1%} | {float(rates.get('5', 0)):.1%} |"
+        )
+    lines += [
+        "",
+        "## Economy",
+        "",
+        "Average bankroll, Heat, and Chips after each reached stage.",
+        "",
+        "| Stage | Bankroll | Heat | Chips |",
+        "|---|---:|---:|---:|",
+    ]
+    bankrolls = aggregate_report["avg_bankroll_by_stage"]
+    heats = aggregate_report["avg_heat_by_stage"]
+    chips = aggregate_report["avg_chips_by_stage"]
+    assert isinstance(bankrolls, dict) and isinstance(heats, dict) and isinstance(chips, dict)
+    for stage in STAGES:
+        key = str(stage.id)
+        if key in bankrolls:
+            lines.append(f"| {stage.id} | {cents(int(float(bankrolls[key])))} | {float(heats.get(key, 0)):.2f} | {float(chips.get(key, 0)):.2f} |")
+    lines += [
+        "",
+        "## Common Failure Points",
+        "",
+    ]
+    failures = aggregate_report["failures"]
+    assert isinstance(failures, dict)
+    for key, value in failures.items():
+        lines.append(f"- {key}: {value}")
+    lines += [
+        "",
+        "## Modifiers",
+        "",
+        "### Most Picked",
+        "",
+    ]
+    for key, value in aggregate_report["most_picked_modifiers"].items():
+        lines.append(f"- {key}: {value}")
+    lines += [
+        "",
+        "### Most Triggered",
+        "",
+    ]
+    for key, value in aggregate_report["most_triggered_modifiers"].items():
+        lines.append(f"- {key}: {value}")
+    lines += [
+        "",
+        "### Picked But Never Triggered",
+        "",
+    ]
+    least = aggregate_report["least_triggered_picked_modifiers"]
+    assert isinstance(least, dict)
+    if least:
+        for key in least:
+            lines.append(f"- {key}")
+    else:
+        lines.append("- None in this batch.")
+    lines += [
+        "",
+        "## Diagnostics",
+        "",
+    ]
+    for note in diagnostics:
+        lines.append(f"- {note}")
+    lines += [
+        "",
+        "## Notes",
+        "",
+        "- This is a headless balance model, not a UI test.",
+        "- It intentionally stores compact run summaries only.",
+        "- Modifier effects are simplified but tied to current catalog IDs, tags, tiers, and common effect families.",
+        "- Physical iOS Simulator testing is tracked separately in `Docs/PhysicalPlaytestReport.md`.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def run_batch(runs: int, seed: int, strategies: Sequence[str]) -> Dict[str, object]:
+    start = time.perf_counter()
+    modifiers = parse_modifiers()
+    contacts = parse_contacts()
+    summaries: List[RunSummary] = []
+    for strategy_index, strategy in enumerate(strategies):
+        for offset in range(runs):
+            summaries.append(simulate_run(seed + strategy_index * 10_000 + offset * 37, strategy, modifiers, contacts))
     elapsed = time.perf_counter() - start
     raw_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     rss_mb = raw_rss / (1024 * 1024) if raw_rss > 10_000_000 else raw_rss / 1024
-    report = {
-        "run_count": len(all_runs),
-        "runs_per_strategy": args.runs,
-        "seeds": seed_log,
+    aggregate_report = aggregate(summaries)
+    return {
+        "seed": seed,
+        "runs_per_strategy": runs,
+        "run_count": len(summaries),
+        "strategies": list(strategies),
         "elapsed_seconds": round(elapsed, 3),
         "max_rss_mb": round(rss_mb, 2),
-        "guided_first_bonus_cents": guided_bonus,
-        "groups": {key: aggregate(value) for key, value in sorted(groups.items())},
-        "suspicious_upgrades": suspicious_upgrades(upgrades),
-        "sample_runs": [run.__dict__ for run in all_runs[: min(8, len(all_runs))]],
+        "content_counts": {
+            "modifiers_parsed": len(modifiers),
+            "contacts_parsed": len(contacts),
+            "stages": len(STAGES),
+        },
+        "aggregate": aggregate_report,
+        "by_strategy": grouped_aggregates(summaries),
+        "diagnostics": diagnose(aggregate_report),
+        "sample_runs": [asdict(run) for run in summaries[: min(8, len(summaries))]],
     }
 
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run headless Rigged Shoe roguelite balance simulations.")
+    parser.add_argument("--runs", type=int, default=20, help="Runs per policy. Use 17 for 102 total runs across six policies.")
+    parser.add_argument("--seed", type=int, default=20260622)
+    parser.add_argument("--json", type=Path, default=ROOT / "Docs" / "sim-rebuild-balance-latest.json")
+    parser.add_argument("--markdown", type=Path, default=REPORT_PATH)
+    parser.add_argument(
+        "--strategies",
+        nargs="*",
+        default=["random_beginner", "conservative_banker", "build_aware_simple", "greedy_high_roller", "tie_hunter", "small_ball"],
+        choices=["random_beginner", "conservative_banker", "build_aware_simple", "greedy_high_roller", "tie_hunter", "small_ball"],
+    )
+    args = parser.parse_args()
+    report = run_batch(args.runs, args.seed, args.strategies)
+    args.json.parent.mkdir(parents=True, exist_ok=True)
+    args.json.write_text(json.dumps(report, indent=2) + "\n")
+    if args.markdown:
+        args.markdown.parent.mkdir(parents=True, exist_ok=True)
+        args.markdown.write_text(render_markdown(report, args.json) + "\n")
     print(json.dumps(report, indent=2))
-    if args.json:
-        args.json.parent.mkdir(parents=True, exist_ok=True)
-        args.json.write_text(json.dumps(report, indent=2) + "\n")
 
 
 if __name__ == "__main__":

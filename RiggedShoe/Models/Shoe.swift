@@ -228,6 +228,24 @@ struct ShoeRevealConfiguration: Equatable {
             + (precision == .valueAndSuit ? 3 : precision == .rankOnly ? 2 : precision == .colorOnly ? 1 : 0)
     }
 
+    func reducedByCards(_ count: Int, titleSuffix: String? = nil) -> ShoeRevealConfiguration {
+        guard count > 0 else {
+            return self
+        }
+
+        return ShoeRevealConfiguration(
+            id: id,
+            title: titleSuffix.map { "\(title) \($0)" } ?? title,
+            maxCards: max(0, normalizedMaxCards - count),
+            precision: precision,
+            destinationKnowledge: destinationKnowledge,
+            supportsFavorability: supportsFavorability,
+            chargesPerStage: chargesPerStage,
+            betCapMultiplierWhileActive: betCapMultiplierWhileActive,
+            obstructedCardIndex: obstructedCardIndex
+        )
+    }
+
     static let peek = ShoeRevealConfiguration(
         id: "peek",
         title: "Peek",
@@ -582,6 +600,10 @@ struct Shoe: Equatable {
 
     mutating func placeCardsOnTop(_ newCards: [Card]) {
         cards = newCards + cards
+    }
+
+    mutating func placeCardsOnBottom(_ newCards: [Card]) {
+        cards.append(contentsOf: newCards)
     }
 
     var cardsRemaining: Int {

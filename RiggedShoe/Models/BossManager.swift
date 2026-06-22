@@ -148,6 +148,14 @@ struct BossManager: Equatable {
             return .house
         }
 
+        if stageID == 5 {
+            return .pitBoss
+        }
+
+        if stageID == 8 {
+            return .shoeInspector
+        }
+
         guard challengeID == .bossRush || [5, 8].contains(stageID) else {
             return nil
         }

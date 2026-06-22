@@ -82,6 +82,7 @@ struct RoundPresentationState: Equatable {
     var shoeImpact: ShoeImpact = .none
     var upgradeMessages: [String] = []
     var payoutLedgerLines: [PayoutLedgerLine] = []
+    var triggerFeedback: [ModifierTriggerFeedback] = []
     var sequenceID: UUID = UUID()
 
     var payoutLedgerSummary: String {
@@ -100,6 +101,108 @@ struct RoundPresentationState: Equatable {
         }
 
         return "Ledger \(MoneyFormatter.signed(total)): \(namedAdjustments.joined(separator: " · "))"
+    }
+}
+
+enum BattleLogEffectKind: String, Equatable {
+    case modifier
+    case boss
+    case payout
+    case chips
+    case heat
+    case reveal
+    case shoe
+
+    var iconName: String {
+        switch self {
+        case .modifier:
+            return "sparkles"
+        case .boss:
+            return "exclamationmark.triangle.fill"
+        case .payout:
+            return "dollarsign.circle.fill"
+        case .chips:
+            return "circle.hexagongrid.fill"
+        case .heat:
+            return "flame.fill"
+        case .reveal:
+            return "eye.fill"
+        case .shoe:
+            return "rectangle.stack.fill"
+        }
+    }
+}
+
+struct BattleLogEffectLine: Identifiable, Equatable {
+    let id = UUID()
+    var title: String
+    var detail: String
+    var amountCents: Int?
+    var resourceText: String? = nil
+    var kind: BattleLogEffectKind
+
+    var compactText: String {
+        if let amountCents {
+            return "\(title) \(MoneyFormatter.signed(amountCents))"
+        }
+
+        if let resourceText {
+            return "\(title) \(resourceText)"
+        }
+
+        return title
+    }
+}
+
+struct ModifierTriggerFeedback: Identifiable, Equatable {
+    let id = UUID()
+    var title: String
+    var detail: String
+    var amountCents: Int?
+    var resourceText: String? = nil
+    var kind: BattleLogEffectKind
+
+    var displayAmount: String? {
+        if let amountCents {
+            return MoneyFormatter.signed(amountCents)
+        }
+
+        return resourceText
+    }
+}
+
+struct BattleLogEntry: Identifiable, Equatable {
+    let id = UUID()
+    var handNumber: Int
+    var betSide: BetType
+    var betAmountCents: Int
+    var playerCards: [Card]
+    var bankerCards: [Card]
+    var baccaratResult: BetType
+    var basePayout: PayoutLedgerLine?
+    var modifierEffects: [BattleLogEffectLine]
+    var chipsDelta: Int
+    var heatDelta: Int
+    var heatPrevented: Int
+    var finalBankrollChangeCents: Int
+    var opponentBossEffects: [BattleLogEffectLine]
+
+    var didWinBet: Bool {
+        baccaratResult == betSide
+    }
+
+    var outcomeText: String {
+        "\(baccaratResult.displayName) wins"
+    }
+
+    var cardSummary: String {
+        let player = playerCards.map(\.displayText).joined(separator: " ")
+        let banker = bankerCards.map(\.displayText).joined(separator: " ")
+        return "P: \(player)  B: \(banker)"
+    }
+
+    var importantEffects: [BattleLogEffectLine] {
+        modifierEffects + opponentBossEffects
     }
 }
 

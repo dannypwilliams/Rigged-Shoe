@@ -4,6 +4,9 @@ struct RunOverView: View {
     let runManager: RunManager
     let bossManager: BossManager
     let profile: PlayerProfile
+    let startingContact: StartingContact
+    let activeModifiers: [ModifierInstance]
+    let bossRelics: [BossRelic]
     let bankrollCents: Int
     let chipsEarnedThisRun: Int
     let reputationEarnedThisRun: Int
@@ -54,6 +57,26 @@ struct RunOverView: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.78)
                     }
+
+                    VStack(alignment: .leading, spacing: isCompact ? 5 : 7) {
+                        Text(mainBuild)
+                            .font(.headline.weight(.black))
+                            .foregroundStyle(CasinoTheme.gold)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.78)
+
+                        Text(runExplanation)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.white.opacity(0.68))
+                            .lineLimit(isCompact ? 2 : 3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(isCompact ? 10 : 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.white.opacity(0.07))
+                    )
 
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: isCompact ? 7 : 9) {
                         ForEach(visibleStats, id: \.offset) { item in
@@ -120,8 +143,11 @@ struct RunOverView: View {
 
     private func statItems(isCompact: Bool) -> [(title: String, value: String)] {
         let required: [(title: String, value: String)] = [
+            (title: "Contact", value: startingContact.name),
+            (title: "Top Mod", value: BuildArchetypeDetector.highestLevelModifierName(activeModifiers: activeModifiers)),
             (title: "Stage", value: "\(runManager.stageReached)"),
             (title: "Bankroll", value: MoneyFormatter.format(bankrollCents)),
+            (title: "Heat", value: "\(runManager.heat)/\(runManager.maxHeat)"),
             (title: "Best Bankroll", value: MoneyFormatter.format(runManager.highestBankrollCents)),
             (title: "Best Profit", value: MoneyFormatter.format(runManager.highestProfitCents)),
             (title: "Rounds", value: "\(runManager.totalRoundsPlayed)"),
@@ -139,8 +165,33 @@ struct RunOverView: View {
             (title: "Total Rep", value: formatNumber(profile.reputation)),
             (title: "Player Wins", value: "\(runManager.playerWins)"),
             (title: "Banker Wins", value: "\(runManager.bankerWins)"),
-            (title: "Tie Results", value: "\(runManager.tieResults)")
+            (title: "Tie Results", value: "\(runManager.tieResults)"),
+            (title: "Relics", value: "\(bossRelics.count)")
         ]
+    }
+
+    private var mainBuild: String {
+        "Main Build: \(BuildArchetypeDetector.detect(activeModifiers: activeModifiers))"
+    }
+
+    private var runExplanation: String {
+        if isVictory {
+            return "Your build survived every opponent table and cleared The House."
+        }
+
+        if let result = runManager.lastStageResult, !result.lossExplanation.isEmpty {
+            return result.lossExplanation
+        }
+
+        if runManager.heat >= runManager.maxHeat {
+            return "Heat reached the limit. Add Heat control, cleaner reveals, or lower-risk lines next run."
+        }
+
+        if bankrollCents < runManager.currentStage.minimumBetCents {
+            return "Bankroll fell below the table minimum. The next build needs steadier income or safer bet sizing."
+        }
+
+        return "The opponent outscored your table profit. Add payout scaling, pivot options, or stronger information before the next boss."
     }
 
     private func formatNumber(_ value: Int) -> String {

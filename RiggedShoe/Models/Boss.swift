@@ -18,17 +18,18 @@ enum BossEffect: Equatable {
     case surveillance
     case automaticShuffler
     case pitBoss(disabledUpgradeCount: Int)
+    case inspector
     case tagSuppression(tags: Set<UpgradeTag>, label: String)
     case tieClamp
     case house
 
     var suppressesReveal: Bool {
         switch self {
-        case .surveillance, .house:
+        case .surveillance:
             return true
         case .tagSuppression(let tags, _):
             return tags.contains(.reveal)
-        case .automaticShuffler, .pitBoss, .tieClamp:
+        case .automaticShuffler, .pitBoss, .inspector, .tieClamp, .house:
             return false
         }
     }
@@ -37,16 +38,14 @@ enum BossEffect: Equatable {
         switch self {
         case .automaticShuffler, .house:
             return true
-        case .surveillance, .pitBoss, .tagSuppression, .tieClamp:
+        case .surveillance, .pitBoss, .inspector, .tagSuppression, .tieClamp:
             return false
         }
     }
 
     var usesPitBossUpgradeDisable: Bool {
         switch self {
-        case .pitBoss, .house:
-            return true
-        case .surveillance, .automaticShuffler, .tagSuppression, .tieClamp:
+        case .surveillance, .automaticShuffler, .pitBoss, .inspector, .tagSuppression, .tieClamp, .house:
             return false
         }
     }
@@ -55,9 +54,7 @@ enum BossEffect: Equatable {
         switch self {
         case .pitBoss(let count):
             return count
-        case .house:
-            return 3
-        case .surveillance, .automaticShuffler, .tagSuppression, .tieClamp:
+        case .surveillance, .automaticShuffler, .inspector, .tagSuppression, .tieClamp, .house:
             return 0
         }
     }
@@ -70,9 +67,7 @@ enum BossEffect: Equatable {
             return tags
         case .tieClamp:
             return [.tie]
-        case .house:
-            return [.reveal, .tie]
-        case .automaticShuffler, .pitBoss:
+        case .automaticShuffler, .pitBoss, .inspector, .house:
             return []
         }
     }
@@ -81,7 +76,7 @@ enum BossEffect: Equatable {
         switch self {
         case .house:
             return true
-        case .surveillance, .automaticShuffler, .pitBoss, .tagSuppression, .tieClamp:
+        case .surveillance, .automaticShuffler, .pitBoss, .inspector, .tagSuppression, .tieClamp:
             return false
         }
     }
@@ -90,7 +85,7 @@ enum BossEffect: Equatable {
         switch self {
         case .house, .tieClamp:
             return true
-        case .surveillance, .automaticShuffler, .pitBoss, .tagSuppression:
+        case .surveillance, .automaticShuffler, .pitBoss, .inspector, .tagSuppression:
             return false
         }
     }
@@ -101,19 +96,29 @@ enum BossEffect: Equatable {
             return ["All Reveal upgrades are suppressed this stage."]
         case .automaticShuffler:
             return ["The remaining shoe shuffles after every round.", "Hot Shoe and Cold Shoe trigger after each shuffle."]
-        case .pitBoss(let count):
-            return ["\(count) acquired upgrades are disabled this stage."]
+        case .pitBoss:
+            return [
+                "Betting the same side 4 times in a row adds 1 Heat.",
+                "Repeated-side betting gives the opponent a small score boost."
+            ]
+        case .inspector:
+            return [
+                "Reveal and shoe-control effects are reduced by 1 card or flagged once.",
+                "The first reveal or shoe-control action this stage adds 2 Heat.",
+                "Flagged shoe manipulation gives the opponent a score boost."
+            ]
         case .tagSuppression(let tags, let label):
             return ["\(label) upgrades are disabled this stage.", "Suppressed tags: \(tags.map(\.displayName).sorted().joined(separator: ", "))."]
         case .tieClamp:
             return ["Tie upgrades are disabled.", "Tie payout is capped at 8:1 this stage."]
         case .house:
             return [
-                "Reveal and Tie upgrades are suppressed.",
+                "Repeating a bet side draws Pit Boss Heat.",
+                "Reveal and shoe-control tools draw Inspector Heat once.",
                 "The remaining shoe shuffles after every round.",
-                "3 acquired upgrades are disabled.",
                 "Banker commission is restored.",
-                "Tie payout is capped at 8:1."
+                "Tie payout is capped at 8:1.",
+                "The House adapts once to your dominant modifier tag."
             ]
         }
     }
@@ -152,10 +157,10 @@ struct Boss: Identifiable, Equatable {
     static let pitBoss = Boss(
         id: 3,
         name: "Pit Boss",
-        description: "Management targets your strongest advantages.",
+        description: "Management watches obvious betting patterns.",
         iconName: "person.crop.circle.badge.exclamationmark",
         difficulty: .majorBoss,
-        effect: .pitBoss(disabledUpgradeCount: 3)
+        effect: .pitBoss(disabledUpgradeCount: 0)
     )
 
     static let house = Boss(
@@ -205,11 +210,11 @@ struct Boss: Identifiable, Equatable {
 
     static let shoeInspector = Boss(
         id: 9,
-        name: "Shoe Inspector",
-        description: "The casino weighs the shoe and hunts loaded-card patterns.",
+        name: "The Inspector",
+        description: "The casino audits every reveal, burn, and suspicious shoe touch.",
         iconName: "rectangle.stack.badge.minus.fill",
         difficulty: .majorBoss,
-        effect: .tagSuppression(tags: [.shoe], label: "Shoe manipulation")
+        effect: .inspector
     )
 
     static let riskManager = Boss(
@@ -248,6 +253,42 @@ struct Boss: Identifiable, Equatable {
         effect: .tagSuppression(tags: [.tie, .streak], label: "Tie and Streak")
     )
 
+    static let whale = Boss(
+        id: 14,
+        name: "The Whale",
+        description: "A high-limit regular pressures reckless bankroll spikes.",
+        iconName: "dollarsign.circle.fill",
+        difficulty: .majorBoss,
+        effect: .tagSuppression(tags: [.risk], label: "High Roller")
+    )
+
+    static let insider = Boss(
+        id: 15,
+        name: "The Insider",
+        description: "Someone else knows the shoe before you do.",
+        iconName: "person.text.rectangle.fill",
+        difficulty: .majorBoss,
+        effect: .inspector
+    )
+
+    static let auditor = Boss(
+        id: 16,
+        name: "The Auditor",
+        description: "Every free dollar and comped chip gets scrutinized.",
+        iconName: "doc.text.magnifyingglass",
+        difficulty: .majorBoss,
+        effect: .tagSuppression(tags: [.economy], label: "Economy")
+    )
+
+    static let collector = Boss(
+        id: 17,
+        name: "The Collector",
+        description: "Debt, Heat, and unpaid favors come due.",
+        iconName: "tray.full.fill",
+        difficulty: .majorBoss,
+        effect: .tagSuppression(tags: [.comeback, .economy], label: "Debt and Comeback")
+    )
+
     static var allBosses: [Boss] {
         [
             surveillance,
@@ -262,7 +303,11 @@ struct Boss: Identifiable, Equatable {
             riskManager,
             bankerBlacklist,
             playerLockout,
-            omenDealer
+            omenDealer,
+            whale,
+            insider,
+            auditor,
+            collector
         ]
     }
 

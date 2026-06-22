@@ -12,6 +12,7 @@ enum BossRewardEffect: Equatable {
     case removeAllFaceCards
     case addRandomLegendaryUpgrade
     case casinoInsideContact(extraRounds: Int)
+    case grantBossRelic(id: String)
 }
 
 struct BossReward: Identifiable, Equatable {
@@ -75,6 +76,26 @@ struct BossReward: Identifiable, Equatable {
                 effect: .addRandomLegendaryUpgrade
             ),
             BossReward(
+                name: "Pit Boss Nod",
+                description: "Gain the Pit Boss Nod relic: once per stage, ignore a repeated-side Heat penalty.",
+                effect: .grantBossRelic(id: "relic.pit-boss-nod")
+            ),
+            BossReward(
+                name: "Vault Key",
+                description: "Gain the Vault Key relic: boss clears grant extra Chips.",
+                effect: .grantBossRelic(id: "relic.vault-key")
+            ),
+            BossReward(
+                name: "Private Room",
+                description: "Gain the Private Room relic: private table rewards are richer.",
+                effect: .grantBossRelic(id: "relic.private-room")
+            ),
+            BossReward(
+                name: "Surveillance Loop",
+                description: "Gain the Surveillance Loop relic: soften the first reveal suppression each stage.",
+                effect: .grantBossRelic(id: "relic.surveillance-loop")
+            ),
+            BossReward(
                 name: "Casino Inside Contact",
                 description: "Every future stage starts with +3 rounds remaining.",
                 effect: .casinoInsideContact(extraRounds: 3)
@@ -123,7 +144,8 @@ struct BossReward: Identifiable, Equatable {
                  .gainCash,
                  .gainAnteScaledCash,
                  .removeAllFaceCards,
-                 .casinoInsideContact:
+                 .casinoInsideContact,
+                 .grantBossRelic:
                 return true
             }
         }

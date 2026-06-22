@@ -227,6 +227,22 @@ struct Stage: Identifiable, Equatable {
 }
 
 extension Stage {
+    var opponent: OpponentState {
+        OpponentState.opponent(forStageID: id)
+    }
+
+    var tableEvent: TableEvent {
+        TableEvent.event(forStageID: id)
+    }
+
+    var secondaryObjective: SecondaryObjective {
+        SecondaryObjective.objective(forStageID: id)
+    }
+
+    var effectiveTableRules: [TableRule] {
+        tableEvent.rules + opponent.rules
+    }
+
     var anteCents: Int {
         switch id {
         case 1: return 2_500
@@ -248,7 +264,15 @@ extension Stage {
     }
 
     var minimumBetCents: Int {
-        anteCents
+        let tableMinimums = effectiveTableRules.compactMap { rule -> Int? in
+            if case .minBet(let cents) = rule {
+                return cents
+            }
+
+            return nil
+        }
+
+        return ([anteCents] + tableMinimums).max() ?? anteCents
     }
 
     var stageMaxBetCents: Int {
@@ -272,24 +296,15 @@ extension Stage {
     }
 
     var opponentName: String {
-        switch id {
-        case 5:
-            return "Surveillance"
-        case 8:
-            return "Automatic Shuffler"
-        case 10:
-            return "The House"
-        default:
-            return "Floor Dealer \(id)"
-        }
+        opponent.name
     }
 
     var tableRuleSummary: String {
         if isBossStage {
-            return id == 10 ? "Final boss rules active" : "Boss rule modifier active"
+            return "\(tableEvent.name) + boss pressure"
         }
 
-        return "Standard baccarat table"
+        return tableEvent.name
     }
 
     var rewardTier: String {
@@ -312,7 +327,7 @@ extension Stage {
     }
 
     var stageClearChips: Int {
-        EconomyRewardCalculation.stageClear(stage: self, bankrollCents: 0).chipsReward
+        EconomyRewardCalculation.stageClear(stage: self, bankrollCents: 0).chipsReward + tableEvent.rewardBonusChips
     }
 }
 
@@ -380,7 +395,7 @@ struct EconomyRewardCalculation: Equatable {
 
     private static func normalStageClearMultiplierPercent(for stageID: Int) -> Int {
         switch stageID {
-        case 1...2: return 100
+        case 1...2: return 200
         case 3...4: return 150
         default: return 200
         }
@@ -436,22 +451,43 @@ enum StageFailureReason: String, Codable, Equatable {
 struct StagePreviewData: Equatable {
     let stageNumber: Int
     let opponentName: String
+    let opponentSubtitle: String
+    let opponentStyle: String
+    let opponentWeakness: String
+    let opponentFlavorText: String
+    let opponentDifficulty: Int
     let ante: Int
     let handCount: Int
     let tableRule: String
+    let tableRuleDetail: String
+    let secondaryObjectiveTitle: String
+    let secondaryObjectiveSummary: String
+    let secondaryObjectiveReward: String
     let rewardTier: String
     let isBossStage: Bool
     let bossWarning: String?
 
     init(stage: Stage, handCount: Int) {
+        let opponent = stage.opponent
+        let event = stage.tableEvent
+        let secondary = stage.secondaryObjective
         self.stageNumber = stage.id
-        self.opponentName = stage.opponentName
+        self.opponentName = opponent.name
+        self.opponentSubtitle = opponent.subtitle
+        self.opponentStyle = opponent.bettingStyle.displayName
+        self.opponentWeakness = opponent.weakness
+        self.opponentFlavorText = opponent.flavorText
+        self.opponentDifficulty = opponent.difficultyRating
         self.ante = stage.ante
         self.handCount = handCount
         self.tableRule = stage.tableRuleSummary
-        self.rewardTier = stage.rewardTier
+        self.tableRuleDetail = event.summary
+        self.secondaryObjectiveTitle = secondary.title
+        self.secondaryObjectiveSummary = secondary.summary
+        self.secondaryObjectiveReward = secondary.rewardSummary
+        self.rewardTier = opponent.rewardTier
         self.isBossStage = stage.isBossStage
-        self.bossWarning = stage.isBossStage ? "\(stage.opponentName) will modify the table this stage." : nil
+        self.bossWarning = stage.isBossStage ? "\(opponent.name) adds a boss rule on top of \(event.name)." : nil
     }
 }
 
@@ -459,16 +495,99 @@ struct StageResultData: Codable, Equatable {
     let stageNumber: Int
     let didWin: Bool
     let profitCents: Int
+    let opponentName: String
+    let opponentProfitCents: Int
     let bankrollChangeCents: Int
     let heatChange: Int
     let chipsEarned: Int
     let failureReason: StageFailureReason?
+    let tableEventName: String
+    let secondaryObjectiveTitle: String
+    let secondaryObjectiveCompleted: Bool
+    let secondaryObjectiveReward: String
+    let lossExplanation: String
+    let buildArchetype: String
 
     var title: String {
         didWin ? "Stage Cleared" : "Stage Failed"
     }
 
     var reasonText: String {
-        failureReason?.displayText ?? "Survived the compact baccarat battle."
+        if didWin {
+            return "You beat \(opponentName) \(MoneyFormatter.signed(profitCents - opponentProfitCents))."
+        }
+
+        return lossExplanation.isEmpty ? (failureReason?.displayText ?? "Opponent outscored your table profit.") : lossExplanation
+    }
+
+    init(
+        stageNumber: Int,
+        didWin: Bool,
+        profitCents: Int,
+        opponentName: String,
+        opponentProfitCents: Int,
+        bankrollChangeCents: Int,
+        heatChange: Int,
+        chipsEarned: Int,
+        failureReason: StageFailureReason?,
+        tableEventName: String,
+        secondaryObjectiveTitle: String,
+        secondaryObjectiveCompleted: Bool,
+        secondaryObjectiveReward: String,
+        lossExplanation: String,
+        buildArchetype: String
+    ) {
+        self.stageNumber = stageNumber
+        self.didWin = didWin
+        self.profitCents = profitCents
+        self.opponentName = opponentName
+        self.opponentProfitCents = opponentProfitCents
+        self.bankrollChangeCents = bankrollChangeCents
+        self.heatChange = heatChange
+        self.chipsEarned = chipsEarned
+        self.failureReason = failureReason
+        self.tableEventName = tableEventName
+        self.secondaryObjectiveTitle = secondaryObjectiveTitle
+        self.secondaryObjectiveCompleted = secondaryObjectiveCompleted
+        self.secondaryObjectiveReward = secondaryObjectiveReward
+        self.lossExplanation = lossExplanation
+        self.buildArchetype = buildArchetype
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case stageNumber
+        case didWin
+        case profitCents
+        case opponentName
+        case opponentProfitCents
+        case bankrollChangeCents
+        case heatChange
+        case chipsEarned
+        case failureReason
+        case tableEventName
+        case secondaryObjectiveTitle
+        case secondaryObjectiveCompleted
+        case secondaryObjectiveReward
+        case lossExplanation
+        case buildArchetype
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        stageNumber = try container.decode(Int.self, forKey: .stageNumber)
+        didWin = try container.decode(Bool.self, forKey: .didWin)
+        profitCents = try container.decode(Int.self, forKey: .profitCents)
+        opponentName = try container.decodeIfPresent(String.self, forKey: .opponentName) ?? "Opponent"
+        opponentProfitCents = try container.decodeIfPresent(Int.self, forKey: .opponentProfitCents) ?? 0
+        bankrollChangeCents = try container.decode(Int.self, forKey: .bankrollChangeCents)
+        heatChange = try container.decode(Int.self, forKey: .heatChange)
+        chipsEarned = try container.decode(Int.self, forKey: .chipsEarned)
+        failureReason = try container.decodeIfPresent(StageFailureReason.self, forKey: .failureReason)
+        tableEventName = try container.decodeIfPresent(String.self, forKey: .tableEventName) ?? "Standard Table"
+        secondaryObjectiveTitle = try container.decodeIfPresent(String.self, forKey: .secondaryObjectiveTitle) ?? "Optional Objective"
+        secondaryObjectiveCompleted = try container.decodeIfPresent(Bool.self, forKey: .secondaryObjectiveCompleted) ?? false
+        secondaryObjectiveReward = try container.decodeIfPresent(String.self, forKey: .secondaryObjectiveReward) ?? "+1 Chip"
+        lossExplanation = try container.decodeIfPresent(String.self, forKey: .lossExplanation) ?? ""
+        buildArchetype = try container.decodeIfPresent(String.self, forKey: .buildArchetype) ?? "Hybrid Build"
     }
 }
