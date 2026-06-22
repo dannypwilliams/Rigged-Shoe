@@ -1,0 +1,601 @@
+{
+  "seed": 91022,
+  "runs_per_strategy": 2,
+  "run_count": 12,
+  "strategies": [
+    "random_beginner",
+    "conservative_banker",
+    "build_aware_simple",
+    "greedy_high_roller",
+    "tie_hunter",
+    "small_ball"
+  ],
+  "elapsed_seconds": 0.006,
+  "max_rss_mb": 18.12,
+  "content_counts": {
+    "modifiers_parsed": 80,
+    "contacts_parsed": 8,
+    "stages": 10
+  },
+  "aggregate": {
+    "runs": 12,
+    "completion_rate": 0.0,
+    "avg_final_stage": 2.3333333333333335,
+    "avg_hands": 10,
+    "avg_ending_bankroll": 34187.5,
+    "avg_highest_bankroll": 47260.416666666664,
+    "stage_clear_rates": {
+      "1": 1.0,
+      "2": 0.167,
+      "3": 0.5,
+      "4": 1.0,
+      "5": 0.0,
+      "6": 0.0,
+      "7": 0.0,
+      "8": 0.0,
+      "9": 0.0,
+      "10": 0.0
+    },
+    "boss_clear_rates": {
+      "5": 0.0,
+      "8": 0,
+      "10": 0
+    },
+    "avg_bankroll_by_stage": {
+      "1": 27531.2,
+      "2": 30781.2,
+      "3": 77312.5,
+      "4": 130750,
+      "5": 133000
+    },
+    "avg_heat_by_stage": {
+      "1": 0.17,
+      "2": 0.17,
+      "3": 0,
+      "4": 0,
+      "5": 2
+    },
+    "avg_chips_by_stage": {
+      "1": 7,
+      "2": 4.42,
+      "3": 5,
+      "4": 6,
+      "5": 3
+    },
+    "failures": {
+      "stage_2_bankrupt": 8,
+      "stage_2_opponent_loss": 2,
+      "stage_3_opponent_loss": 1,
+      "stage_5_boss_loss": 1
+    },
+    "most_picked_modifiers": {
+      "bet.small-ball": 3,
+      "core.player-surge": 3,
+      "bet.careful-hands": 2,
+      "banker.house-favorite": 1,
+      "core.clean-hands": 1,
+      "core.opening-tell": 1,
+      "economy.comp-points": 1,
+      "heat.low-profile": 1,
+      "player.sharp-turn": 1,
+      "player.side-step": 1,
+      "tie.tie-whisperer": 1
+    },
+    "most_triggered_modifiers": {
+      "economy.interest-ledger": 11,
+      "core.opening-tell": 6,
+      "core.lucky-chip": 4,
+      "banker.house-favorite": 2
+    },
+    "least_triggered_picked_modifiers": {
+      "bet.small-ball": 0,
+      "core.player-surge": 0,
+      "bet.careful-hands": 0,
+      "core.clean-hands": 0,
+      "economy.comp-points": 0,
+      "heat.low-profile": 0,
+      "player.sharp-turn": 0,
+      "player.side-step": 0,
+      "tie.tie-whisperer": 0
+    }
+  },
+  "diagnostics": [
+    "Stage 1 clear rate 100% is above target 90%-95%.",
+    "Stage 2 clear rate 17% is below target 80%-90%.",
+    "Stage 3 clear rate 50% is below target 70%-80%.",
+    "Stage 4 clear rate 100% is above target 60%-70%.",
+    "Stage 5 clear rate 0% is below target 50%-65%.",
+    "Stage 6 clear rate 0% is below target 45%-60%.",
+    "Stage 7 clear rate 0% is below target 35%-50%.",
+    "Stage 8 clear rate 0% is below target 30%-45%.",
+    "Stage 9 clear rate 0% is below target 20%-35%.",
+    "Stage 10 clear rate 0% is below target 10%-25%."
+  ],
+  "sample_runs": [
+    {
+      "seed": 91022,
+      "strategy": "random_beginner",
+      "contact": "The Tourist",
+      "final_stage": 2,
+      "completed": false,
+      "failure": "stage_2_bankrupt",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 19625,
+      "highest_bankroll": 29750,
+      "heat": 0,
+      "chips": 6,
+      "hands": 7,
+      "bosses_defeated": 0,
+      "picked_modifiers": [
+        "core.player-surge"
+      ],
+      "triggered_modifiers": {
+        "core.lucky-chip": 3
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 25000,
+          "bankroll_end": 29625,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 3,
+          "chips_end": 9,
+          "player_profit": 2125,
+          "opponent_profit": -5125,
+          "hands": 5,
+          "failure": ""
+        },
+        {
+          "stage": 2,
+          "clear": false,
+          "boss": false,
+          "bankroll_start": 29625,
+          "bankroll_end": 19625,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 6,
+          "chips_end": 6,
+          "player_profit": -10000,
+          "opponent_profit": -10000,
+          "hands": 6,
+          "failure": "stage_2_bankrupt"
+        }
+      ]
+    },
+    {
+      "seed": 91059,
+      "strategy": "random_beginner",
+      "contact": "The Tourist",
+      "final_stage": 2,
+      "completed": false,
+      "failure": "stage_2_bankrupt",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 17500,
+      "highest_bankroll": 25000,
+      "heat": 0,
+      "chips": 4,
+      "hands": 5,
+      "bosses_defeated": 0,
+      "picked_modifiers": [
+        "bet.small-ball"
+      ],
+      "triggered_modifiers": {
+        "core.lucky-chip": 1
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 25000,
+          "bankroll_end": 17500,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 3,
+          "chips_end": 7,
+          "player_profit": -10000,
+          "opponent_profit": -12500,
+          "hands": 5,
+          "failure": ""
+        },
+        {
+          "stage": 2,
+          "clear": false,
+          "boss": false,
+          "bankroll_start": 17500,
+          "bankroll_end": 17500,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 4,
+          "chips_end": 4,
+          "player_profit": 0,
+          "opponent_profit": 0,
+          "hands": 6,
+          "failure": "stage_2_bankrupt"
+        }
+      ]
+    },
+    {
+      "seed": 101022,
+      "strategy": "conservative_banker",
+      "contact": "The Accountant",
+      "final_stage": 5,
+      "completed": false,
+      "failure": "stage_5_boss_loss",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 133000,
+      "highest_bankroll": 163000,
+      "heat": 2,
+      "chips": 3,
+      "hands": 34,
+      "bosses_defeated": 0,
+      "picked_modifiers": [
+        "bet.small-ball",
+        "heat.low-profile",
+        "player.sharp-turn",
+        "economy.comp-points"
+      ],
+      "triggered_modifiers": {
+        "economy.interest-ledger": 5
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 25000,
+          "bankroll_end": 30500,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 5,
+          "chips_end": 8,
+          "player_profit": 3000,
+          "opponent_profit": -2625,
+          "hands": 5,
+          "failure": ""
+        },
+        {
+          "stage": 2,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 30500,
+          "bankroll_end": 61000,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 5,
+          "chips_end": 8,
+          "player_profit": 25500,
+          "opponent_profit": 23750,
+          "hands": 6,
+          "failure": ""
+        },
+        {
+          "stage": 3,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 61000,
+          "bankroll_end": 99250,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 5,
+          "chips_end": 7,
+          "player_profit": 23250,
+          "opponent_profit": 21000,
+          "hands": 7,
+          "failure": ""
+        },
+        {
+          "stage": 4,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 99250,
+          "bankroll_end": 130750,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 3,
+          "chips_end": 6,
+          "player_profit": 11500,
+          "opponent_profit": -31000,
+          "hands": 8,
+          "failure": ""
+        },
+        {
+          "stage": 5,
+          "clear": false,
+          "boss": true,
+          "bankroll_start": 130750,
+          "bankroll_end": 133000,
+          "heat_start": 0,
+          "heat_end": 2,
+          "chips_start": 3,
+          "chips_end": 3,
+          "player_profit": 2250,
+          "opponent_profit": 13500,
+          "hands": 8,
+          "failure": "stage_5_boss_loss"
+        }
+      ]
+    },
+    {
+      "seed": 101059,
+      "strategy": "conservative_banker",
+      "contact": "The Accountant",
+      "final_stage": 2,
+      "completed": false,
+      "failure": "stage_2_bankrupt",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 24500,
+      "highest_bankroll": 39500,
+      "heat": 0,
+      "chips": 6,
+      "hands": 9,
+      "bosses_defeated": 0,
+      "picked_modifiers": [
+        "banker.house-favorite"
+      ],
+      "triggered_modifiers": {
+        "economy.interest-ledger": 2,
+        "banker.house-favorite": 2
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 25000,
+          "bankroll_end": 30500,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 5,
+          "chips_end": 8,
+          "player_profit": 3000,
+          "opponent_profit": -2625,
+          "hands": 5,
+          "failure": ""
+        },
+        {
+          "stage": 2,
+          "clear": false,
+          "boss": false,
+          "bankroll_start": 30500,
+          "bankroll_end": 24500,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 4,
+          "chips_end": 6,
+          "player_profit": -6000,
+          "opponent_profit": -10250,
+          "hands": 6,
+          "failure": "stage_2_bankrupt"
+        }
+      ]
+    },
+    {
+      "seed": 111022,
+      "strategy": "build_aware_simple",
+      "contact": "The Dealer",
+      "final_stage": 2,
+      "completed": false,
+      "failure": "stage_2_bankrupt",
+      "starting_bankroll": 22500,
+      "ending_bankroll": 19750,
+      "highest_bankroll": 22500,
+      "heat": 0,
+      "chips": 3,
+      "hands": 5,
+      "bosses_defeated": 0,
+      "picked_modifiers": [
+        "core.player-surge"
+      ],
+      "triggered_modifiers": {
+        "core.opening-tell": 2
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 22500,
+          "bankroll_end": 19750,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 3,
+          "chips_end": 6,
+          "player_profit": -5250,
+          "opponent_profit": -7500,
+          "hands": 5,
+          "failure": ""
+        },
+        {
+          "stage": 2,
+          "clear": false,
+          "boss": false,
+          "bankroll_start": 19750,
+          "bankroll_end": 19750,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 3,
+          "chips_end": 3,
+          "player_profit": 0,
+          "opponent_profit": 0,
+          "hands": 6,
+          "failure": "stage_2_bankrupt"
+        }
+      ]
+    },
+    {
+      "seed": 111059,
+      "strategy": "build_aware_simple",
+      "contact": "The Dealer",
+      "final_stage": 3,
+      "completed": false,
+      "failure": "stage_3_opponent_loss",
+      "starting_bankroll": 22500,
+      "ending_bankroll": 55375,
+      "highest_bankroll": 86500,
+      "heat": 0,
+      "chips": 3,
+      "hands": 18,
+      "bosses_defeated": 0,
+      "picked_modifiers": [
+        "bet.small-ball",
+        "tie.tie-whisperer"
+      ],
+      "triggered_modifiers": {
+        "core.opening-tell": 3
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 22500,
+          "bankroll_end": 44000,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 3,
+          "chips_end": 6,
+          "player_profit": 19000,
+          "opponent_profit": 19750,
+          "hands": 5,
+          "failure": ""
+        },
+        {
+          "stage": 2,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 44000,
+          "bankroll_end": 86500,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 3,
+          "chips_end": 6,
+          "player_profit": 37500,
+          "opponent_profit": 9000,
+          "hands": 6,
+          "failure": ""
+        },
+        {
+          "stage": 3,
+          "clear": false,
+          "boss": false,
+          "bankroll_start": 86500,
+          "bankroll_end": 55375,
+          "heat_start": 0,
+          "heat_end": 0,
+          "chips_start": 3,
+          "chips_end": 3,
+          "player_profit": -31125,
+          "opponent_profit": 21375,
+          "hands": 7,
+          "failure": "stage_3_opponent_loss"
+        }
+      ]
+    },
+    {
+      "seed": 121022,
+      "strategy": "greedy_high_roller",
+      "contact": "The Whale",
+      "final_stage": 2,
+      "completed": false,
+      "failure": "stage_2_opponent_loss",
+      "starting_bankroll": 32500,
+      "ending_bankroll": 32750,
+      "highest_bankroll": 56250,
+      "heat": 1,
+      "chips": 3,
+      "hands": 11,
+      "bosses_defeated": 0,
+      "picked_modifiers": [
+        "bet.careful-hands"
+      ],
+      "triggered_modifiers": {},
+      "stages": [
+        {
+          "stage": 1,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 32500,
+          "bankroll_end": 38750,
+          "heat_start": 1,
+          "heat_end": 1,
+          "chips_start": 3,
+          "chips_end": 6,
+          "player_profit": 3750,
+          "opponent_profit": -7625,
+          "hands": 5,
+          "failure": ""
+        },
+        {
+          "stage": 2,
+          "clear": false,
+          "boss": false,
+          "bankroll_start": 38750,
+          "bankroll_end": 32750,
+          "heat_start": 1,
+          "heat_end": 1,
+          "chips_start": 3,
+          "chips_end": 3,
+          "player_profit": -6000,
+          "opponent_profit": 9250,
+          "hands": 6,
+          "failure": "stage_2_opponent_loss"
+        }
+      ]
+    },
+    {
+      "seed": 121059,
+      "strategy": "greedy_high_roller",
+      "contact": "The Whale",
+      "final_stage": 2,
+      "completed": false,
+      "failure": "stage_2_opponent_loss",
+      "starting_bankroll": 32500,
+      "ending_bankroll": 16375,
+      "highest_bankroll": 41375,
+      "heat": 1,
+      "chips": 3,
+      "hands": 11,
+      "bosses_defeated": 0,
+      "picked_modifiers": [
+        "bet.careful-hands"
+      ],
+      "triggered_modifiers": {},
+      "stages": [
+        {
+          "stage": 1,
+          "clear": true,
+          "boss": false,
+          "bankroll_start": 32500,
+          "bankroll_end": 31875,
+          "heat_start": 1,
+          "heat_end": 1,
+          "chips_start": 3,
+          "chips_end": 6,
+          "player_profit": -3125,
+          "opponent_profit": -5000,
+          "hands": 5,
+          "failure": ""
+        },
+        {
+          "stage": 2,
+          "clear": false,
+          "boss": false,
+          "bankroll_start": 31875,
+          "bankroll_end": 16375,
+          "heat_start": 1,
+          "heat_end": 1,
+          "chips_start": 3,
+          "chips_end": 3,
+          "player_profit": -15500,
+          "opponent_profit": -500,
+          "hands": 6,
+          "failure": "stage_2_opponent_loss"
+        }
+      ]
+    }
+  ]
+}

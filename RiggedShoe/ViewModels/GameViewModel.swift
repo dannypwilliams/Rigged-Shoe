@@ -554,7 +554,6 @@ final class GameViewModel: ObservableObject {
 
     var shoeControlOptions: [ShoeControlOption] {
         let upgrades = activeUpgradeEffects
-        let payoutRules = currentPayoutRules
         var options: [ShoeControlOption] = []
 
         if upgrades.moveTopCardDeeperPositions > 0 {
@@ -3037,6 +3036,7 @@ final class GameViewModel: ObservableObject {
         forecastBeforeRound: DealForecast?
     ) -> PayoutResolution {
         let upgrades = activeUpgradeEffects
+        let payoutRules = currentPayoutRules
         var activationMessages: [String] = []
         var ledgerLines: [PayoutLedgerLine] = [
             PayoutLedgerLine(
