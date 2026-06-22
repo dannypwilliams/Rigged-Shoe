@@ -1,0 +1,46 @@
+# Xcode user state
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+xcuserdata/
+*.moved-aside
+
+# Build output
+build/
+DerivedData/
+BuildProducts/
+BuildLogs/
+*.ipa
+*.xcarchive
+*.dSYM
+*.xcresult
+*.result
+*.xcactivitylog
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Local signing and App Store Connect secrets
+*.mobileprovision
+*.cer
+*.p12
+*.pem
+*.key
+AuthKey_*.p8
+.env
+.env.*
+
+# Local editor state
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
