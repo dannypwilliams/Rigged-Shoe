@@ -184,6 +184,19 @@ final class GameViewModel: ObservableObject {
         state.runManager.currentStage.betLimit.allows(amountCents)
     }
 
+    func isBetAmountPlayable(_ amountCents: Int) -> Bool {
+        state.runManager.isBetAmountAllowed(amountCents, bankrollCents: state.bankrollCents)
+            && (activeRevealBetCapCents.map { amountCents <= $0 } ?? true)
+    }
+
+    func betCapReason(for amountCents: Int) -> String? {
+        if let activeRevealBetCapCents, amountCents > activeRevealBetCapCents {
+            return "\(activeShoeReveal?.title ?? "Reveal") caps this hand at \(MoneyFormatter.format(activeRevealBetCapCents))."
+        }
+
+        return state.runManager.betCapReason(for: amountCents, bankrollCents: state.bankrollCents)
+    }
+
     func unlockStage(forBetAmountCents amountCents: Int) -> Int {
         Stage.allStages.first { $0.betLimit.allows(amountCents) }?.id ?? Stage.allStages.last?.id ?? 1
     }
@@ -317,6 +330,14 @@ final class GameViewModel: ObservableObject {
 
     var collectionCompletionPercent: Int {
         metaProgression.collectionCompletionPercent
+    }
+
+    var stagePreviewData: StagePreviewData {
+        state.runManager.stagePreviewData
+    }
+
+    var stageResultData: StageResultData? {
+        state.runManager.lastStageResult
     }
 
     var shopUnlockables: [Unlockable] {
@@ -1045,6 +1066,57 @@ final class GameViewModel: ObservableObject {
             )
         }
         applyBossStageStartEffects()
+        persistRunState()
+    }
+
+    func continueFromRunStart() {
+        state.runManager.startRunPreview()
+        persistRunState()
+    }
+
+    func startStageBattle() {
+        state.runManager.startStageBattle()
+        persistRunState()
+    }
+
+    func continueFromStageResult() {
+        switch state.runManager.status {
+        case .failed:
+            state.runManager.failRunAfterResult()
+        case .stageCleared:
+            if !state.bossManager.pendingBossRewardChoices.isEmpty
+                || !state.pendingStageRewardChoices.isEmpty {
+                state.runManager.flowState = .rewardDraft
+            } else {
+                state.runManager.showRewardDraft()
+            }
+        case .completed:
+            state.runManager.flowState = .runComplete
+        case .active:
+            state.runManager.flowState = .battle
+        }
+
+        persistRunState()
+    }
+
+    func continueFromShop() {
+        guard state.runManager.status == .stageCleared else {
+            state.runManager.startStageBattle()
+            persistRunState()
+            return
+        }
+
+        state.runManager.advanceAfterStageClear(bankrollCents: state.bankrollCents)
+
+        if state.runManager.status == .completed {
+            recordRunEndIfNeeded()
+            persistRunState()
+            return
+        }
+
+        prepareBossAnnouncementIfNeeded()
+        applyStageStartEffects()
+        normalizeSelectedBetForStage()
         persistRunState()
     }
 
@@ -2068,6 +2140,17 @@ final class GameViewModel: ObservableObject {
         switch reward.effect {
         case .gainCash(let cents):
             state.bankrollCents += cents
+        case .gainAnteScaledCash(let multiplierPercent):
+            let calculation = EconomyRewardCalculation.stageCashReward(
+                stage: state.runManager.currentStage,
+                bankrollCents: state.bankrollCents,
+                multiplierPercent: multiplierPercent
+            )
+            state.bankrollCents += calculation.cashRewardCents
+        case .gainChips(let amount):
+            state.runManager.chips += max(0, amount)
+        case .reduceHeat(let amount):
+            state.runManager.heat = max(0, state.runManager.heat - max(0, amount))
         case .removeRandomAcquiredUpgrade:
             guard let index = randomAcquiredUpgradeIndex() else {
                 return
@@ -2127,6 +2210,15 @@ final class GameViewModel: ObservableObject {
             state.runManager.tiePayoutOverride = max(state.runManager.tiePayoutOverride ?? 8, multiplier)
         case .gainCash(let cents):
             state.bankrollCents += cents
+        case .gainAnteScaledCash(let multiplierPercent, let chips):
+            let calculation = EconomyRewardCalculation.bossCashReward(
+                stage: state.runManager.currentStage,
+                bankrollCents: state.bankrollCents,
+                multiplierPercent: multiplierPercent,
+                chipsReward: chips
+            )
+            state.bankrollCents += calculation.cashRewardCents
+            state.runManager.chips += calculation.chipsReward
         case .duplicateRandomUpgrades(let count):
             for upgrade in shuffledAcquiredUpgrades().prefix(count) {
                 let copiedUpgrade = upgrade.copyForAcquisition()
