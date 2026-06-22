@@ -1,0 +1,698 @@
+{
+  "run_count": 64,
+  "runs_per_strategy": 8,
+  "seeds": [
+    70121,
+    70158,
+    70195,
+    70232,
+    70269,
+    70306,
+    70343,
+    70380,
+    70417,
+    70454,
+    70491,
+    70528,
+    70565,
+    70602,
+    70639,
+    70676,
+    70713,
+    70750,
+    70787,
+    70824,
+    70861,
+    70898,
+    70935,
+    70972,
+    71009,
+    71046,
+    71083,
+    71120,
+    71157,
+    71194,
+    71231,
+    71268,
+    71305,
+    71342,
+    71379,
+    71416,
+    71453,
+    71490,
+    71527,
+    71564,
+    71601,
+    71638,
+    71675,
+    71712,
+    71749,
+    71786,
+    71823,
+    71860,
+    71897,
+    71934,
+    71971,
+    72008,
+    72045,
+    72082,
+    72119,
+    72156,
+    72193,
+    72230,
+    72267,
+    72304,
+    72341,
+    72378,
+    72415,
+    72452
+  ],
+  "elapsed_seconds": 0.083,
+  "max_rss_mb": 17.3,
+  "guided_first_bonus_cents": 7500,
+  "groups": {
+    "all:aggressive": {
+      "runs": 8,
+      "avg_stage": 10,
+      "avg_rounds": 35,
+      "avg_ending_bankroll": 1175079.6,
+      "stage_1_clear_rate": 1.0,
+      "stage_2_clear_rate": 1.0,
+      "stage_3_clear_rate": 1.0,
+      "avg_max_bet_ratio": 1.0,
+      "failure_points": {
+        "season_completed": 7,
+        "stage_10_profit": 1
+      },
+      "top_upgrades": {
+        "Press the Advantage": 12,
+        "House Ledger": 5,
+        "Split Decision": 5,
+        "High Roller Spark": 4,
+        "Lucky Chips": 4,
+        "Private Marker": 4,
+        "Banker Streak": 3,
+        "Comeback Chip": 3,
+        "Commission Refund": 3,
+        "Comped Drinks": 3
+      },
+      "upgrade_triggers": {
+        "passive_income": 216,
+        "chosen_bonus": 79,
+        "banker_bonus": 40,
+        "press_multiplier": 31,
+        "loss_rebate": 18,
+        "tutorial_bonus": 8,
+        "risk_penalty": 4
+      }
+    },
+    "all:conservative": {
+      "runs": 8,
+      "avg_stage": 9,
+      "avg_rounds": 37,
+      "avg_ending_bankroll": 654046.9,
+      "stage_1_clear_rate": 1.0,
+      "stage_2_clear_rate": 0.88,
+      "stage_3_clear_rate": 0.88,
+      "avg_max_bet_ratio": 0.0,
+      "failure_points": {
+        "season_completed": 7,
+        "stage_2_break_even": 1
+      },
+      "top_upgrades": {
+        "Opening Tell": 9,
+        "Safety Net": 5,
+        "Table Hero": 5,
+        "Equals Sign": 4,
+        "High Limit Permit": 3,
+        "Marked Shoe": 3,
+        "Read the Shoe": 3,
+        "Soft Shuffle": 3,
+        "Burn Notice": 2,
+        "Cashback Card": 2
+      },
+      "upgrade_triggers": {
+        "passive_income": 138,
+        "loss_rebate": 43,
+        "chosen_bonus": 39,
+        "small_bet_multiplier": 15,
+        "small_streak": 14,
+        "forecast_bonus": 12,
+        "tutorial_bonus": 8,
+        "banker_bonus": 6,
+        "player_bonus": 3
+      }
+    },
+    "all:synergy": {
+      "runs": 8,
+      "avg_stage": 10,
+      "avg_rounds": 33.88,
+      "avg_ending_bankroll": 1392012.5,
+      "stage_1_clear_rate": 1.0,
+      "stage_2_clear_rate": 1.0,
+      "stage_3_clear_rate": 1.0,
+      "avg_max_bet_ratio": 0.0,
+      "failure_points": {
+        "season_completed": 8
+      },
+      "top_upgrades": {
+        "Opening Tell": 11,
+        "Peek": 5,
+        "Table Hero": 5,
+        "Underdog Edge": 5,
+        "Accounting Trick": 3,
+        "Equals Sign": 3,
+        "Pair Injection": 3,
+        "Security Badge": 3,
+        "Whale Signal": 3,
+        "Chip Runner": 2
+      },
+      "upgrade_triggers": {
+        "passive_income": 207,
+        "chosen_bonus": 68,
+        "loss_rebate": 34,
+        "banker_bonus": 22,
+        "risk_penalty": 14,
+        "player_bonus": 8,
+        "tutorial_bonus": 8,
+        "forecast_bonus": 3
+      }
+    },
+    "all:unclear": {
+      "runs": 8,
+      "avg_stage": 10,
+      "avg_rounds": 34.62,
+      "avg_ending_bankroll": 1513012.5,
+      "stage_1_clear_rate": 1.0,
+      "stage_2_clear_rate": 1.0,
+      "stage_3_clear_rate": 1.0,
+      "avg_max_bet_ratio": 0.0,
+      "failure_points": {
+        "season_completed": 8
+      },
+      "top_upgrades": {
+        "Opening Tell": 9,
+        "Equals Sign": 6,
+        "Smudged Lens": 4,
+        "VIP Lounge": 4,
+        "Bent Corner": 3,
+        "Peek": 3,
+        "Split Decision": 3,
+        "Balanced Shoe": 2,
+        "Burn Control": 2,
+        "High Limit Permit": 2
+      },
+      "upgrade_triggers": {
+        "passive_income": 177,
+        "chosen_bonus": 65,
+        "player_bonus": 23,
+        "forecast_bonus": 16,
+        "loss_rebate": 12,
+        "tutorial_bonus": 8,
+        "small_streak": 1
+      }
+    },
+    "fresh:aggressive": {
+      "runs": 8,
+      "avg_stage": 5.5,
+      "avg_rounds": 45.62,
+      "avg_ending_bankroll": 178795.2,
+      "stage_1_clear_rate": 1.0,
+      "stage_2_clear_rate": 0.62,
+      "stage_3_clear_rate": 0.5,
+      "avg_max_bet_ratio": 0.976,
+      "failure_points": {
+        "stage_2_break_even": 3,
+        "season_completed": 1,
+        "stage_10_profit": 1,
+        "stage_3_grow_percent": 1,
+        "stage_7_profit": 1,
+        "stage_8_profit": 1
+      },
+      "top_upgrades": {
+        "Press the Advantage": 28,
+        "Small Ball": 15,
+        "Opening Tell": 12,
+        "X-Ray Shoe": 11,
+        "Banker Bonus": 9,
+        "Conservative Edge": 8,
+        "Comeback Chip": 7,
+        "Dealer Pressure": 7,
+        "Safety Net": 7,
+        "Face Hunter": 6
+      },
+      "upgrade_triggers": {
+        "banker_bonus": 100,
+        "loss_rebate": 45,
+        "press_multiplier": 17,
+        "tutorial_bonus": 8,
+        "small_streak": 1
+      }
+    },
+    "fresh:conservative": {
+      "runs": 8,
+      "avg_stage": 2.88,
+      "avg_rounds": 30.38,
+      "avg_ending_bankroll": 47103.1,
+      "stage_1_clear_rate": 1.0,
+      "stage_2_clear_rate": 0.62,
+      "stage_3_clear_rate": 0.12,
+      "avg_max_bet_ratio": 0.0,
+      "failure_points": {
+        "stage_3_grow_percent": 4,
+        "stage_2_break_even": 3,
+        "stage_5_grow_by": 1
+      },
+      "top_upgrades": {
+        "X-Ray Shoe": 19,
+        "Opening Tell": 17,
+        "Small Ball": 10,
+        "Safety Net": 8,
+        "Conservative Edge": 6,
+        "Damage Control": 6,
+        "Comeback Chip": 3,
+        "Dealer Pressure": 3,
+        "Soft Shuffle": 3,
+        "Burn Control": 1
+      },
+      "upgrade_triggers": {
+        "loss_rebate": 42,
+        "small_bet_multiplier": 34,
+        "tutorial_bonus": 8,
+        "small_streak": 1
+      }
+    },
+    "fresh:synergy": {
+      "runs": 8,
+      "avg_stage": 3,
+      "avg_rounds": 30.75,
+      "avg_ending_bankroll": 41368.8,
+      "stage_1_clear_rate": 1.0,
+      "stage_2_clear_rate": 0.5,
+      "stage_3_clear_rate": 0.38,
+      "avg_max_bet_ratio": 0.0,
+      "failure_points": {
+        "stage_2_break_even": 4,
+        "stage_4_upgrade_win": 2,
+        "stage_3_grow_percent": 1,
+        "stage_5_grow_by": 1
+      },
+      "top_upgrades": {
+        "X-Ray Shoe": 40,
+        "Opening Tell": 13,
+        "Soft Shuffle": 7,
+        "Burn Control": 4,
+        "Face Card Purge": 3,
+        "Conservative Edge": 2,
+        "Face Hunter": 2,
+        "Nine Syndicate": 2,
+        "Safety Net": 2,
+        "Small Ball": 2
+      },
+      "upgrade_triggers": {
+        "loss_rebate": 15,
+        "tutorial_bonus": 8
+      }
+    },
+    "fresh:unclear": {
+      "runs": 8,
+      "avg_stage": 3.12,
+      "avg_rounds": 31.62,
+      "avg_ending_bankroll": 49425,
+      "stage_1_clear_rate": 1.0,
+      "stage_2_clear_rate": 0.62,
+      "stage_3_clear_rate": 0.25,
+      "avg_max_bet_ratio": 0.0,
+      "failure_points": {
+        "stage_2_break_even": 3,
+        "stage_3_grow_percent": 3,
+        "stage_5_grow_by": 2
+      },
+      "top_upgrades": {
+        "X-Ray Shoe": 39,
+        "Opening Tell": 13,
+        "Soft Shuffle": 7,
+        "Burn Control": 4,
+        "Safer Ties": 4,
+        "Eight Stack": 3,
+        "Nine Syndicate": 3,
+        "Face Card Purge": 2,
+        "Low Roller": 2,
+        "Player Bonus": 2
+      },
+      "upgrade_triggers": {
+        "player_bonus": 29,
+        "loss_rebate": 17,
+        "small_streak": 9,
+        "tutorial_bonus": 8
+      }
+    }
+  },
+  "suspicious_upgrades": [
+    {
+      "name": "Private Marker",
+      "rarity": "rare",
+      "money_score": 90000,
+      "description": "Gain $150 after every round."
+    },
+    {
+      "name": "Security Badge",
+      "rarity": "rare",
+      "money_score": 75000,
+      "description": "Start each stage with +$750."
+    },
+    {
+      "name": "VIP Lounge",
+      "rarity": "common",
+      "money_score": 60000,
+      "description": "Gain $100 after every round."
+    },
+    {
+      "name": "Casino Credit",
+      "rarity": "rare",
+      "money_score": 50000,
+      "description": "Start each stage with +$500."
+    },
+    {
+      "name": "Debt Knife",
+      "rarity": "rare",
+      "money_score": 50000,
+      "description": "Losses cost 50% extra, but gain $500 on wins."
+    },
+    {
+      "name": "High Limit Permit",
+      "rarity": "rare",
+      "money_score": 50000,
+      "description": "Start each stage with +$500."
+    },
+    {
+      "name": "Equals Sign",
+      "rarity": "common",
+      "money_score": 45000,
+      "description": "Gain $75 after every round while building toward Tie synergies."
+    },
+    {
+      "name": "House Ledger",
+      "rarity": "common",
+      "money_score": 45000,
+      "description": "Gain $75 after every round."
+    },
+    {
+      "name": "Table Hero",
+      "rarity": "common",
+      "money_score": 45000,
+      "description": "Gain $75 after every round."
+    },
+    {
+      "name": "Comped Drinks",
+      "rarity": "common",
+      "money_score": 30000,
+      "description": "Gain $50 after every round."
+    },
+    {
+      "name": "Dead Heat Dividend",
+      "rarity": "rare",
+      "money_score": 30000,
+      "description": "Tie wins pay an extra $300."
+    },
+    {
+      "name": "Accounting Trick",
+      "rarity": "rare",
+      "money_score": 25000,
+      "description": "Gain $250 when your chosen bet wins."
+    },
+    {
+      "name": "Boss Ledger",
+      "rarity": "rare",
+      "money_score": 25000,
+      "description": "Gain $250 when your chosen bet wins."
+    },
+    {
+      "name": "Casino Coupon",
+      "rarity": "common",
+      "money_score": 25000,
+      "description": "Start each stage with +$250."
+    },
+    {
+      "name": "Known Shoe",
+      "rarity": "rare",
+      "money_score": 25000,
+      "description": "Start each stage with $250 and Read the Shoe."
+    },
+    {
+      "name": "Danger Money",
+      "rarity": "common",
+      "money_score": 20000,
+      "description": "Gain $200 when your chosen bet wins."
+    }
+  ],
+  "sample_runs": [
+    {
+      "seed": 70121,
+      "strategy": "conservative",
+      "pool": "fresh",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 25200,
+      "highest_bankroll": 33500,
+      "stage_reached": 2,
+      "rounds_played": 22,
+      "bosses_defeated": 0,
+      "upgrade_choices_offered": 7,
+      "upgrades_taken": [
+        "Opening Tell",
+        "Burn Control",
+        "Opening Tell",
+        "X-Ray Shoe",
+        "Opening Tell",
+        "X-Ray Shoe",
+        "Small Ball"
+      ],
+      "useful_upgrade_triggers": {
+        "tutorial_bonus": 1
+      },
+      "failure_point": "stage_2_break_even",
+      "cleared_first_three": false,
+      "used_max_bet_ratio": 0.0
+    },
+    {
+      "seed": 70158,
+      "strategy": "conservative",
+      "pool": "fresh",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 66525,
+      "highest_bankroll": 72525,
+      "stage_reached": 5,
+      "rounds_played": 41,
+      "bosses_defeated": 1,
+      "upgrade_choices_offered": 13,
+      "upgrades_taken": [
+        "Opening Tell",
+        "X-Ray Shoe",
+        "Safety Net",
+        "Conservative Edge",
+        "Conservative Edge",
+        "Small Ball",
+        "Soft Shuffle",
+        "Opening Tell",
+        "Face Hunter",
+        "Dealer Pressure",
+        "Small Ball",
+        "Safety Net",
+        "Small Ball"
+      ],
+      "useful_upgrade_triggers": {
+        "tutorial_bonus": 1,
+        "small_bet_multiplier": 12,
+        "small_streak": 1
+      },
+      "failure_point": "stage_5_grow_by",
+      "cleared_first_three": true,
+      "used_max_bet_ratio": 0.0
+    },
+    {
+      "seed": 70195,
+      "strategy": "conservative",
+      "pool": "fresh",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 57975,
+      "highest_bankroll": 58975,
+      "stage_reached": 3,
+      "rounds_played": 34,
+      "bosses_defeated": 0,
+      "upgrade_choices_offered": 11,
+      "upgrades_taken": [
+        "Opening Tell",
+        "X-Ray Shoe",
+        "Damage Control",
+        "Conservative Edge",
+        "Safety Net",
+        "Opening Tell",
+        "X-Ray Shoe",
+        "X-Ray Shoe",
+        "X-Ray Shoe",
+        "X-Ray Shoe",
+        "X-Ray Shoe"
+      ],
+      "useful_upgrade_triggers": {
+        "tutorial_bonus": 1,
+        "loss_rebate": 14,
+        "small_bet_multiplier": 11
+      },
+      "failure_point": "stage_3_grow_percent",
+      "cleared_first_three": false,
+      "used_max_bet_ratio": 0.0
+    },
+    {
+      "seed": 70232,
+      "strategy": "conservative",
+      "pool": "fresh",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 49200,
+      "highest_bankroll": 49200,
+      "stage_reached": 3,
+      "rounds_played": 34,
+      "bosses_defeated": 0,
+      "upgrade_choices_offered": 11,
+      "upgrades_taken": [
+        "Opening Tell",
+        "Dealer Pressure",
+        "X-Ray Shoe",
+        "Opening Tell",
+        "Damage Control",
+        "Damage Control",
+        "Opening Tell",
+        "Small Ball",
+        "X-Ray Shoe",
+        "Safety Net",
+        "Small Ball"
+      ],
+      "useful_upgrade_triggers": {
+        "tutorial_bonus": 1,
+        "loss_rebate": 9
+      },
+      "failure_point": "stage_3_grow_percent",
+      "cleared_first_three": false,
+      "used_max_bet_ratio": 0.0
+    },
+    {
+      "seed": 70269,
+      "strategy": "conservative",
+      "pool": "fresh",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 46700,
+      "highest_bankroll": 46850,
+      "stage_reached": 3,
+      "rounds_played": 34,
+      "bosses_defeated": 0,
+      "upgrade_choices_offered": 11,
+      "upgrades_taken": [
+        "Opening Tell",
+        "Soft Shuffle",
+        "X-Ray Shoe",
+        "Opening Tell",
+        "Comeback Chip",
+        "X-Ray Shoe",
+        "Safety Net",
+        "X-Ray Shoe",
+        "X-Ray Shoe",
+        "Safety Net",
+        "Safety Net"
+      ],
+      "useful_upgrade_triggers": {
+        "tutorial_bonus": 1
+      },
+      "failure_point": "stage_3_grow_percent",
+      "cleared_first_three": false,
+      "used_max_bet_ratio": 0.0
+    },
+    {
+      "seed": 70306,
+      "strategy": "conservative",
+      "pool": "fresh",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 37550,
+      "highest_bankroll": 43650,
+      "stage_reached": 2,
+      "rounds_played": 22,
+      "bosses_defeated": 0,
+      "upgrade_choices_offered": 7,
+      "upgrades_taken": [
+        "Opening Tell",
+        "Nine Syndicate",
+        "X-Ray Shoe",
+        "Opening Tell",
+        "Soft Shuffle",
+        "Dealer Pressure",
+        "X-Ray Shoe"
+      ],
+      "useful_upgrade_triggers": {
+        "tutorial_bonus": 1
+      },
+      "failure_point": "stage_2_break_even",
+      "cleared_first_three": false,
+      "used_max_bet_ratio": 0.0
+    },
+    {
+      "seed": 70343,
+      "strategy": "conservative",
+      "pool": "fresh",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 39600,
+      "highest_bankroll": 40100,
+      "stage_reached": 2,
+      "rounds_played": 22,
+      "bosses_defeated": 0,
+      "upgrade_choices_offered": 7,
+      "upgrades_taken": [
+        "Opening Tell",
+        "X-Ray Shoe",
+        "Damage Control",
+        "Small Ball",
+        "Conservative Edge",
+        "Damage Control",
+        "Safety Net"
+      ],
+      "useful_upgrade_triggers": {
+        "tutorial_bonus": 1,
+        "loss_rebate": 7,
+        "small_bet_multiplier": 2
+      },
+      "failure_point": "stage_2_break_even",
+      "cleared_first_three": false,
+      "used_max_bet_ratio": 0.0
+    },
+    {
+      "seed": 70380,
+      "strategy": "conservative",
+      "pool": "fresh",
+      "starting_bankroll": 25000,
+      "ending_bankroll": 54075,
+      "highest_bankroll": 54075,
+      "stage_reached": 3,
+      "rounds_played": 34,
+      "bosses_defeated": 0,
+      "upgrade_choices_offered": 11,
+      "upgrades_taken": [
+        "Opening Tell",
+        "Comeback Chip",
+        "Conservative Edge",
+        "X-Ray Shoe",
+        "Damage Control",
+        "Small Ball",
+        "Comeback Chip",
+        "Small Ball",
+        "Opening Tell",
+        "Conservative Edge",
+        "Small Ball"
+      ],
+      "useful_upgrade_triggers": {
+        "tutorial_bonus": 1,
+        "small_bet_multiplier": 9,
+        "loss_rebate": 12
+      },
+      "failure_point": "stage_3_grow_percent",
+      "cleared_first_three": false,
+      "used_max_bet_ratio": 0.0
+    }
+  ]
+}
