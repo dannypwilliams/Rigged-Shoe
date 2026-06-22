@@ -308,6 +308,7 @@ struct GameRoomView: View {
     @State private var lastPresentedRoundID: UUID?
     @State private var helpTopic: UXHelpTopic?
     @State private var isShowingGameInfo = false
+    @State private var isShowingBattleLog = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -348,6 +349,19 @@ struct GameRoomView: View {
                             .layoutPriority(1)
                         }
 
+                        if !viewModel.state.battleLog.isEmpty || !viewModel.state.roundPresentation.triggerFeedback.isEmpty {
+                            BattleTriggerFeedView(
+                                feedback: viewModel.state.roundPresentation.triggerFeedback,
+                                latestEntries: Array(viewModel.state.battleLog.prefix(isCompact ? 2 : 3)),
+                                triggerID: viewModel.state.roundPresentation.sequenceID,
+                                isCompact: isCompact,
+                                onOpenLog: { isShowingBattleLog = true }
+                            )
+                            .padding(.horizontal, 10)
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                            .layoutPriority(1)
+                        }
+
                         if !isCompact && (viewModel.state.latestRound != nil || isAnimatingDeal) {
                             CurrentResultStrip(
                                 result: viewModel.state.latestRound,
@@ -382,6 +396,7 @@ struct GameRoomView: View {
                         isCompact: isCompact,
                         currentStage: viewModel.state.runManager.stageReached,
                         unlockStageForBetAmount: viewModel.unlockStage(forBetAmountCents:),
+                        isBetAmountPlayable: viewModel.isBetAmountPlayable,
                         onSelectBetType: viewModel.selectBetType,
                         onSelectBetAmount: viewModel.selectBetAmount,
                         onDeal: onDealRound,
@@ -398,6 +413,12 @@ struct GameRoomView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $helpTopic) { topic in
             ContextHelpSheet(topic: topic)
+        }
+        .sheet(isPresented: $isShowingBattleLog) {
+            BattleLogSheet(
+                entries: viewModel.state.battleLog,
+                debugEvents: viewModel.state.debugGameEventLog
+            )
         }
         .confirmationDialog("Game Info", isPresented: $isShowingGameInfo, titleVisibility: .visible) {
             Button("Baccarat Rules") { helpTopic = .baccarat }
@@ -434,18 +455,17 @@ struct GameRoomView: View {
 
     private var visibleBetAmounts: [Int] {
         let currentStage = viewModel.state.runManager.stageReached
-        let unlockedAmounts = viewModel.betAmountsCents.filter {
-            viewModel.unlockStage(forBetAmountCents: $0) <= currentStage
-        }
+        let currentStageAmounts = viewModel.state.runManager.currentStage.betLimit.allowedBetAmountsCents.sorted()
         let nextLockedAmount = viewModel.betAmountsCents.first {
-            viewModel.unlockStage(forBetAmountCents: $0) > currentStage
+            !currentStageAmounts.contains($0)
+                && viewModel.unlockStage(forBetAmountCents: $0) > currentStage
         }
 
         if let nextLockedAmount {
-            return unlockedAmounts + [nextLockedAmount]
+            return currentStageAmounts + [nextLockedAmount]
         }
 
-        return unlockedAmounts
+        return currentStageAmounts
     }
 
     private var dockStatusText: String {
@@ -501,6 +521,20 @@ struct GameRoomView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Game Info")
                 .accessibilityHint("Shows rules, payouts, commission, and shoe help")
+
+                Button {
+                    isShowingBattleLog = true
+                } label: {
+                    Image(systemName: "list.bullet.rectangle.fill")
+                        .font(.system(size: 13, weight: .black, design: .rounded))
+                        .foregroundStyle(CasinoTheme.emerald)
+                        .frame(width: 25, height: 25)
+                        .background(Circle().fill(Color.white.opacity(0.08)))
+                        .overlay(Circle().stroke(CasinoTheme.emerald.opacity(0.24), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Battle Log")
+                .accessibilityHint("Shows hand history, payouts, modifier triggers, Heat, and Chips")
 
                 CompactRoomRail(selectedPage: $selectedPage)
             }
@@ -1567,6 +1601,417 @@ private struct TieCalloutView: View {
     }
 }
 
+private struct BattleTriggerFeedView: View {
+    let feedback: [ModifierTriggerFeedback]
+    let latestEntries: [BattleLogEntry]
+    let triggerID: UUID
+    var isCompact = false
+    let onOpenLog: () -> Void
+
+    @State private var pulse = false
+
+    private var visibleFeedback: [ModifierTriggerFeedback] {
+        Array(feedback.prefix(isCompact ? 2 : 4))
+    }
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Button(action: onOpenLog) {
+                HStack(spacing: 4) {
+                    Image(systemName: "list.bullet.rectangle.fill")
+                    Text("Log")
+                }
+                .font(.system(size: isCompact ? 8 : 9, weight: .black, design: .rounded))
+                .foregroundStyle(CasinoTheme.gold)
+                .padding(.horizontal, 8)
+                .frame(height: isCompact ? 26 : 30)
+                .background(Capsule().fill(Color.black.opacity(0.36)))
+                .overlay(Capsule().stroke(CasinoTheme.gold.opacity(0.24), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+
+            if !visibleFeedback.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(visibleFeedback) { item in
+                            ModifierTriggerPill(feedback: item, isCompact: isCompact)
+                                .scaleEffect(pulse ? 1.0 : 0.96)
+                                .opacity(pulse ? 1.0 : 0.76)
+                        }
+                    }
+                    .padding(.vertical, 1)
+                }
+            } else {
+                HStack(spacing: 6) {
+                    ForEach(latestEntries) { entry in
+                        RecentBattleLogChip(entry: entry, isCompact: isCompact)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(height: isCompact ? 30 : 36)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.black.opacity(0.24))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
+        .onAppear {
+            animatePulse()
+        }
+        .onChange(of: triggerID) { _, _ in
+            animatePulse()
+        }
+    }
+
+    private func animatePulse() {
+        pulse = false
+        withAnimation(.spring(response: 0.26, dampingFraction: 0.62)) {
+            pulse = true
+        }
+    }
+}
+
+private struct ModifierTriggerPill: View {
+    let feedback: ModifierTriggerFeedback
+    var isCompact = false
+
+    private var color: Color {
+        switch feedback.kind {
+        case .boss, .heat:
+            return CasinoTheme.red
+        case .chips, .payout, .modifier:
+            return CasinoTheme.gold
+        case .reveal, .shoe:
+            return CasinoTheme.neonBlue
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: feedback.kind.iconName)
+                .font(.system(size: isCompact ? 8 : 9, weight: .black))
+
+            Text(feedback.title)
+                .lineLimit(1)
+
+            if let displayAmount = feedback.displayAmount {
+                Text(displayAmount)
+                    .monospacedDigit()
+                    .foregroundStyle(amountColor)
+            }
+        }
+        .font(.system(size: isCompact ? 8 : 9, weight: .black, design: .rounded))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 8)
+        .frame(height: isCompact ? 24 : 28)
+        .background(Capsule().fill(color.opacity(0.18)))
+        .overlay(Capsule().stroke(color.opacity(0.50), lineWidth: 1))
+        .shadow(color: color.opacity(0.24), radius: 8, y: 3)
+        .accessibilityLabel("\(feedback.title), \(feedback.detail)")
+    }
+
+    private var amountColor: Color {
+        guard let amount = feedback.amountCents else {
+            return .white
+        }
+
+        return amount >= 0 ? CasinoTheme.emerald : CasinoTheme.red
+    }
+}
+
+private struct RecentBattleLogChip: View {
+    let entry: BattleLogEntry
+    var isCompact = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text("H\(entry.handNumber)")
+                .foregroundStyle(CasinoTheme.gold)
+            Text(entry.outcomeText)
+                .foregroundStyle(.white)
+            Text(MoneyFormatter.signed(entry.finalBankrollChangeCents))
+                .foregroundStyle(entry.finalBankrollChangeCents >= 0 ? CasinoTheme.emerald : CasinoTheme.red)
+                .monospacedDigit()
+        }
+        .font(.system(size: isCompact ? 8 : 9, weight: .black, design: .rounded))
+        .lineLimit(1)
+        .padding(.horizontal, 8)
+        .frame(height: isCompact ? 24 : 28)
+        .background(Capsule().fill(Color.white.opacity(0.07)))
+        .overlay(Capsule().stroke(Color.white.opacity(0.10), lineWidth: 1))
+    }
+}
+
+private struct BattleLogSheet: View {
+    let entries: [BattleLogEntry]
+    let debugEvents: [String]
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                GameTableBackground()
+
+                if entries.isEmpty {
+                    VStack(spacing: 10) {
+                        Image(systemName: "list.bullet.rectangle")
+                            .font(.system(size: 34, weight: .black))
+                            .foregroundStyle(CasinoTheme.gold)
+                        Text("No hands logged yet")
+                            .font(.headline.weight(.black))
+                            .foregroundStyle(.white)
+                        Text("Deal a hand to see payouts, modifier triggers, Heat, Chips, and shoe effects here.")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.62))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 10) {
+                            ForEach(entries) { entry in
+                                BattleLogEntryCard(entry: entry)
+                            }
+
+#if DEBUG
+                            if !debugEvents.isEmpty {
+                                BattleDebugEventSection(events: debugEvents)
+                            }
+#endif
+                        }
+                        .padding(14)
+                    }
+                }
+            }
+            .navigationTitle("Battle Log")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .fontWeight(.bold)
+                }
+            }
+        }
+    }
+}
+
+private struct BattleLogEntryCard: View {
+    let entry: BattleLogEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Hand \(entry.handNumber)")
+                        .font(.headline.weight(.black))
+                        .foregroundStyle(CasinoTheme.gold)
+                    Text("Bet \(MoneyFormatter.format(entry.betAmountCents)) on \(entry.betSide.displayName)")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white.opacity(0.66))
+                }
+
+                Spacer()
+
+                Text(MoneyFormatter.signed(entry.finalBankrollChangeCents))
+                    .font(.headline.monospacedDigit().weight(.black))
+                    .foregroundStyle(entry.finalBankrollChangeCents >= 0 ? CasinoTheme.emerald : CasinoTheme.red)
+            }
+
+            HStack(spacing: 8) {
+                BattleLogHandSummary(title: "Player", cards: entry.playerCards)
+                BattleLogHandSummary(title: "Banker", cards: entry.bankerCards)
+            }
+
+            Text(entry.outcomeText)
+                .font(.subheadline.weight(.black))
+                .foregroundStyle(.white)
+
+            if let basePayout = entry.basePayout {
+                BattleLogLineView(
+                    iconName: BattleLogEffectKind.payout.iconName,
+                    title: "Base payout",
+                    detail: basePayout.detail,
+                    amountCents: basePayout.amountCents,
+                    tint: CasinoTheme.gold
+                )
+            } else if !entry.didWinBet {
+                BattleLogLineView(
+                    iconName: BattleLogEffectKind.payout.iconName,
+                    title: "Base result",
+                    detail: "Lost \(entry.betSide.displayName) bet",
+                    amountCents: -entry.betAmountCents,
+                    tint: CasinoTheme.red
+                )
+            }
+
+            ForEach(entry.modifierEffects) { effect in
+                BattleLogLineView(
+                    iconName: effect.kind.iconName,
+                    title: effect.title,
+                    detail: effect.detail,
+                    amountCents: effect.amountCents,
+                    resourceText: effect.resourceText,
+                    tint: tint(for: effect.kind)
+                )
+            }
+
+            ForEach(entry.opponentBossEffects) { effect in
+                BattleLogLineView(
+                    iconName: effect.kind.iconName,
+                    title: effect.title,
+                    detail: effect.detail,
+                    amountCents: effect.amountCents,
+                    resourceText: effect.resourceText,
+                    tint: CasinoTheme.red
+                )
+            }
+
+            HStack(spacing: 8) {
+                BattleResourceDeltaPill(title: "Chips", value: entry.chipsDelta, suffix: "", tint: CasinoTheme.gold)
+                BattleResourceDeltaPill(title: "Heat", value: entry.heatDelta, suffix: "", tint: CasinoTheme.red)
+                if entry.heatPrevented > 0 {
+                    BattleResourceDeltaPill(title: "Prevented", value: entry.heatPrevented, suffix: " Heat", tint: CasinoTheme.emerald)
+                }
+            }
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.black.opacity(0.34))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(CasinoTheme.gold.opacity(0.18), lineWidth: 1)
+        )
+    }
+
+    private func tint(for kind: BattleLogEffectKind) -> Color {
+        switch kind {
+        case .boss, .heat:
+            return CasinoTheme.red
+        case .chips, .payout, .modifier:
+            return CasinoTheme.gold
+        case .reveal, .shoe:
+            return CasinoTheme.neonBlue
+        }
+    }
+}
+
+private struct BattleLogHandSummary: View {
+    let title: String
+    let cards: [Card]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption.weight(.black))
+                .foregroundStyle(.white.opacity(0.54))
+
+            Text(cards.map(\.displayText).joined(separator: " "))
+                .font(.subheadline.monospaced().weight(.black))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.06)))
+    }
+}
+
+private struct BattleLogLineView: View {
+    let iconName: String
+    let title: String
+    let detail: String
+    let amountCents: Int?
+    var resourceText: String? = nil
+    let tint: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: iconName)
+                .font(.system(size: 11, weight: .black))
+                .foregroundStyle(tint)
+                .frame(width: 16, height: 16)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(.white)
+                Text(detail)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.58))
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 8)
+
+            if let amountCents {
+                Text(MoneyFormatter.signed(amountCents))
+                    .font(.caption.monospacedDigit().weight(.black))
+                    .foregroundStyle(amountCents >= 0 ? CasinoTheme.emerald : CasinoTheme.red)
+            } else if let resourceText {
+                Text(resourceText)
+                    .font(.caption.monospacedDigit().weight(.black))
+                    .foregroundStyle(tint)
+            }
+        }
+    }
+}
+
+private struct BattleResourceDeltaPill: View {
+    let title: String
+    let value: Int
+    let suffix: String
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(title)
+                .foregroundStyle(.white.opacity(0.58))
+            Text("\(value >= 0 ? "+" : "")\(value)\(suffix)")
+                .foregroundStyle(value >= 0 ? tint : CasinoTheme.emerald)
+        }
+        .font(.system(size: 10, weight: .black, design: .rounded))
+        .padding(.horizontal, 8)
+        .frame(height: 24)
+        .background(Capsule().fill(tint.opacity(0.12)))
+        .overlay(Capsule().stroke(tint.opacity(0.25), lineWidth: 1))
+    }
+}
+
+#if DEBUG
+private struct BattleDebugEventSection: View {
+    let events: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Debug Events")
+                .font(.caption.weight(.black))
+                .foregroundStyle(CasinoTheme.neonBlue)
+                .textCase(.uppercase)
+
+            ForEach(Array(events.prefix(24).enumerated()), id: \.offset) { _, event in
+                Text(event)
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.62))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.black.opacity(0.30)))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(CasinoTheme.neonBlue.opacity(0.18), lineWidth: 1))
+    }
+}
+#endif
+
 private struct CurrentResultStrip: View {
     let result: RoundResult?
     let presentation: RoundPresentationState
@@ -2226,6 +2671,7 @@ private struct GameRoomBetDock: View {
     var isCompact = false
     let currentStage: Int
     let unlockStageForBetAmount: (Int) -> Int
+    let isBetAmountPlayable: (Int) -> Bool
     let onSelectBetType: (BetType) -> Void
     let onSelectBetAmount: (Int) -> Void
     let onDeal: () -> Void
@@ -2284,11 +2730,12 @@ private struct GameRoomBetDock: View {
                     let unlockStage = unlockStageForBetAmount(amountCents)
                     let isLocked = currentStage < unlockStage
                     let isCapped = revealBetCapCents.map { amountCents > $0 } ?? false
+                    let isPlayable = isBetAmountPlayable(amountCents)
                     BetChipButton(
                         title: MoneyFormatter.format(amountCents),
-                        subtitle: isLocked ? "Unlocks S\(unlockStage)" : isCapped ? "Reveal cap" : nil,
+                        subtitle: isLocked ? "Unlocks S\(unlockStage)" : isCapped ? "Reveal cap" : !isPlayable ? "Stage cap" : nil,
                         isSelected: selectedBetAmountCents == amountCents,
-                        isDisabled: bankrollCents < amountCents || isLocked || isCapped,
+                        isDisabled: bankrollCents < amountCents || isLocked || isCapped || !isPlayable,
                         isCompact: isCompact
                     ) {
                         onSelectBetAmount(amountCents)

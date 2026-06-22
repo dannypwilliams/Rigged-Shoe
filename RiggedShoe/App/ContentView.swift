@@ -42,100 +42,10 @@ struct ContentView: View {
             )
             .tint(CasinoTheme.gold)
             .modifier(ScreenShakeEffect(animatableData: shakeTrigger))
+            .allowsHitTesting(!isMainContentCovered)
+            .accessibilityHidden(isMainContentCovered)
 
-            if !isResolvingRoundPresentation {
-                if viewModel.state.runManager.flowState == .stageResult,
-                   let result = viewModel.stageResultData {
-                    StageResultView(
-                        result: result,
-                        bankrollCents: viewModel.state.bankrollCents,
-                        heat: viewModel.state.runManager.heat,
-                        maxHeat: viewModel.state.runManager.maxHeat,
-                        onContinue: continueFromStageResult
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(6)
-                } else if viewModel.state.runManager.flowState == .runStart {
-                    RunStartView(
-                        contact: viewModel.state.startingContact,
-                        bankrollCents: viewModel.state.bankrollCents,
-                        chips: viewModel.state.runManager.chips,
-                        heat: viewModel.state.runManager.heat,
-                        maxHeat: viewModel.state.runManager.maxHeat,
-                        onContinue: continueFromRunStart
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(6)
-                } else if viewModel.state.runManager.flowState == .stagePreview {
-                    StagePreviewView(
-                        preview: viewModel.stagePreviewData,
-                        bankrollCents: viewModel.state.bankrollCents,
-                        chips: viewModel.state.runManager.chips,
-                        heat: viewModel.state.runManager.heat,
-                        maxHeat: viewModel.state.runManager.maxHeat,
-                        onEnterBattle: startStageBattle
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(6)
-                } else if viewModel.state.runManager.flowState == .runFailed
-                            || viewModel.state.runManager.flowState == .runComplete
-                            || viewModel.state.runManager.status == .failed
-                            || viewModel.state.runManager.status == .completed {
-                    RunOverView(
-                        runManager: viewModel.state.runManager,
-                        bossManager: viewModel.state.bossManager,
-                        profile: viewModel.metaProgression.profile,
-                        bankrollCents: viewModel.state.bankrollCents,
-                        chipsEarnedThisRun: viewModel.state.metaChipsEarnedThisRun,
-                        reputationEarnedThisRun: viewModel.state.metaReputationEarnedThisRun,
-                        onStartNewRun: startNewRun
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(5)
-                } else if viewModel.state.runManager.flowState == .shop {
-                    ShopPhaseView(
-                        runManager: viewModel.state.runManager,
-                        bankrollCents: viewModel.state.bankrollCents,
-                        onContinue: continueFromShop
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(5)
-                } else if let boss = viewModel.state.bossManager.pendingAnnouncementBoss {
-                    BossAnnouncementView(
-                        boss: boss,
-                        onContinue: continueToBoss
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(4)
-                } else if let defeatedBoss = viewModel.state.bossManager.lastDefeatedBoss,
-                          !viewModel.state.bossManager.pendingBossRewardChoices.isEmpty {
-                    BossDefeatedView(
-                        boss: defeatedBoss,
-                        runManager: viewModel.state.runManager,
-                        bankrollCents: viewModel.state.bankrollCents,
-                        choices: viewModel.state.bossManager.pendingBossRewardChoices,
-                        onSelect: selectBossReward
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(3)
-                } else if !viewModel.state.pendingStageRewardChoices.isEmpty {
-                    StageClearView(
-                        runManager: viewModel.state.runManager,
-                        bankrollCents: viewModel.state.bankrollCents,
-                        choices: viewModel.state.pendingStageRewardChoices,
-                        onSelect: selectStageReward
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(2)
-                } else if !viewModel.state.pendingUpgradeChoices.isEmpty {
-                    UpgradeSelectionView(
-                        choices: viewModel.state.pendingUpgradeChoices,
-                        onSelect: selectUpgrade
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(1)
-                }
-            }
+            runFlowOverlay
 
             if isShowingTutorial {
                 OnboardingView(
@@ -250,6 +160,149 @@ struct ContentView: View {
                 viewModel.recordSessionEnded()
             }
         }
+    }
+
+    @ViewBuilder
+    private var runFlowOverlay: some View {
+        if !isResolvingRoundPresentation {
+            runFlowOverlayContent
+        }
+    }
+
+    @ViewBuilder
+    private var runFlowOverlayContent: some View {
+        if viewModel.state.runManager.flowState == .stageResult,
+           let result = viewModel.stageResultData {
+            StageResultView(
+                result: result,
+                bankrollCents: viewModel.state.bankrollCents,
+                heat: viewModel.state.runManager.heat,
+                maxHeat: viewModel.state.runManager.maxHeat,
+                onContinue: continueFromStageResult
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(6)
+        } else if viewModel.state.runManager.flowState == .runStart {
+            RunStartView(
+                contacts: viewModel.startingContacts,
+                selectedContact: viewModel.state.startingContact,
+                bankrollCents: viewModel.state.bankrollCents,
+                chips: viewModel.state.runManager.chips,
+                heat: viewModel.state.runManager.heat,
+                maxHeat: viewModel.state.runManager.maxHeat,
+                onSelectContact: viewModel.selectStartingContact,
+                onContinue: continueFromRunStart
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(6)
+        } else if viewModel.state.runManager.flowState == .stagePreview {
+            StagePreviewView(
+                preview: viewModel.stagePreviewData,
+                bankrollCents: viewModel.state.bankrollCents,
+                chips: viewModel.state.runManager.chips,
+                heat: viewModel.state.runManager.heat,
+                maxHeat: viewModel.state.runManager.maxHeat,
+                onEnterBattle: startStageBattle
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(6)
+        } else if shouldShowRunOverOverlay {
+            RunOverView(
+                runManager: viewModel.state.runManager,
+                bossManager: viewModel.state.bossManager,
+                profile: viewModel.metaProgression.profile,
+                startingContact: viewModel.state.startingContact,
+                activeModifiers: viewModel.state.activeModifiers,
+                bossRelics: viewModel.state.bossRelics,
+                bankrollCents: viewModel.state.bankrollCents,
+                chipsEarnedThisRun: viewModel.state.metaChipsEarnedThisRun,
+                reputationEarnedThisRun: viewModel.state.metaReputationEarnedThisRun,
+                onStartNewRun: startNewRun
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(5)
+        } else if viewModel.state.runManager.flowState == .shop {
+            ShopPhaseView(
+                viewModel: viewModel,
+                onContinue: continueFromShop
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(5)
+        } else if let boss = viewModel.state.bossManager.pendingAnnouncementBoss {
+            BossAnnouncementView(
+                boss: boss,
+                onContinue: continueToBoss
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(4)
+        } else if let defeatedBoss = viewModel.state.bossManager.lastDefeatedBoss,
+                  !viewModel.state.bossManager.pendingBossRewardChoices.isEmpty {
+            BossDefeatedView(
+                boss: defeatedBoss,
+                runManager: viewModel.state.runManager,
+                bankrollCents: viewModel.state.bankrollCents,
+                choices: viewModel.state.bossManager.pendingBossRewardChoices,
+                onSelect: selectBossReward
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(3)
+        } else if !viewModel.state.pendingStageRewardChoices.isEmpty {
+            StageClearView(
+                runManager: viewModel.state.runManager,
+                bankrollCents: viewModel.state.bankrollCents,
+                choices: viewModel.state.pendingStageRewardChoices,
+                onSelect: selectStageReward
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(2)
+        } else if !viewModel.state.pendingUpgradeChoices.isEmpty {
+            UpgradeSelectionView(
+                choices: viewModel.state.pendingUpgradeChoices,
+                onSelect: selectUpgrade
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(1)
+        }
+    }
+
+    private var shouldShowRunOverOverlay: Bool {
+        viewModel.state.runManager.flowState == .runFailed
+            || viewModel.state.runManager.flowState == .runComplete
+            || viewModel.state.runManager.status == .failed
+            || viewModel.state.runManager.status == .completed
+    }
+
+    private var isMainContentCovered: Bool {
+        isModalOverlayVisible || (!isResolvingRoundPresentation && isRunFlowOverlayVisible)
+    }
+
+    private var isModalOverlayVisible: Bool {
+#if DEBUG
+        if isShowingDebugMenu {
+            return true
+        }
+#endif
+
+        return isShowingTutorial || isShowingGlossary || isShowingSupport
+    }
+
+    private var isRunFlowOverlayVisible: Bool {
+        if viewModel.state.runManager.flowState == .stageResult,
+           viewModel.stageResultData != nil {
+            return true
+        }
+
+        if viewModel.state.runManager.flowState == .runStart
+            || viewModel.state.runManager.flowState == .stagePreview
+            || viewModel.state.runManager.flowState == .shop
+            || shouldShowRunOverOverlay {
+            return true
+        }
+
+        return viewModel.state.bossManager.pendingAnnouncementBoss != nil
+            || !viewModel.state.bossManager.pendingBossRewardChoices.isEmpty
+            || !viewModel.state.pendingStageRewardChoices.isEmpty
+            || !viewModel.state.pendingUpgradeChoices.isEmpty
     }
 
     @ViewBuilder
@@ -449,6 +502,10 @@ struct ContentView: View {
             return "Bankroll Too Low"
         }
 
+        if viewModel.isDealResolutionLocked {
+            return "Resolving"
+        }
+
         return viewModel.canDeal ? "Deal" : "Bankroll Too Low"
     }
 
@@ -487,7 +544,7 @@ struct ContentView: View {
             case 1:
                 return "Compact battle: survive 5 hands. Start small and learn the shoe rhythm."
             case 2:
-                return "Six hands. $20 is unlocked, but controlled bets keep Heat and bankroll stable."
+                return "Six hands. $50 ante, $150 top option. Controlled bets keep Heat and bankroll stable."
             case 3:
                 return "Seven hands. Use upgrades or reads before pressing the larger bet."
             case 4:

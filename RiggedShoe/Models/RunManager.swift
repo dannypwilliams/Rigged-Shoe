@@ -37,6 +37,13 @@ struct RunManager: Equatable {
     var currentStageMinimumBankrollCents: Int
     var currentStageBiggestWinCents: Int
     var currentStageBiggestLossCents: Int
+    var currentStageOpponentProfitCents: Int
+    var currentStageWinningBetTypes: Set<BetType>
+    var currentStageLastWinner: BetType?
+    var currentStageFinalHandWon: Bool
+    var currentStageFellBehindOpponent: Bool
+    var currentStageStayedUnderQuarterBankroll: Bool
+    var currentStageConsumablesUsed: Int
     var totalRoundsPlayed: Int
     var playerWins: Int
     var bankerWins: Int
@@ -72,6 +79,13 @@ struct RunManager: Equatable {
         self.currentStageMinimumBankrollCents = startingBankrollCents
         self.currentStageBiggestWinCents = 0
         self.currentStageBiggestLossCents = 0
+        self.currentStageOpponentProfitCents = 0
+        self.currentStageWinningBetTypes = []
+        self.currentStageLastWinner = nil
+        self.currentStageFinalHandWon = false
+        self.currentStageFellBehindOpponent = false
+        self.currentStageStayedUnderQuarterBankroll = true
+        self.currentStageConsumablesUsed = 0
         self.totalRoundsPlayed = 0
         self.playerWins = 0
         self.bankerWins = 0
@@ -136,7 +150,20 @@ struct RunManager: Equatable {
     }
 
     func maximumBetCents(bankrollCents: Int) -> Int {
-        min(currentStage.stageMaxBetCents, max(0, bankrollCents / 4))
+        let eventCaps = currentStage.effectiveTableRules.compactMap { rule -> Int? in
+            if case .maxBet(let cents) = rule {
+                return cents
+            }
+
+            return nil
+        }
+        let stageCap = ([currentStage.stageMaxBetCents] + eventCaps).min() ?? currentStage.stageMaxBetCents
+        let bankrollCap = min(stageCap, max(0, bankrollCents / 4))
+        guard bankrollCents >= minimumBetCents() else {
+            return bankrollCap
+        }
+
+        return max(minimumBetCents(), bankrollCap)
     }
 
     func isBetAmountAllowed(_ amountCents: Int, bankrollCents: Int) -> Bool {
@@ -167,12 +194,11 @@ struct RunManager: Equatable {
     }
 
     func stageProgress(bankrollCents: Int) -> Double {
-        guard currentStage.targetProfitCents > 0 else {
-            return 0
-        }
-
-        let profit = max(0, stageProfitCents(bankrollCents: bankrollCents))
-        return min(1, Double(profit) / Double(currentStage.targetProfitCents))
+        let playerProfit = stageProfitCents(bankrollCents: bankrollCents)
+        let requiredProfit = currentStageOpponentProfitCents - opponentClearToleranceCents()
+        let spread = playerProfit - requiredProfit
+        let baseline = max(currentStage.anteCents * 4, abs(requiredProfit))
+        return min(1, max(0, Double(spread + baseline) / Double(max(1, baseline * 2))))
     }
 
     func teachingObjectiveProgress(bankrollCents: Int) -> Double {
@@ -193,7 +219,7 @@ struct RunManager: Equatable {
         }
 
         if currentStageRoundsPlayed >= currentRoundLimit {
-            return true
+            return didBeatOpponent(bankrollCents: bankrollCents)
         }
 
         if currentStage.targetProfitCents > 0,
@@ -201,7 +227,7 @@ struct RunManager: Equatable {
             return true
         }
 
-        return currentStage.teachingObjective?.isComplete(in: self, bankrollCents: bankrollCents) == true
+        return false
     }
 
     func isStageFailed(bankrollCents: Int) -> Bool {
@@ -218,6 +244,24 @@ struct RunManager: Equatable {
         didWinWithReveal: Bool,
         bankrollBeforeRoundCents: Int
     ) {
+        let handIndex = currentStageRoundsPlayed + 1
+        let previousWinner = currentStageLastWinner
+        let opponentDelta = currentStage.opponent.profitDeltaCents(
+            for: result,
+            stage: currentStage,
+            handIndex: handIndex,
+            previousWinner: previousWinner,
+            playerBet: result.betType
+        )
+        currentStageOpponentProfitCents += opponentDelta
+        currentStageFellBehindOpponent = currentStageFellBehindOpponent
+            || stageProfitCents(bankrollCents: bankrollCents) < currentStageOpponentProfitCents
+        currentStageStayedUnderQuarterBankroll = currentStageStayedUnderQuarterBankroll
+            && result.betAmountCents <= max(1, bankrollBeforeRoundCents / 4)
+        if handIndex >= currentRoundLimit {
+            currentStageFinalHandWon = didWinBet
+        }
+
         totalRoundsPlayed += 1
         currentStageRoundsPlayed += 1
         currentStageUpgradeTriggers += max(0, upgradeTriggerCount)
@@ -228,6 +272,7 @@ struct RunManager: Equatable {
 
         if didWinBet {
             currentStageWinningBets += 1
+            currentStageWinningBetTypes.insert(result.betType)
         }
 
         if didWinBet && (upgradeTriggerCount > 0 || didWinWithReveal) {
@@ -250,6 +295,7 @@ struct RunManager: Equatable {
         case .tie:
             tieResults += 1
         }
+        currentStageLastWinner = result.winner
 
         updateHighs(bankrollCents: bankrollCents)
     }
@@ -296,6 +342,8 @@ struct RunManager: Equatable {
             let earnedChips = EconomyRewardCalculation
                 .stageClear(stage: currentStage, bankrollCents: bankrollCents)
                 .chipsReward
+                + currentStage.tableEvent.rewardBonusChips
+                + (secondaryObjectiveComplete(bankrollCents: bankrollCents) ? 1 : 0)
             chips += earnedChips
             status = .stageCleared
             flowState = .stageResult
@@ -342,6 +390,13 @@ struct RunManager: Equatable {
         currentStageMinimumBankrollCents = bankrollCents
         currentStageBiggestWinCents = 0
         currentStageBiggestLossCents = 0
+        currentStageOpponentProfitCents = 0
+        currentStageWinningBetTypes = []
+        currentStageLastWinner = nil
+        currentStageFinalHandWon = false
+        currentStageFellBehindOpponent = false
+        currentStageStayedUnderQuarterBankroll = true
+        currentStageConsumablesUsed = 0
         lastStageResult = nil
         status = .active
         flowState = .stagePreview
@@ -416,14 +471,90 @@ struct RunManager: Equatable {
         chipsEarned: Int,
         failureReason: StageFailureReason?
     ) -> StageResultData {
-        StageResultData(
+        let secondaryComplete = secondaryObjectiveComplete(bankrollCents: bankrollCents)
+        return StageResultData(
             stageNumber: currentStage.id,
             didWin: didWin,
             profitCents: stageProfitCents(bankrollCents: bankrollCents),
+            opponentName: currentStage.opponent.name,
+            opponentProfitCents: currentStageOpponentProfitCents,
             bankrollChangeCents: bankrollCents - stageStartingBankrollCents,
             heatChange: heat - heatBeforeResult,
             chipsEarned: chipsEarned,
-            failureReason: failureReason
+            failureReason: failureReason,
+            tableEventName: currentStage.tableEvent.name,
+            secondaryObjectiveTitle: currentStage.secondaryObjective.title,
+            secondaryObjectiveCompleted: secondaryComplete,
+            secondaryObjectiveReward: currentStage.secondaryObjective.rewardSummary,
+            lossExplanation: lossExplanation(bankrollCents: bankrollCents, failureReason: failureReason),
+            buildArchetype: "Hybrid Build"
         )
+    }
+
+    private func opponentClearToleranceCents() -> Int {
+        switch currentStage.id {
+        case 1:
+            return currentStage.anteCents * 9
+        case 2:
+            return currentStage.anteCents * 3
+        case 3:
+            return currentStage.anteCents * 2
+        case 4:
+            return currentStage.anteCents / 2
+        case 7:
+            return currentStage.anteCents * 8
+        default:
+            return 0
+        }
+    }
+
+    private func didBeatOpponent(bankrollCents: Int) -> Bool {
+        stageProfitCents(bankrollCents: bankrollCents) >= currentStageOpponentProfitCents - opponentClearToleranceCents()
+    }
+
+    func secondaryObjectiveComplete(bankrollCents: Int) -> Bool {
+        switch currentStage.secondaryObjective.kind {
+        case .winWithoutHeat:
+            return heat <= currentStageStartingHeat
+        case .endWithProfit:
+            return stageProfitCents(bankrollCents: bankrollCents) > 0
+        case .triggerModifiers:
+            return currentStageUpgradeTriggers >= currentStage.secondaryObjective.target
+        case .winTie:
+            return currentStageWinningBetTypes.contains(.tie)
+        case .conservativeBetting:
+            return currentStageStayedUnderQuarterBankroll
+        case .useAllBetTypes:
+            return currentStageWinningBetTypes.count >= currentStage.secondaryObjective.target
+        case .finishAheadByTwoAnte:
+            return stageProfitCents(bankrollCents: bankrollCents) >= currentStage.anteCents * 2
+        case .winFinalHand:
+            return currentStageFinalHandWon
+        case .beatWithoutConsumables:
+            return currentStageConsumablesUsed == 0
+        case .recoverFromBehind:
+            return currentStageFellBehindOpponent && didBeatOpponent(bankrollCents: bankrollCents)
+        }
+    }
+
+    private func lossExplanation(bankrollCents: Int, failureReason: StageFailureReason?) -> String {
+        if let failureReason {
+            switch failureReason {
+            case .bankrollBusted:
+                return "You could not cover \(currentStage.opponent.name)'s table minimum. Their pressure outlasted your bankroll."
+            case .heatMaxed:
+                return "Your build generated too much Heat before it could outscore \(currentStage.opponent.name)."
+            case .bossDefeat:
+                return "\(currentStage.opponent.name) punished this build's main line. Try adding Heat control or a pivot tag."
+            case .stageCondition:
+                return "You finished behind \(currentStage.opponent.name): \(MoneyFormatter.signed(stageProfitCents(bankrollCents: bankrollCents))) vs \(MoneyFormatter.signed(currentStageOpponentProfitCents))."
+            }
+        }
+
+        if stageProfitCents(bankrollCents: bankrollCents) < currentStageOpponentProfitCents {
+            return "Your table profit did not catch \(currentStage.opponent.name). You needed \(MoneyFormatter.format(currentStageOpponentProfitCents - stageProfitCents(bankrollCents: bankrollCents))) more."
+        }
+
+        return "The table ended before your build converted its engine into enough profit."
     }
 }

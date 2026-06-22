@@ -84,7 +84,7 @@ struct StageClearView: View {
                                 .lineLimit(2)
                                 .minimumScaleFactor(0.74)
 
-                            if let unlockText = betUnlockText(for: nextStage.id) {
+                            if let unlockText = betUnlockText(for: nextStage) {
                                 Text(unlockText)
                                     .font(.system(size: isCompact ? 9 : 10, weight: .black, design: .rounded))
                                     .foregroundStyle(CasinoTheme.gold)
@@ -188,23 +188,20 @@ struct StageClearView: View {
         .shadow(color: CasinoTheme.gold.opacity(0.12), radius: 10, y: 6)
     }
 
-    private func betUnlockText(for stageID: Int) -> String? {
-        switch stageID {
-        case 2:
-            return "New bet unlocked: $20"
-        case 3:
-            return "New bet unlocked: $30"
-        case 4:
-            return "New bet unlocked: $50"
-        case 5:
-            return "New bet unlocked: $75"
-        case 6:
-            return "New bet unlocked: $100"
-        case 7:
-            return "New bet unlocked: $200"
-        default:
+    private func betUnlockText(for nextStage: Stage) -> String? {
+        let currentAmounts = Set(runManager.currentStage.betLimit.allowedBetAmountsCents)
+        let newAmounts = nextStage.betLimit.allowedBetAmountsCents
+            .filter { !currentAmounts.contains($0) }
+            .sorted()
+
+        guard !newAmounts.isEmpty else {
             return nil
         }
+
+        let formattedAmounts = newAmounts.map(MoneyFormatter.format).joined(separator: ", ")
+        return newAmounts.count == 1
+            ? "New bet unlocked: \(formattedAmounts)"
+            : "New bets unlocked: \(formattedAmounts)"
     }
 
     private func nextStageGoalText(_ stage: Stage) -> String {

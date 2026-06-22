@@ -16,6 +16,13 @@ struct SavedRunManagerState: Codable, Equatable {
     var currentStageMinimumBankrollCents: Int?
     var currentStageBiggestWinCents: Int?
     var currentStageBiggestLossCents: Int?
+    var currentStageOpponentProfitCents: Int?
+    var currentStageWinningBetTypes: [BetType]?
+    var currentStageLastWinner: BetType?
+    var currentStageFinalHandWon: Bool?
+    var currentStageFellBehindOpponent: Bool?
+    var currentStageStayedUnderQuarterBankroll: Bool?
+    var currentStageConsumablesUsed: Int?
     var totalRoundsPlayed: Int
     var playerWins: Int
     var bankerWins: Int
@@ -87,12 +94,25 @@ struct SavedRunState: Codable, Equatable {
     var hasOfferedGuidedUpgrade: Bool
     var runStartedAt: Date
     var startingContactID: String?
+    var hasAppliedStartingContact: Bool?
+    var shopState: ShopState?
+    var activeModifiers: [ModifierInstance]?
+    var benchModifiers: [ModifierInstance]?
+    var consumableIDs: [String]?
+    var attachmentIDs: [String]?
+    var bossRelicIDs: [String]?
 }
 
 struct RunPersistenceManager {
     private static let storageKey = "riggedShoe.activeRun.v2"
     private static let corruptStorageKey = "riggedShoe.activeRun.corruptBackup.v1"
-    private static let currentVersion = 3
+    private static let currentVersion = 5
+
+    #if DEBUG
+    static var activeRunStorageKeyForTesting: String {
+        storageKey
+    }
+    #endif
 
     static func save(_ state: GameState) {
         guard state.runManager.status != .completed else {
@@ -154,6 +174,13 @@ struct RunPersistenceManager {
                 currentStageMinimumBankrollCents: state.runManager.currentStageMinimumBankrollCents,
                 currentStageBiggestWinCents: state.runManager.currentStageBiggestWinCents,
                 currentStageBiggestLossCents: state.runManager.currentStageBiggestLossCents,
+                currentStageOpponentProfitCents: state.runManager.currentStageOpponentProfitCents,
+                currentStageWinningBetTypes: Array(state.runManager.currentStageWinningBetTypes),
+                currentStageLastWinner: state.runManager.currentStageLastWinner,
+                currentStageFinalHandWon: state.runManager.currentStageFinalHandWon,
+                currentStageFellBehindOpponent: state.runManager.currentStageFellBehindOpponent,
+                currentStageStayedUnderQuarterBankroll: state.runManager.currentStageStayedUnderQuarterBankroll,
+                currentStageConsumablesUsed: state.runManager.currentStageConsumablesUsed,
                 totalRoundsPlayed: state.runManager.totalRoundsPlayed,
                 playerWins: state.runManager.playerWins,
                 bankerWins: state.runManager.bankerWins,
@@ -209,7 +236,14 @@ struct RunPersistenceManager {
             guidedExcitingWinDelivered: state.guidedExcitingWinDelivered,
             hasOfferedGuidedUpgrade: state.hasOfferedGuidedUpgrade,
             runStartedAt: state.runStartedAt,
-            startingContactID: state.startingContact.id
+            startingContactID: state.startingContact.id,
+            hasAppliedStartingContact: state.hasAppliedStartingContact,
+            shopState: state.shopState,
+            activeModifiers: state.activeModifiers,
+            benchModifiers: state.benchModifiers,
+            consumableIDs: state.consumables.map(\.id),
+            attachmentIDs: state.attachments.map(\.id),
+            bossRelicIDs: state.bossRelics.map(\.id)
         )
     }
 
@@ -256,6 +290,26 @@ struct RunPersistenceManager {
         state.hasOfferedGuidedUpgrade = snapshot.hasOfferedGuidedUpgrade
         state.runStartedAt = snapshot.runStartedAt
         state.startingContact = startingContact(id: snapshot.startingContactID)
+        state.hasAppliedStartingContact = snapshot.hasAppliedStartingContact ?? false
+        state.shopState = snapshot.shopState ?? ShopState()
+        state.activeModifiers = snapshot.activeModifiers ?? []
+        state.benchModifiers = snapshot.benchModifiers ?? []
+        state.consumables = (snapshot.consumableIDs ?? []).compactMap(Consumable.definition(id:))
+        state.attachments = (snapshot.attachmentIDs ?? []).compactMap(Attachment.definition(id:))
+        state.bossRelics = (snapshot.bossRelicIDs ?? []).compactMap(bossRelic(id:))
+        if !state.pendingStageRewardChoices.isEmpty {
+            state.rewardDraftState = RewardDraftState.stageDraft(
+                stage: state.runManager.currentStage,
+                rewards: state.pendingStageRewardChoices,
+                activeModifiers: state.activeModifiers
+            )
+        } else if !state.bossManager.pendingBossRewardChoices.isEmpty {
+            state.rewardDraftState = RewardDraftState.bossDraft(
+                stage: state.runManager.currentStage,
+                rewards: state.bossManager.pendingBossRewardChoices,
+                activeModifiers: state.activeModifiers
+            )
+        }
         return state
     }
 
@@ -275,6 +329,13 @@ struct RunPersistenceManager {
         manager.currentStageMinimumBankrollCents = max(0, snapshot.currentStageMinimumBankrollCents ?? manager.stageStartingBankrollCents)
         manager.currentStageBiggestWinCents = max(0, snapshot.currentStageBiggestWinCents ?? 0)
         manager.currentStageBiggestLossCents = min(0, snapshot.currentStageBiggestLossCents ?? 0)
+        manager.currentStageOpponentProfitCents = snapshot.currentStageOpponentProfitCents ?? 0
+        manager.currentStageWinningBetTypes = Set(snapshot.currentStageWinningBetTypes ?? [])
+        manager.currentStageLastWinner = snapshot.currentStageLastWinner
+        manager.currentStageFinalHandWon = snapshot.currentStageFinalHandWon ?? false
+        manager.currentStageFellBehindOpponent = snapshot.currentStageFellBehindOpponent ?? false
+        manager.currentStageStayedUnderQuarterBankroll = snapshot.currentStageStayedUnderQuarterBankroll ?? true
+        manager.currentStageConsumablesUsed = max(0, snapshot.currentStageConsumablesUsed ?? 0)
         manager.totalRoundsPlayed = max(0, snapshot.totalRoundsPlayed)
         manager.playerWins = max(0, snapshot.playerWins)
         manager.bankerWins = max(0, snapshot.bankerWins)
@@ -326,6 +387,10 @@ struct RunPersistenceManager {
         BossReward.allRewards.first { $0.name == name }
     }
 
+    private static func bossRelic(id: String) -> BossRelic? {
+        BossRelic.definition(id: id)
+    }
+
     private static func boss(id: Int?) -> Boss? {
         guard let id else {
             return nil
@@ -335,12 +400,11 @@ struct RunPersistenceManager {
     }
 
     private static func startingContact(id: String?) -> StartingContact {
-        switch id {
-        case StartingContact.sampleInsideDealer.id:
-            return .sampleInsideDealer
-        default:
+        guard let id else {
             return .defaultFloorHost
         }
+
+        return StartingContact.definition(id: id) ?? .defaultFloorHost
     }
 
     private static func restoredFlowState(status: String) -> StageFlowState {

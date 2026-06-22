@@ -146,7 +146,11 @@ struct PlayerProfile: Codable, Equatable {
         "Banker Consortium",
         "High Roller Shoe",
         "Vault Leak",
-        "Face Card Blackout"
+        "Face Card Blackout",
+        "Pit Boss Nod",
+        "Vault Key",
+        "Private Room",
+        "Surveillance Loop"
     ]
 }
 

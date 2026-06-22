@@ -182,11 +182,19 @@ struct UpgradeSelectionView: View {
             return ["Immediately changes the shoe"]
         case .playerWinBonus:
             return ["When Player wins"]
+        case .playerAnteWinBonus:
+            return ["When Player wins"]
         case .bankerWinBonus, .noCommission:
+            return ["When Banker wins"]
+        case .bankerAnteWinBonus:
             return ["When Banker wins"]
         case .chosenBetWinBonus:
             return ["When your chosen bet wins"]
+        case .chosenBetAnteWinBonus:
+            return ["When your chosen bet wins"]
         case .forecastWinBonus:
+            return ["When the forecast is right"]
+        case .forecastAnteWinBonus:
             return ["When the forecast is right"]
         case .improveTiePayout, .tiePayoutBonus:
             return ["On winning Tie bets"]
@@ -210,7 +218,11 @@ struct UpgradeSelectionView: View {
             return ["After losses"]
         case .roundStipend:
             return ["Every round"]
+        case .roundAnteStipend:
+            return ["Every round"]
         case .stageStartCash:
+            return ["At stage start"]
+        case .stageStartAnteCash:
             return ["At stage start"]
         case .cardExitIncome:
             return ["Whenever cards leave the shoe"]
@@ -223,6 +235,8 @@ struct UpgradeSelectionView: View {
         case .previousLossRefundOnTie:
             return ["When Tie hits after a loss"]
         case .bossStageCash:
+            return ["At boss stage start"]
+        case .bossStageAnteCash:
             return ["At boss stage start"]
         case .safetyNet:
             return ["Once per stage when bankroll drops"]

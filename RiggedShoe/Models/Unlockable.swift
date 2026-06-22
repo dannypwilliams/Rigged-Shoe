@@ -283,6 +283,70 @@ struct Unlockable: Identifiable, Equatable {
                 costChips: 10_000,
                 costReputation: 8,
                 content: .futureHook(id: "backroomLedger")
+            ),
+            Unlockable(
+                id: "futureHook.naturalHunterLicense",
+                name: "Natural Hunter License",
+                description: "Future content hook for advanced Natural Hunter rewards.",
+                costChips: 6_000,
+                costReputation: 3,
+                content: .futureHook(id: "naturalHunterLicense")
+            ),
+            Unlockable(
+                id: "futureHook.pairSideBets",
+                name: "Pair Side-Bet Room",
+                description: "Future content hook for pair-focused tables and trophies.",
+                costChips: 6_500,
+                costReputation: 3,
+                content: .futureHook(id: "pairSideBets")
+            ),
+            Unlockable(
+                id: "futureHook.loadedShoeBench",
+                name: "Loaded Shoe Bench",
+                description: "Future content hook for deeper shoe-sculpting tools.",
+                costChips: 8_000,
+                costReputation: 4,
+                content: .futureHook(id: "loadedShoeBench")
+            ),
+            Unlockable(
+                id: "futureHook.counterMasterClass",
+                name: "Counter Master Class",
+                description: "Future content hook for comeback and countertrend lessons.",
+                costChips: 5_500,
+                costReputation: 3,
+                content: .futureHook(id: "counterMasterClass")
+            ),
+            Unlockable(
+                id: "futureHook.bossKillerBriefing",
+                name: "Boss Killer Briefing",
+                description: "Future content hook for elite boss scouting and counterplay.",
+                costChips: 9_000,
+                costReputation: 5,
+                content: .futureHook(id: "bossKillerBriefing")
+            ),
+            Unlockable(
+                id: "futureHook.markerOffice",
+                name: "Marker Office",
+                description: "Future content hook for debt and loan runs.",
+                costChips: 7_000,
+                costReputation: 4,
+                content: .futureHook(id: "markerOffice")
+            ),
+            Unlockable(
+                id: "futureHook.sabotageDesk",
+                name: "Sabotage Desk",
+                description: "Future content hook for opponent sabotage unlocks.",
+                costChips: 7_500,
+                costReputation: 4,
+                content: .futureHook(id: "sabotageDesk")
+            ),
+            Unlockable(
+                id: "futureHook.finalHandSuite",
+                name: "Final Hand Suite",
+                description: "Future content hook for final-hand specialist rewards.",
+                costChips: 8_500,
+                costReputation: 5,
+                content: .futureHook(id: "finalHandSuite")
             )
         ]
     }

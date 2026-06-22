@@ -7,8 +7,8 @@ This phase changes run progression from a long objective ladder into a compact b
 ## Current Loop
 
 1. **Run Start**
-   - The run assigns a neutral starting contact.
-   - The contact step exists so future unlockable contacts can plug in without changing the table flow.
+   - The player chooses a starting contact.
+   - Contacts give an opening modifier, small bankroll/Heat/Chip adjustments, and shop-bias tags.
 
 2. **Stage Preview**
    - Shows stage number, opponent, ante, fixed hand count, table rule, reward tier, and boss warning.
@@ -39,9 +39,9 @@ This phase changes run progression from a long objective ladder into a compact b
    - This is intentionally a bridge until modifiers and shop inventory replace the old reward pool.
 
 6. **Shop Phase**
-   - Minimal phase for now.
-   - Shows run Chips, Heat, bankroll, and next stage.
-   - Full buy/sell/reroll/attachment behavior should be implemented in the next phase.
+   - Four shop offers appear after the reward draft.
+   - The player can buy, freeze, reroll, sell, bench/equip modifiers, use consumables, and auto-attach compatible attachments.
+   - Duplicate modifiers level up existing copies to Level 3.
 
 7. **Next Stage**
    - The shop advances to the next stage preview.
@@ -72,12 +72,12 @@ This phase changes run progression from a long objective ladder into a compact b
 
 ## Intentionally Deferred
 
-- Full shop purchases
-- Modifier buy/sell/level/attach behavior
 - Opponent scoring
 - Strong Heat tuning
-- Starting contact choices and effects
 - Replacement of legacy upgrade reward pool with modifier drafts
+- Manual attachment target selection
+- Full shop discount reducers
+- Expanded boss relic offer pool
 
 The important part now is that the player has a clear, fast, repeatable rhythm:
 
