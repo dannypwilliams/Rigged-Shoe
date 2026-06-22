@@ -293,15 +293,21 @@ struct ShopPhaseView: View {
                         Text("Shop Phase")
                             .font(.system(size: 30, weight: .black, design: .rounded))
                             .foregroundStyle(CasinoTheme.gold)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
 
                         Text("Buy, freeze, level, or sell before the next table.")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(.white.opacity(0.62))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.82)
                     }
+                    .layoutPriority(1)
 
                     Spacer()
 
                     RunFlowStat(title: "Chips", value: "\(viewModel.state.runManager.chips)")
+                        .frame(width: 112)
                 }
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {

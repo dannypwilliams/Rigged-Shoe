@@ -42,6 +42,8 @@ struct ContentView: View {
             )
             .tint(CasinoTheme.gold)
             .modifier(ScreenShakeEffect(animatableData: shakeTrigger))
+            .allowsHitTesting(!isMainContentCovered)
+            .accessibilityHidden(isMainContentCovered)
 
             runFlowOverlay
 
@@ -270,6 +272,39 @@ struct ContentView: View {
             || viewModel.state.runManager.status == .completed
     }
 
+    private var isMainContentCovered: Bool {
+        isModalOverlayVisible || (!isResolvingRoundPresentation && isRunFlowOverlayVisible)
+    }
+
+    private var isModalOverlayVisible: Bool {
+#if DEBUG
+        if isShowingDebugMenu {
+            return true
+        }
+#endif
+
+        return isShowingTutorial || isShowingGlossary || isShowingSupport
+    }
+
+    private var isRunFlowOverlayVisible: Bool {
+        if viewModel.state.runManager.flowState == .stageResult,
+           viewModel.stageResultData != nil {
+            return true
+        }
+
+        if viewModel.state.runManager.flowState == .runStart
+            || viewModel.state.runManager.flowState == .stagePreview
+            || viewModel.state.runManager.flowState == .shop
+            || shouldShowRunOverOverlay {
+            return true
+        }
+
+        return viewModel.state.bossManager.pendingAnnouncementBoss != nil
+            || !viewModel.state.bossManager.pendingBossRewardChoices.isEmpty
+            || !viewModel.state.pendingStageRewardChoices.isEmpty
+            || !viewModel.state.pendingUpgradeChoices.isEmpty
+    }
+
     @ViewBuilder
     private func destination(for room: CasinoRoom) -> some View {
         switch room {
@@ -465,6 +500,10 @@ struct ContentView: View {
 
         if viewModel.state.bankrollCents < viewModel.state.selectedBetAmountCents {
             return "Bankroll Too Low"
+        }
+
+        if viewModel.isDealResolutionLocked {
+            return "Resolving"
         }
 
         return viewModel.canDeal ? "Deal" : "Bankroll Too Low"
