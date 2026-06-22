@@ -148,7 +148,7 @@ struct BossManager: Equatable {
             return .house
         }
 
-        guard challengeID == .bossRush || stageID.isMultiple(of: 3) else {
+        guard challengeID == .bossRush || [5, 8].contains(stageID) else {
             return nil
         }
 

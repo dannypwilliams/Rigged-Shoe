@@ -44,7 +44,43 @@ struct ContentView: View {
             .modifier(ScreenShakeEffect(animatableData: shakeTrigger))
 
             if !isResolvingRoundPresentation {
-                if viewModel.state.runManager.status == .failed || viewModel.state.runManager.status == .completed {
+                if viewModel.state.runManager.flowState == .stageResult,
+                   let result = viewModel.stageResultData {
+                    StageResultView(
+                        result: result,
+                        bankrollCents: viewModel.state.bankrollCents,
+                        heat: viewModel.state.runManager.heat,
+                        maxHeat: viewModel.state.runManager.maxHeat,
+                        onContinue: continueFromStageResult
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(6)
+                } else if viewModel.state.runManager.flowState == .runStart {
+                    RunStartView(
+                        contact: viewModel.state.startingContact,
+                        bankrollCents: viewModel.state.bankrollCents,
+                        chips: viewModel.state.runManager.chips,
+                        heat: viewModel.state.runManager.heat,
+                        maxHeat: viewModel.state.runManager.maxHeat,
+                        onContinue: continueFromRunStart
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(6)
+                } else if viewModel.state.runManager.flowState == .stagePreview {
+                    StagePreviewView(
+                        preview: viewModel.stagePreviewData,
+                        bankrollCents: viewModel.state.bankrollCents,
+                        chips: viewModel.state.runManager.chips,
+                        heat: viewModel.state.runManager.heat,
+                        maxHeat: viewModel.state.runManager.maxHeat,
+                        onEnterBattle: startStageBattle
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(6)
+                } else if viewModel.state.runManager.flowState == .runFailed
+                            || viewModel.state.runManager.flowState == .runComplete
+                            || viewModel.state.runManager.status == .failed
+                            || viewModel.state.runManager.status == .completed {
                     RunOverView(
                         runManager: viewModel.state.runManager,
                         bossManager: viewModel.state.bossManager,
@@ -53,6 +89,14 @@ struct ContentView: View {
                         chipsEarnedThisRun: viewModel.state.metaChipsEarnedThisRun,
                         reputationEarnedThisRun: viewModel.state.metaReputationEarnedThisRun,
                         onStartNewRun: startNewRun
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(5)
+                } else if viewModel.state.runManager.flowState == .shop {
+                    ShopPhaseView(
+                        runManager: viewModel.state.runManager,
+                        bankrollCents: viewModel.state.bankrollCents,
+                        onContinue: continueFromShop
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.98)))
                     .zIndex(5)
@@ -144,6 +188,7 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.2), value: viewModel.state.bossManager.pendingAnnouncementBoss)
         .animation(.easeInOut(duration: 0.2), value: viewModel.state.bossManager.pendingBossRewardChoices)
         .animation(.easeInOut(duration: 0.2), value: viewModel.state.runManager.status)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.state.runManager.flowState)
         .onAppear {
             updateMusicLayer()
         }
@@ -349,6 +394,25 @@ struct ContentView: View {
     }
 
     private var dealButtonTitle: String {
+        switch viewModel.state.runManager.flowState {
+        case .runStart:
+            return "Start Run"
+        case .stagePreview:
+            return "Preview Stage"
+        case .stageResult:
+            return "Stage Result"
+        case .rewardDraft:
+            break
+        case .shop:
+            return "Shop Phase"
+        case .runComplete:
+            return "Run Finished"
+        case .runFailed:
+            return "Run Failed"
+        case .battle:
+            break
+        }
+
         if viewModel.state.runManager.status == .failed || viewModel.state.runManager.status == .completed {
             return "Run Finished"
         }
@@ -377,6 +441,10 @@ struct ContentView: View {
             return "Bet Locked"
         }
 
+        if !viewModel.isBetAmountPlayable(viewModel.state.selectedBetAmountCents) {
+            return "Bet Capped"
+        }
+
         if viewModel.state.bankrollCents < viewModel.state.selectedBetAmountCents {
             return "Bankroll Too Low"
         }
@@ -385,6 +453,23 @@ struct ContentView: View {
     }
 
     private var dealGuidanceText: String {
+        switch viewModel.state.runManager.flowState {
+        case .runStart:
+            return "Confirm your starting contact before entering the first table."
+        case .stagePreview:
+            return "Preview the opponent, hand count, ante, and reward before the battle."
+        case .stageResult:
+            return "Review what happened before drafting rewards."
+        case .shop:
+            return "Use the shop phase, then continue to the next table."
+        case .runComplete:
+            return "The run is complete. Start a new run from the summary."
+        case .runFailed:
+            return "The run is over. Start a new run from the summary."
+        case .battle, .rewardDraft:
+            break
+        }
+
         if viewModel.canDeal {
             if let guidedOpeningHandNotice = viewModel.guidedOpeningHandNotice {
                 return guidedOpeningHandNotice
@@ -400,15 +485,15 @@ struct ContentView: View {
 
             switch viewModel.state.runManager.stageReached {
             case 1:
-                return "Recommended: play the $10 hand and protect the $200 safety line."
+                return "Compact battle: survive 5 hands. Start small and learn the shoe rhythm."
             case 2:
-                return "Recommended: stay controlled. Finish 10 hands without losing more than $60."
+                return "Six hands. $20 is unlocked, but controlled bets keep Heat and bankroll stable."
             case 3:
-                return "Recommended: grow by $15; use $20 or $30 only when the read is strong."
+                return "Seven hands. Use upgrades or reads before pressing the larger bet."
             case 4:
-                return "Recommended: chase one upgrade-powered win. Let your best bonus or reveal guide the bet."
+                return "Eight hands before the first boss. Keep the build alive."
             case 5:
-                return "First profit gate: use your build. Press $50-$75 only when upgrades or reveals give you an edge."
+                return "Boss table. Watch for modified rules and protect your bankroll."
             default:
                 break
             }
@@ -447,6 +532,10 @@ struct ContentView: View {
         if !viewModel.isBetAmountUnlocked(viewModel.state.selectedBetAmountCents) {
             let stage = viewModel.unlockStage(forBetAmountCents: viewModel.state.selectedBetAmountCents)
             return "This bet unlocks at Stage \(stage). Choose a smaller denomination."
+        }
+
+        if let reason = viewModel.betCapReason(for: viewModel.state.selectedBetAmountCents) {
+            return reason
         }
 
         if let cap = viewModel.activeRevealBetCapCents,
@@ -491,6 +580,30 @@ struct ContentView: View {
     private func continueToBoss() {
         hapticsManager.play(.heavy, settings: settings)
         viewModel.continueToBoss()
+        updateMusicLayer()
+    }
+
+    private func continueFromRunStart() {
+        hapticsManager.play(.medium, settings: settings)
+        viewModel.continueFromRunStart()
+    }
+
+    private func startStageBattle() {
+        hapticsManager.play(.medium, settings: settings)
+        viewModel.startStageBattle()
+        updateMusicLayer()
+    }
+
+    private func continueFromStageResult() {
+        audioManager.play(.stageClear, settings: settings)
+        hapticsManager.play(.medium, settings: settings)
+        viewModel.continueFromStageResult()
+        updateMusicLayer()
+    }
+
+    private func continueFromShop() {
+        hapticsManager.play(.medium, settings: settings)
+        viewModel.continueFromShop()
         updateMusicLayer()
     }
 
@@ -600,7 +713,7 @@ struct ContentView: View {
     private func updateMusicLayer() {
         let layer: MusicLayer
 
-        if viewModel.state.runManager.status == .completed {
+        if viewModel.state.runManager.flowState == .runComplete || viewModel.state.runManager.status == .completed {
             layer = .victory
         } else if let boss = viewModel.state.bossManager.activeBoss ?? viewModel.state.bossManager.pendingAnnouncementBoss {
             layer = boss.id == Boss.house.id ? .finalBoss : .boss

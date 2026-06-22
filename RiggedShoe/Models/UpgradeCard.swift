@@ -47,6 +47,10 @@ enum UpgradeEffect: Equatable {
     case bankerWinBonus(cents: Int)
     case chosenBetWinBonus(cents: Int)
     case forecastWinBonus(cents: Int)
+    case playerAnteWinBonus(percentOfAnte: Int)
+    case bankerAnteWinBonus(percentOfAnte: Int)
+    case chosenBetAnteWinBonus(percentOfAnte: Int)
+    case forecastAnteWinBonus(percentOfAnte: Int)
     case improveTiePayout(multiplier: Int)
     case tiePayoutBonus(amount: Int)
     case shoeReveal(ShoeRevealConfiguration)
@@ -60,13 +64,16 @@ enum UpgradeEffect: Equatable {
     case lossMultiplier(percent: Int)
     case lossRebatePercent(percent: Int)
     case roundStipend(cents: Int)
+    case roundAnteStipend(percentOfAnte: Int)
     case stageStartCash(cents: Int)
+    case stageStartAnteCash(multiplierPercent: Int)
     case cardExitIncome(centsPerCard: Int)
     case streakBonus(betType: BetType?, centsPerWin: Int)
     case firstTieEachStageMultiplier(multiplier: Int)
     case consecutiveTiePayoutBonus(amount: Int)
     case previousLossRefundOnTie(percent: Int)
     case bossStageCash(cents: Int)
+    case bossStageAnteCash(multiplierPercent: Int)
     case safetyNet(thresholdPercent: Int, cents: Int)
     case smallBetWinMultiplier(maxBetCents: Int, percent: Int)
     case smallBetStreakBonus(maxBetCents: Int, requiredWins: Int, cents: Int)
@@ -263,6 +270,10 @@ private extension UpgradeEffect {
              .bankerWinBonus,
              .chosenBetWinBonus,
              .forecastWinBonus,
+             .playerAnteWinBonus,
+             .bankerAnteWinBonus,
+             .chosenBetAnteWinBonus,
+             .forecastAnteWinBonus,
              .tiePayoutBonus,
              .revealAfterRound,
              .hotShoe,
@@ -271,13 +282,16 @@ private extension UpgradeEffect {
              .lossMultiplier,
              .lossRebatePercent,
              .roundStipend,
+             .roundAnteStipend,
              .stageStartCash,
+             .stageStartAnteCash,
              .cardExitIncome,
              .streakBonus,
              .firstTieEachStageMultiplier,
              .consecutiveTiePayoutBonus,
              .previousLossRefundOnTie,
              .bossStageCash,
+             .bossStageAnteCash,
              .safetyNet,
              .smallBetWinMultiplier,
              .smallBetStreakBonus,
@@ -300,9 +314,9 @@ extension UpgradeCard {
             card("Nine Syndicate", "Adds four 9s to the shoe.", .common, .addExtraNines(count: 4), [.shoe]),
             card("Eight Stack", "Adds four 8s to the shoe.", .common, .addExtraEights(count: 4), [.shoe]),
             card("Face Card Purge", "Removes eight zero-value cards.", .common, .removeZeroValueCards(count: 8), [.shoe]),
-            card("Safety Net", "Comeback: Once per stage, dropping below the stage safety line grants $10.", .common, .safetyNet(thresholdPercent: 80, cents: 1_000), [.economy, .conservative, .comeback]),
-            card("Conservative Edge", "Conservative: Minimum-bet wins pay +50% profit, turning a $10 win into +$15.", .common, .smallBetWinMultiplier(maxBetCents: 1_000, percent: 150), [.economy, .conservative]),
-            card("Small Ball", "Conservative: Win 3 hands in a row while betting $10 to gain $25.", .common, .smallBetStreakBonus(maxBetCents: 1_000, requiredWins: 3, cents: 2_500), [.streak, .conservative, .economy]),
+            card("Safety Net", "Comeback: Once per stage, dropping below the stage safety line grants ante-scaled cash.", .common, .safetyNet(thresholdPercent: 80, cents: 1_000), [.economy, .conservative, .comeback]),
+            card("Conservative Edge", "Conservative: Minimum-bet wins pay +50% profit.", .common, .smallBetWinMultiplier(maxBetCents: 10_000, percent: 150), [.economy, .conservative]),
+            card("Small Ball", "Conservative: Win 3 hands in a row with low bets to gain ante-scaled cash.", .common, .smallBetStreakBonus(maxBetCents: 10_000, requiredWins: 3, cents: 2_500), [.streak, .conservative, .economy]),
             card("Press the Advantage", "Aggressive: After a win, increase your next bet for +15% profit on a win.", .common, .pressAfterWinMultiplier(percent: 115), [.aggressive, .risk, .streak]),
             card("Damage Control", "Comeback: Losing refunds half of the bet once every 3 hands.", .common, .lossRebateEveryHands(percent: 50, everyHands: 3), [.comeback, .economy]),
             card("Peek", "Reveal the next 1 card. Shows value only, with no prediction or bet cap.", .common, .shoeReveal(.peek), [.reveal, .shoe]),
@@ -310,18 +324,18 @@ extension UpgradeCard {
             card("Smudged Lens", "Reveal 3 upcoming cards, but one card is intentionally obscured. Shows a cautious table lean.", .common, .shoeReveal(.smudgedLens), [.reveal, .shoe]),
             card("Bent Corner", "Reveal 3 upcoming ranks without suits. Helpful information, not a full answer.", .common, .shoeReveal(.bentCorner), [.reveal, .shoe]),
             card("X-Ray Shoe", "Rare charged read. Gain 2 charges each stage; activate to reveal 3 cards with order and a table lean. Active hands cap bets at 3x minimum.", .rare, .shoeReveal(.xRay), [.reveal, .shoe]),
-            card("Opening Tell", "Prediction: Read 2 upcoming cards. If the forecasted bet wins, gain +$10.", .common, .combined([.shoeReveal(.readTheShoe), .forecastWinBonus(cents: 1_000)]), [.reveal, .economy]),
+            card("Opening Tell", "Prediction: Read 2 upcoming cards. If the forecasted bet wins, gain 25% of ante.", .common, .combined([.shoeReveal(.readTheShoe), .forecastAnteWinBonus(percentOfAnte: 25)]), [.reveal, .economy]),
             card("Burn Control", "Shoe Control: Every 5 hands, you may burn the next card before dealing.", .common, .burnCardEveryHands(interval: 5), [.shoe, .reveal]),
             card("Soft Shuffle", "Shoe Control: Once per stage, you may move the next card 3 positions deeper.", .common, .moveTopCardDeeper(positions: 3), [.shoe, .reveal]),
-            card("Dealer Pressure", "Dealer Exploit: If Banker's first total is 4, 5, or 6, winning pays +$10.", .common, .bankerInitialTotalBonus(minTotal: 4, maxTotal: 6, cents: 1_000), [.dealerExploit, .economy]),
-            card("Face Hunter", "Dealer Exploit: The first natural 8 or 9 each stage grants +$25.", .common, .firstNaturalEachStageBonus(cents: 2_500), [.dealerExploit, .economy]),
-            card("Low Roller", "Conservative: Every 2 consecutive wins at $10 or less grants +$10.", .common, .smallBetStreakBonus(maxBetCents: 1_000, requiredWins: 2, cents: 1_000), [.conservative, .streak]),
-            card("High Roller Spark", "Aggressive: Your first $200+ bet each stage wins with +20% profit.", .common, .firstLargeBetStageMultiplier(minBetCents: 20_000, percent: 120), [.aggressive, .risk]),
-            card("Comeback Chip", "Comeback: After 2 losses in a row, your next win grants +$20.", .common, .comebackWinBonus(lossCount: 2, cents: 2_000), [.comeback, .economy]),
-            card("Discipline Bonus", "Conservative: Win without raising from your previous bet to gain +$5.", .common, .steadyBetWinBonus(cents: 500), [.conservative, .economy]),
-            card("Aggressive Bonus", "Aggressive: Raise by at least $20 after a hand and win to gain +$15.", .common, .raiseWinBonus(minRaiseCents: 2_000, cents: 1_500), [.aggressive, .risk]),
-            card("Player Bonus", "Player wins pay +10% profit plus a $5 floor bonus.", .common, .combined([.profitMultiplier(betType: .player, percent: 110), .playerWinBonus(cents: 500)]), [.player]),
-            card("Banker Bonus", "Banker wins pay +10% profit plus a $5 floor bonus.", .common, .combined([.profitMultiplier(betType: .banker, percent: 110), .bankerWinBonus(cents: 500)]), [.banker]),
+            card("Dealer Pressure", "Dealer Exploit: If Banker's first total is 4, 5, or 6, winning pays ante-scaled cash.", .common, .bankerInitialTotalBonus(minTotal: 4, maxTotal: 6, cents: 1_000), [.dealerExploit, .economy]),
+            card("Face Hunter", "Dealer Exploit: The first natural 8 or 9 each stage grants about 1x ante.", .common, .firstNaturalEachStageBonus(cents: 2_500), [.dealerExploit, .economy]),
+            card("Low Roller", "Conservative: Every 2 consecutive minimum-bet wins grants ante-scaled cash.", .common, .smallBetStreakBonus(maxBetCents: 10_000, requiredWins: 2, cents: 1_000), [.conservative, .streak]),
+            card("High Roller Spark", "Aggressive: Your first high bet each stage wins with +20% profit.", .common, .firstLargeBetStageMultiplier(minBetCents: 20_000, percent: 120), [.aggressive, .risk]),
+            card("Comeback Chip", "Comeback: After 2 losses in a row, your next win grants ante-scaled cash.", .common, .comebackWinBonus(lossCount: 2, cents: 2_000), [.comeback, .economy]),
+            card("Discipline Bonus", "Conservative: Win without raising from your previous bet to gain ante-scaled cash.", .common, .steadyBetWinBonus(cents: 500), [.conservative, .economy]),
+            card("Aggressive Bonus", "Aggressive: Raise after a hand and win to gain ante-scaled cash.", .common, .raiseWinBonus(minRaiseCents: 2_500, cents: 1_500), [.aggressive, .risk]),
+            card("Player Bonus", "Player wins pay +10% profit plus 25% of ante.", .common, .combined([.profitMultiplier(betType: .player, percent: 110), .playerAnteWinBonus(percentOfAnte: 25)]), [.player]),
+            card("Banker Bonus", "Banker wins pay +10% profit plus 25% of ante.", .common, .combined([.profitMultiplier(betType: .banker, percent: 110), .bankerAnteWinBonus(percentOfAnte: 25)]), [.banker]),
             card("Safer Ties", "Tie payout improves to 10:1.", .common, .improveTiePayout(multiplier: 10), [.tie]),
             card("Marked Shoe", "Reveal the next 2 cards with light destination hints.", .rare, .shoeReveal(.readTheShoe), [.reveal]),
             card("Deep Read", "Reveal 3 upcoming cards, with one intentionally smudged.", .rare, .shoeReveal(.smudgedLens), [.reveal]),
@@ -343,13 +357,13 @@ extension UpgradeCard {
             card("Tie Fever", "Consecutive Ties add +2 to Tie payout.", .rare, .consecutiveTiePayoutBonus(amount: 2), [.tie, .streak]),
             card("Lucky Push", "Any Tie refunds losses from the previous round.", .rare, .previousLossRefundOnTie(percent: 100), [.tie, .economy]),
             card("Royal Tie", "Tie payout gains +5.", .legendary, .tiePayoutBonus(amount: 5), [.tie]),
-            card("Split Decision", "Winning Tie bets pay an extra $40.", .common, .chosenBetWinBonus(cents: 4_000), [.tie, .economy]),
-            card("Dead Heat Dividend", "Tie wins pay an extra $100.", .rare, .chosenBetWinBonus(cents: 10_000), [.tie, .economy]),
+            card("Split Decision", "Winning Tie bets pay an extra 50% of ante.", .common, .chosenBetAnteWinBonus(percentOfAnte: 50), [.tie, .economy]),
+            card("Dead Heat Dividend", "Tie wins pay an extra 1.5x ante.", .rare, .chosenBetAnteWinBonus(percentOfAnte: 150), [.tie, .economy]),
             card("Balanced Shoe", "Adds ten matched pairs to the shoe.", .rare, .addTiePairCards(pairs: 10), [.tie, .shoe]),
             card("Tie Insurance", "Losses refund 10% of the bet.", .common, .lossRebatePercent(percent: 10), [.tie, .economy]),
             card("Three-Way Trap", "Tie bets pay 15:1.", .rare, .improveTiePayout(multiplier: 15), [.tie]),
-            card("Push Prophet", "Reveal +2 cards and gain $12 when your chosen bet wins.", .common, .combined([.revealCards(count: 2), .chosenBetWinBonus(cents: 1_200)]), [.tie, .reveal]),
-            card("Equals Sign", "Gain $10 after every round while building toward Tie synergies.", .common, .roundStipend(cents: 1_000), [.tie, .economy])
+            card("Push Prophet", "Reveal +2 cards and gain 25% of ante when your chosen bet wins.", .common, .combined([.revealCards(count: 2), .chosenBetAnteWinBonus(percentOfAnte: 25)]), [.tie, .reveal]),
+            card("Equals Sign", "Gain 20% of ante after every round while building toward Tie synergies.", .common, .roundAnteStipend(percentOfAnte: 20), [.tie, .economy])
         ]
     }
 
@@ -357,13 +371,13 @@ extension UpgradeCard {
         [
             card("X-Ray Glasses", "Gain the Full X-Ray read once each stage.", .legendary, .shoeReveal(.fullXRay), [.reveal]),
             card("Dealer Tell", "Reveal +1 more card after every round.", .common, .revealAfterRound(count: 1), [.reveal]),
-            card("Pattern Reader", "Prediction: If the forecasted bet wins, gain +$150.", .rare, .forecastWinBonus(cents: 15_000), [.reveal, .economy]),
-            card("Known Shoe", "Start each stage with +$60 and Read the Shoe.", .rare, .combined([.stageStartCash(cents: 6_000), .shoeReveal(.readTheShoe)]), [.reveal, .economy]),
+            card("Pattern Reader", "Prediction: If the forecasted bet wins, gain 1.5x ante.", .rare, .forecastAnteWinBonus(percentOfAnte: 150), [.reveal, .economy]),
+            card("Known Shoe", "Start each stage with 1x ante and Read the Shoe.", .rare, .combined([.stageStartAnteCash(multiplierPercent: 100), .shoeReveal(.readTheShoe)]), [.reveal, .economy]),
             card("Surveillance Map", "Reveal 3 upcoming cards, but one is intentionally obscured.", .rare, .shoeReveal(.smudgedLens), [.reveal]),
             card("Burn Notice", "Gain $1 whenever a card leaves the shoe.", .rare, .cardExitIncome(centsPerCard: 100), [.reveal, .economy]),
             card("Peeker's Edge", "Peek at the next 1 card every hand.", .common, .shoeReveal(.peek), [.reveal]),
             card("Open Index", "Gain the Full X-Ray read once each stage.", .legendary, .shoeReveal(.fullXRay), [.reveal]),
-            card("Future Ledger", "Smudged Lens plus $20 when your chosen bet wins.", .rare, .combined([.shoeReveal(.smudgedLens), .chosenBetWinBonus(cents: 2_000)]), [.reveal, .economy]),
+            card("Future Ledger", "Smudged Lens plus 50% ante when your chosen bet wins.", .rare, .combined([.shoeReveal(.smudgedLens), .chosenBetAnteWinBonus(percentOfAnte: 50)]), [.reveal, .economy]),
             card("Marked Burn Cards", "Gain $2 whenever a card leaves the shoe.", .rare, .cardExitIncome(centsPerCard: 200), [.reveal, .economy]),
             card("Lens Cleaner", "Bent Corner read plus 10% loss reduction.", .common, .combined([.shoeReveal(.bentCorner), .lossRebatePercent(percent: 10)]), [.reveal, .risk]),
             card("Table Whisperer", "Read the Shoe with 2-card destination hints.", .rare, .shoeReveal(.readTheShoe), [.reveal])
@@ -393,17 +407,17 @@ extension UpgradeCard {
     private static var bankerKingCards: [UpgradeCard] {
         [
             card("House Favorite", "Banker wins pay +15% profit.", .common, .profitMultiplier(betType: .banker, percent: 115), [.banker]),
-            card("Commission Refund", "Banker wins pay +$30 and ignore commission.", .rare, .combined([.bankerWinBonus(cents: 3_000), .noCommission]), [.banker, .economy]),
+            card("Commission Refund", "Banker wins pay +50% ante and ignore commission.", .rare, .combined([.bankerAnteWinBonus(percentOfAnte: 50), .noCommission]), [.banker, .economy]),
             card("Banker Rush", "Banker streaks pay +$25 per previous Banker win.", .rare, .streakBonus(betType: .banker, centsPerWin: 2_500), [.banker, .streak]),
             card("Banker Dynasty", "Banker streaks pay +$75 per previous Banker win.", .legendary, .streakBonus(betType: .banker, centsPerWin: 7_500), [.banker, .streak]),
-            card("Banker Streak", "Banker wins pay +$20.", .common, .bankerWinBonus(cents: 2_000), [.banker]),
+            card("Banker Streak", "Banker wins pay +35% ante.", .common, .bankerAnteWinBonus(percentOfAnte: 35), [.banker]),
             card("Velvet Rope", "Banker wins pay +25% profit.", .rare, .profitMultiplier(betType: .banker, percent: 125), [.banker]),
-            card("Dealer's Friend", "Gain $40 on winning Banker bets.", .rare, .bankerWinBonus(cents: 4_000), [.banker, .economy]),
+            card("Dealer's Friend", "Winning Banker bets gain +75% ante.", .rare, .bankerAnteWinBonus(percentOfAnte: 75), [.banker, .economy]),
             card("Back Room Deal", "Banker wins ignore commission.", .rare, .noCommission, [.banker]),
-            card("Banker's Aura", "Adds 8 extra 9s and gives Banker wins +$20.", .rare, .combined([.addExtraNines(count: 8), .bankerWinBonus(cents: 2_000)]), [.banker, .shoe]),
-            card("House Ledger", "Gain $10 after every round.", .common, .roundStipend(cents: 1_000), [.banker, .economy]),
+            card("Banker's Aura", "Adds 8 extra 9s and gives Banker wins +35% ante.", .rare, .combined([.addExtraNines(count: 8), .bankerAnteWinBonus(percentOfAnte: 35)]), [.banker, .shoe]),
+            card("House Ledger", "Gain 20% of ante after every round.", .common, .roundAnteStipend(percentOfAnte: 20), [.banker, .economy]),
             card("Banker Monopoly", "Banker wins pay +50% profit.", .legendary, .profitMultiplier(betType: .banker, percent: 150), [.banker]),
-            card("Commission Ghost", "No commission and Banker wins pay +$250.", .legendary, .combined([.noCommission, .bankerWinBonus(cents: 25_000)]), [.banker, .economy])
+            card("Commission Ghost", "No commission and Banker wins pay +2x ante.", .legendary, .combined([.noCommission, .bankerAnteWinBonus(percentOfAnte: 200)]), [.banker, .economy])
         ]
     }
 
@@ -411,16 +425,16 @@ extension UpgradeCard {
         [
             card("Player Rush", "Player streaks pay +$25 per previous Player win.", .rare, .streakBonus(betType: .player, centsPerWin: 2_500), [.player, .streak]),
             card("Player Dynasty", "Player streaks pay +$75 per previous Player win.", .legendary, .streakBonus(betType: .player, centsPerWin: 7_500), [.player, .streak]),
-            card("Lucky Player", "Player wins pay +$20.", .common, .playerWinBonus(cents: 2_000), [.player]),
+            card("Lucky Player", "Player wins pay +35% ante.", .common, .playerAnteWinBonus(percentOfAnte: 35), [.player]),
             card("Player Momentum", "Player wins pay +20% profit.", .rare, .profitMultiplier(betType: .player, percent: 120), [.player]),
-            card("Underdog Edge", "Player wins pay +$40.", .rare, .playerWinBonus(cents: 4_000), [.player, .economy]),
+            card("Underdog Edge", "Player wins pay +75% ante.", .rare, .playerAnteWinBonus(percentOfAnte: 75), [.player, .economy]),
             card("Blue Table", "Player wins pay +25% profit.", .rare, .profitMultiplier(betType: .player, percent: 125), [.player]),
-            card("Rebel Shoe", "Adds 10 Aces and gives Player wins +$20.", .rare, .combined([.addCards(rank: .ace, count: 10), .playerWinBonus(cents: 2_000)]), [.player, .shoe]),
-            card("Player Coalition", "Player wins pay +$60.", .rare, .playerWinBonus(cents: 6_000), [.player]),
+            card("Rebel Shoe", "Adds 10 Aces and gives Player wins +35% ante.", .rare, .combined([.addCards(rank: .ace, count: 10), .playerAnteWinBonus(percentOfAnte: 35)]), [.player, .shoe]),
+            card("Player Coalition", "Player wins pay +1x ante.", .rare, .playerAnteWinBonus(percentOfAnte: 100), [.player]),
             card("Lucky Cut", "Losses refund 15% while favoring Player builds.", .common, .lossRebatePercent(percent: 15), [.player, .risk]),
-            card("Table Hero", "Gain $10 after every round.", .common, .roundStipend(cents: 1_000), [.player, .economy]),
+            card("Table Hero", "Gain 20% of ante after every round.", .common, .roundAnteStipend(percentOfAnte: 20), [.player, .economy]),
             card("Player Coup", "Player wins pay +50% profit.", .legendary, .profitMultiplier(betType: .player, percent: 150), [.player]),
-            card("People's Champion", "Player wins pay +$250.", .legendary, .playerWinBonus(cents: 25_000), [.player, .economy])
+            card("People's Champion", "Player wins pay +2x ante.", .legendary, .playerAnteWinBonus(percentOfAnte: 200), [.player, .economy])
         ]
     }
 
@@ -431,41 +445,41 @@ extension UpgradeCard {
             card("All-In", "All wins pay +150% profit, but losses cost double.", .legendary, .combined([.profitMultiplier(betType: nil, percent: 250), .lossMultiplier(percent: 200)]), [.risk]),
             card("Gambler's Rush", "All win streaks pay +$50 per previous win.", .rare, .streakBonus(betType: nil, centsPerWin: 5_000), [.risk, .streak]),
             card("Glass Cannon", "All wins pay +75% profit, but losses cost 50% extra.", .rare, .combined([.profitMultiplier(betType: nil, percent: 175), .lossMultiplier(percent: 150)]), [.risk]),
-            card("High Limit Permit", "Start each stage with +$125.", .rare, .stageStartCash(cents: 12_500), [.risk, .economy]),
-            card("Danger Money", "Gain $25 when your chosen bet wins.", .common, .chosenBetWinBonus(cents: 2_500), [.risk, .economy]),
+            card("High Limit Permit", "Start each stage with 1.5x ante.", .rare, .stageStartAnteCash(multiplierPercent: 150), [.risk, .economy]),
+            card("Danger Money", "Gain 50% of ante when your chosen bet wins.", .common, .chosenBetAnteWinBonus(percentOfAnte: 50), [.risk, .economy]),
             card("Redline Bet", "All wins pay +30% profit.", .common, .profitMultiplier(betType: nil, percent: 130), [.risk]),
-            card("Debt Knife", "Losses cost 50% extra, but gain $75 on wins.", .rare, .combined([.lossMultiplier(percent: 150), .chosenBetWinBonus(cents: 7_500)]), [.risk, .economy]),
+            card("Debt Knife", "Losses cost 50% extra, but wins gain 1.5x ante.", .rare, .combined([.lossMultiplier(percent: 150), .chosenBetAnteWinBonus(percentOfAnte: 150)]), [.risk, .economy]),
             card("No Guts", "All wins pay +40% profit.", .common, .profitMultiplier(betType: nil, percent: 140), [.risk]),
-            card("Whale Signal", "Start each stage with +$1,000.", .legendary, .stageStartCash(cents: 100_000), [.risk, .economy]),
+            card("Whale Signal", "Start each stage with 4x ante.", .legendary, .stageStartAnteCash(multiplierPercent: 400), [.risk, .economy]),
             card("Table Breaker", "All wins pay triple profit, losses cost double.", .legendary, .combined([.profitMultiplier(betType: nil, percent: 300), .lossMultiplier(percent: 200)]), [.risk])
         ]
     }
 
     private static var economyCards: [UpgradeCard] {
         [
-            card("VIP Lounge", "Gain $12 after every round.", .common, .roundStipend(cents: 1_200), [.economy]),
+            card("VIP Lounge", "Gain 25% of ante after every round.", .common, .roundAnteStipend(percentOfAnte: 25), [.economy]),
             card("Tax Loophole", "Losses refund 25% of the bet.", .rare, .lossRebatePercent(percent: 25), [.economy]),
-            card("Lucky Chips", "Gain $20 when your chosen bet wins.", .common, .chosenBetWinBonus(cents: 2_000), [.economy]),
-            card("Casino Credit", "Start each stage with +$125.", .rare, .stageStartCash(cents: 12_500), [.economy]),
-            card("Comped Drinks", "Gain $8 after every round.", .common, .roundStipend(cents: 800), [.economy]),
+            card("Lucky Chips", "Gain 40% of ante when your chosen bet wins.", .common, .chosenBetAnteWinBonus(percentOfAnte: 40), [.economy]),
+            card("Casino Credit", "Start each stage with 1.5x ante.", .rare, .stageStartAnteCash(multiplierPercent: 150), [.economy]),
+            card("Comped Drinks", "Gain 15% of ante after every round.", .common, .roundAnteStipend(percentOfAnte: 15), [.economy]),
             card("Cashback Card", "Losses refund 20% of the bet.", .common, .lossRebatePercent(percent: 20), [.economy]),
             card("Chip Runner", "Gain $2 whenever a card leaves the shoe.", .rare, .cardExitIncome(centsPerCard: 200), [.economy, .shoe]),
-            card("Accounting Trick", "Gain $60 when your chosen bet wins.", .rare, .chosenBetWinBonus(cents: 6_000), [.economy]),
-            card("Casino Coupon", "Start each stage with +$50.", .common, .stageStartCash(cents: 5_000), [.economy]),
-            card("Private Marker", "Gain $25 after every round.", .rare, .roundStipend(cents: 2_500), [.economy]),
-            card("Infinite Credit", "Start each stage with +$5,000.", .legendary, .stageStartCash(cents: 500_000), [.economy]),
+            card("Accounting Trick", "Gain 1x ante when your chosen bet wins.", .rare, .chosenBetAnteWinBonus(percentOfAnte: 100), [.economy]),
+            card("Casino Coupon", "Start each stage with 75% ante.", .common, .stageStartAnteCash(multiplierPercent: 75), [.economy]),
+            card("Private Marker", "Gain 50% of ante after every round.", .rare, .roundAnteStipend(percentOfAnte: 50), [.economy]),
+            card("Infinite Credit", "Start each stage with 5x ante.", .legendary, .stageStartAnteCash(multiplierPercent: 500), [.economy]),
             card("Money Launderer", "Gain $5 whenever a card leaves the shoe.", .legendary, .cardExitIncome(centsPerCard: 500), [.economy, .shoe])
         ]
     }
 
     private static var bossTechCards: [UpgradeCard] {
         [
-            card("Boss Scout", "Reveal +4 cards and gain $125 when a boss stage begins.", .rare, .combined([.revealCards(count: 4), .bossStageCash(cents: 12_500)]), [.boss, .reveal]),
-            card("Pit Bribe", "Gain $200 when a boss stage begins.", .rare, .bossStageCash(cents: 20_000), [.boss, .economy]),
+            card("Boss Scout", "Reveal +4 cards and gain 2x ante when a boss stage begins.", .rare, .combined([.revealCards(count: 4), .bossStageAnteCash(multiplierPercent: 200)]), [.boss, .reveal]),
+            card("Pit Bribe", "Gain 3x ante when a boss stage begins.", .rare, .bossStageAnteCash(multiplierPercent: 300), [.boss, .economy]),
             card("Camera Loop", "Reveal +6 cards against boss pressure.", .rare, .revealCards(count: 6), [.boss, .reveal]),
             card("Emergency Marker", "Losses refund 25% during dangerous runs.", .common, .lossRebatePercent(percent: 25), [.boss, .risk]),
-            card("Boss Ledger", "Gain $60 when your chosen bet wins.", .rare, .chosenBetWinBonus(cents: 6_000), [.boss, .economy]),
-            card("Security Badge", "Start each stage with +$150.", .rare, .stageStartCash(cents: 15_000), [.boss, .economy])
+            card("Boss Ledger", "Gain 1x ante when your chosen bet wins.", .rare, .chosenBetAnteWinBonus(percentOfAnte: 100), [.boss, .economy]),
+            card("Security Badge", "Start each stage with 2x ante.", .rare, .stageStartAnteCash(multiplierPercent: 200), [.boss, .economy])
         ]
     }
 
@@ -473,36 +487,36 @@ extension UpgradeCard {
         [
             card("Perfect Information", "Reveal the entire shoe.", .legendary, .revealCards(count: 999), [.reveal]),
             card("Master Counter", "Gain $10 whenever a card leaves the shoe.", .legendary, .cardExitIncome(centsPerCard: 1_000), [.reveal, .economy]),
-            card("House Collapse", "Banker commission is permanently disabled and Banker wins pay +$500.", .legendary, .combined([.noCommission, .bankerWinBonus(cents: 50_000)]), [.banker, .economy]),
+            card("House Collapse", "Banker commission is permanently disabled and Banker wins pay +3x ante.", .legendary, .combined([.noCommission, .bankerAnteWinBonus(percentOfAnte: 300)]), [.banker, .economy]),
             card("Royal Flush", "Remove 60 J/Q/K cards from the shoe.", .legendary, .removeCards(ranks: [.jack, .queen, .king], count: 60), [.shoe]),
             card("Golden Parachute", "Losses refund 75% of the bet.", .legendary, .lossRebatePercent(percent: 75), [.economy, .risk]),
-            card("Neon Oracle", "Reveal +25 cards and gain $250 when your chosen bet wins.", .legendary, .combined([.revealCards(count: 25), .chosenBetWinBonus(cents: 25_000)]), [.reveal, .economy]),
+            card("Neon Oracle", "Reveal +25 cards and gain 3x ante when your chosen bet wins.", .legendary, .combined([.revealCards(count: 25), .chosenBetAnteWinBonus(percentOfAnte: 300)]), [.reveal, .economy]),
             card("Tie Singularity", "Tie payout becomes 35:1.", .legendary, .improveTiePayout(multiplier: 35), [.tie]),
             card("Twin Suns", "Adds 25 matched pairs to the shoe.", .legendary, .addTiePairCards(pairs: 25), [.tie, .shoe]),
             card("Dynasty Engine", "All win streaks pay +$150 per previous win.", .legendary, .streakBonus(betType: nil, centsPerWin: 15_000), [.streak]),
             card("Loaded Vault", "Adds 40 random 8s and 9s.", .legendary, .addRandomCards(ranks: [.eight, .nine], count: 40), [.shoe]),
             card("The Whale", "All wins pay +200% profit, losses cost 75% extra.", .legendary, .combined([.profitMultiplier(betType: nil, percent: 300), .lossMultiplier(percent: 175)]), [.risk]),
-            card("Black Card", "Gain $300 after every round.", .legendary, .roundStipend(cents: 30_000), [.economy]),
+            card("Black Card", "Gain 1x ante after every round.", .legendary, .roundAnteStipend(percentOfAnte: 100), [.economy]),
             card("Ghost Commission", "No commission and all Banker profit gains +50%.", .legendary, .combined([.noCommission, .profitMultiplier(betType: .banker, percent: 150)]), [.banker]),
             card("Player Revolution", "All Player profit gains +75%.", .legendary, .profitMultiplier(betType: .player, percent: 175), [.player]),
-            card("Red Room Invite", "Start each stage with +$2,500.", .legendary, .stageStartCash(cents: 250_000), [.economy, .risk]),
+            card("Red Room Invite", "Start each stage with 4x ante.", .legendary, .stageStartAnteCash(multiplierPercent: 400), [.economy, .risk]),
             card("Dealer's Soul", "Gain $15 whenever a card leaves the shoe.", .legendary, .cardExitIncome(centsPerCard: 1_500), [.reveal, .economy]),
             card("Mathematician", "Reveal +30 cards.", .legendary, .revealCards(count: 30), [.reveal]),
-            card("Casino Inside Contact+", "Gain $2,000 when a boss stage begins.", .legendary, .bossStageCash(cents: 200_000), [.boss, .economy]),
-            card("Boss Blackmail", "Boss stages start with +$3,000.", .legendary, .bossStageCash(cents: 300_000), [.boss, .risk]),
+            card("Casino Inside Contact+", "Gain 4x ante when a boss stage begins.", .legendary, .bossStageAnteCash(multiplierPercent: 400), [.boss, .economy]),
+            card("Boss Blackmail", "Boss stages start with 5x ante.", .legendary, .bossStageAnteCash(multiplierPercent: 500), [.boss, .risk]),
             card("Final Table", "All wins pay +100% profit.", .legendary, .profitMultiplier(betType: nil, percent: 200), [.risk]),
             card("Crown of Ties", "Consecutive Ties add +5 to Tie payout.", .legendary, .consecutiveTiePayoutBonus(amount: 5), [.tie, .streak]),
             card("Phoenix Marker", "Any Tie refunds 200% of the previous loss.", .legendary, .previousLossRefundOnTie(percent: 200), [.tie, .economy]),
             card("God Shoe", "Every shuffle adds 12 8s and 12 9s.", .legendary, .hotShoe(extraEights: 12, extraNines: 12), [.shoe]),
             card("Negative Space", "Remove 80 zero-value cards.", .legendary, .removeZeroValueCards(count: 80), [.shoe]),
-            card("Blue King", "Player wins pay +$1,000.", .legendary, .playerWinBonus(cents: 100_000), [.player, .economy]),
-            card("Red King", "Banker wins pay +$1,000.", .legendary, .bankerWinBonus(cents: 100_000), [.banker, .economy]),
+            card("Blue King", "Player wins pay +4x ante.", .legendary, .playerAnteWinBonus(percentOfAnte: 400), [.player, .economy]),
+            card("Red King", "Banker wins pay +4x ante.", .legendary, .bankerAnteWinBonus(percentOfAnte: 400), [.banker, .economy]),
             card("Risk Crown", "All wins pay +400% profit, but losses cost triple.", .legendary, .combined([.profitMultiplier(betType: nil, percent: 500), .lossMultiplier(percent: 300)]), [.risk]),
-            card("Emerald Engine", "Gain $750 after every round.", .legendary, .roundStipend(cents: 75_000), [.economy]),
+            card("Emerald Engine", "Gain 2x ante after every round.", .legendary, .roundAnteStipend(percentOfAnte: 200), [.economy]),
             card("Full Surveillance", "Reveal +50 cards.", .legendary, .revealCards(count: 50), [.reveal, .boss]),
             card("The Loaded Contract", "Adds 60 9s.", .legendary, .addExtraNines(count: 60), [.shoe]),
-            card("No More House Edge", "No commission, losses refund 50%, and chosen wins gain $500.", .legendary, .combined([.noCommission, .lossRebatePercent(percent: 50), .chosenBetWinBonus(cents: 50_000)]), [.banker, .player, .economy]),
-            card("Impossible Ledger", "Start each stage with +$10,000.", .legendary, .stageStartCash(cents: 1_000_000), [.economy]),
+            card("No More House Edge", "No commission, losses refund 50%, and chosen wins gain 3x ante.", .legendary, .combined([.noCommission, .lossRebatePercent(percent: 50), .chosenBetAnteWinBonus(percentOfAnte: 300)]), [.banker, .player, .economy]),
+            card("Impossible Ledger", "Start each stage with 6x ante.", .legendary, .stageStartAnteCash(multiplierPercent: 600), [.economy]),
             card("Endless Read", "Reveal entire shoe and gain $5 per card leaving shoe.", .legendary, .combined([.revealCards(count: 999), .cardExitIncome(centsPerCard: 500)]), [.reveal, .economy])
         ]
     }
@@ -513,6 +527,10 @@ struct UpgradeEffectSummary: Equatable {
     var bankerWinBonusCents = 0
     var chosenBetWinBonusCents = 0
     var forecastWinBonusCents = 0
+    var playerWinBonusAntePercent = 0
+    var bankerWinBonusAntePercent = 0
+    var chosenBetWinBonusAntePercent = 0
+    var forecastWinBonusAntePercent = 0
     var tiePayoutMultiplier = 8
     var tiePayoutBonus = 0
     var revealedCards = 0
@@ -532,7 +550,9 @@ struct UpgradeEffectSummary: Equatable {
     var lossMultiplierPercent = 100
     var lossRebatePercent = 0
     var roundStipendCents = 0
+    var roundStipendAntePercent = 0
     var stageStartCashCents = 0
+    var stageStartCashAnteMultiplierPercent = 0
     var cardExitIncomeCents = 0
     var allStreakBonusCents = 0
     var playerStreakBonusCents = 0
@@ -542,6 +562,7 @@ struct UpgradeEffectSummary: Equatable {
     var consecutiveTiePayoutBonus = 0
     var previousLossRefundOnTiePercent = 0
     var bossStageCashCents = 0
+    var bossStageCashAnteMultiplierPercent = 0
     var safetyNetThresholdPercent = 0
     var safetyNetCents = 0
     var smallBetMaxCents = 0
@@ -592,6 +613,14 @@ struct UpgradeEffectSummary: Equatable {
             chosenBetWinBonusCents += cents
         case .forecastWinBonus(let cents):
             forecastWinBonusCents += cents
+        case .playerAnteWinBonus(let percentOfAnte):
+            playerWinBonusAntePercent += percentOfAnte
+        case .bankerAnteWinBonus(let percentOfAnte):
+            bankerWinBonusAntePercent += percentOfAnte
+        case .chosenBetAnteWinBonus(let percentOfAnte):
+            chosenBetWinBonusAntePercent += percentOfAnte
+        case .forecastAnteWinBonus(let percentOfAnte):
+            forecastWinBonusAntePercent += percentOfAnte
         case .improveTiePayout(let multiplier):
             tiePayoutMultiplier = max(tiePayoutMultiplier, multiplier)
         case .tiePayoutBonus(let amount):
@@ -633,8 +662,12 @@ struct UpgradeEffectSummary: Equatable {
             lossRebatePercent = max(lossRebatePercent, percent)
         case .roundStipend(let cents):
             roundStipendCents += cents
+        case .roundAnteStipend(let percentOfAnte):
+            roundStipendAntePercent += percentOfAnte
         case .stageStartCash(let cents):
             stageStartCashCents += cents
+        case .stageStartAnteCash(let multiplierPercent):
+            stageStartCashAnteMultiplierPercent += multiplierPercent
         case .cardExitIncome(let centsPerCard):
             cardExitIncomeCents += centsPerCard
         case .streakBonus(let betType, let centsPerWin):
@@ -656,6 +689,8 @@ struct UpgradeEffectSummary: Equatable {
             previousLossRefundOnTiePercent = max(previousLossRefundOnTiePercent, percent)
         case .bossStageCash(let cents):
             bossStageCashCents += cents
+        case .bossStageAnteCash(let multiplierPercent):
+            bossStageCashAnteMultiplierPercent += multiplierPercent
         case .safetyNet(let thresholdPercent, let cents):
             safetyNetThresholdPercent = max(safetyNetThresholdPercent, thresholdPercent)
             safetyNetCents += cents

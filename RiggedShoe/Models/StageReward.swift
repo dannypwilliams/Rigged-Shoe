@@ -1,7 +1,10 @@
 import Foundation
 
-enum StageRewardEffect: Equatable {
+enum StageRewardEffect: Codable, Equatable {
     case gainCash(cents: Int)
+    case gainAnteScaledCash(multiplierPercent: Int)
+    case gainChips(amount: Int)
+    case reduceHeat(amount: Int)
     case removeRandomAcquiredUpgrade
     case duplicateRandomAcquiredUpgrade
     case addRandomUpgrade(rarity: UpgradeRarity)
@@ -10,45 +13,85 @@ enum StageRewardEffect: Equatable {
     case removeRandomFaceCards(count: Int)
 }
 
-struct StageReward: Identifiable, Equatable {
+/// How a reward is expected to be presented in the rebuilt battle/shop loop.
+///
+/// Existing gameplay still uses `legacyStageClear`. Future stages can mark
+/// whether a reward belongs to normal battle clears, boss clears, or shop
+/// bonuses without changing the reward screen view model again.
+enum StageRewardRole: String, Codable, Equatable {
+    case legacyStageClear
+    case battleClear
+    case bossClear
+    case shopBonus
+    case heatRelief
+}
+
+/// Data-driven payloads for the rebuilt reward layer.
+///
+/// The current app continues to use `StageRewardEffect`. This optional payload
+/// is a bridge toward the Super Auto Pets-style reward/shop phase where rewards
+/// may grant Chips, Heat relief, modifiers, consumables, attachments, or relics.
+enum RebuildStageRewardEffect: Codable, Equatable {
+    case bankroll(cents: Int)
+    case chips(amount: Int)
+    case heatReduction(amount: Int)
+    case modifierDraft(rarity: ModifierRarity?)
+    case consumableDraft
+    case attachmentDraft
+    case bossRelicDraft
+    case shopDiscount(percent: Int)
+}
+
+struct StageReward: Identifiable, Codable, Equatable {
     let id: UUID
     let name: String
     let description: String
     let effect: StageRewardEffect
+    let role: StageRewardRole
+    let rebuildEffect: RebuildStageRewardEffect?
 
-    init(id: UUID = UUID(), name: String, description: String, effect: StageRewardEffect) {
+    init(
+        id: UUID = UUID(),
+        name: String,
+        description: String,
+        effect: StageRewardEffect,
+        role: StageRewardRole = .legacyStageClear,
+        rebuildEffect: RebuildStageRewardEffect? = nil
+    ) {
         self.id = id
         self.name = name
         self.description = description
         self.effect = effect
+        self.role = role
+        self.rebuildEffect = rebuildEffect
     }
 
     static var allRewards: [StageReward] {
         [
             StageReward(
-                name: "Pocket $25",
-                description: "Gain $25 immediately.",
-                effect: .gainCash(cents: 2_500)
+                name: "Ante Kickback",
+                description: "Gain bankroll equal to 1x this stage's ante, capped by current bankroll.",
+                effect: .gainAnteScaledCash(multiplierPercent: 100)
             ),
             StageReward(
-                name: "Pocket $40",
-                description: "Gain $40 immediately.",
-                effect: .gainCash(cents: 4_000)
+                name: "Table Comp",
+                description: "Gain bankroll equal to 1.5x this stage's ante, capped by current bankroll.",
+                effect: .gainAnteScaledCash(multiplierPercent: 150)
             ),
             StageReward(
-                name: "Pocket $75",
-                description: "Gain $75 immediately.",
-                effect: .gainCash(cents: 7_500)
+                name: "Chip Runner",
+                description: "Gain 2 Chips for the next shop.",
+                effect: .gainChips(amount: 2)
             ),
             StageReward(
-                name: "Pocket $125",
-                description: "Gain $125 immediately.",
-                effect: .gainCash(cents: 12_500)
+                name: "High Table Cut",
+                description: "Gain bankroll equal to 2x this stage's ante, capped by current bankroll.",
+                effect: .gainAnteScaledCash(multiplierPercent: 200)
             ),
             StageReward(
-                name: "Clean Slate",
-                description: "Remove one random acquired upgrade.",
-                effect: .removeRandomAcquiredUpgrade
+                name: "Cool Down",
+                description: "Reduce Heat by 2.",
+                effect: .reduceHeat(amount: 2)
             ),
             StageReward(
                 name: "Double Down",
@@ -116,7 +159,7 @@ struct StageReward: Identifiable, Equatable {
                 return !acquiredUpgrades.isEmpty
             case .addRandomUpgrade(let rarity):
                 return unlockedUpgradeCards.contains { $0.rarity == rarity }
-            case .gainCash, .increaseTiePayout, .addRandomHighValueCards, .removeRandomFaceCards:
+            case .gainCash, .gainAnteScaledCash, .gainChips, .reduceHeat, .increaseTiePayout, .addRandomHighValueCards, .removeRandomFaceCards:
                 return true
             }
         }

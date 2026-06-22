@@ -44,6 +44,7 @@ struct GameState: Equatable {
     var guidedExcitingWinDelivered = false
     var hasOfferedGuidedUpgrade = false
     var runStartedAt = Date()
+    var startingContact: StartingContact = .defaultFloorHost
 
     init(configuration: RunConfiguration = RunConfiguration(
         startingBankrollCents: RunManager.defaultStartingBankrollCents,

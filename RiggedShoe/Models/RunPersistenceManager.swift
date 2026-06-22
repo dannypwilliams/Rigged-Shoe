@@ -2,7 +2,10 @@ import Foundation
 
 struct SavedRunManagerState: Codable, Equatable {
     var startingBankrollCents: Int
+    var flowState: String?
     var stageStartingBankrollCents: Int?
+    var currentStageStartingHeat: Int?
+    var currentStageStartingChips: Int?
     var currentStageIndex: Int
     var currentStageRoundsPlayed: Int
     var currentStageWinningBets: Int?
@@ -25,6 +28,10 @@ struct SavedRunManagerState: Codable, Equatable {
     var playerBonusMultiplier: Int
     var bankerBonusMultiplier: Int
     var futureStageRoundBonus: Int
+    var chips: Int?
+    var heat: Int?
+    var maxHeat: Int?
+    var lastStageResult: StageResultData?
     var status: String
 }
 
@@ -79,12 +86,13 @@ struct SavedRunState: Codable, Equatable {
     var guidedExcitingWinDelivered: Bool
     var hasOfferedGuidedUpgrade: Bool
     var runStartedAt: Date
+    var startingContactID: String?
 }
 
 struct RunPersistenceManager {
     private static let storageKey = "riggedShoe.activeRun.v2"
     private static let corruptStorageKey = "riggedShoe.activeRun.corruptBackup.v1"
-    private static let currentVersion = 2
+    private static let currentVersion = 3
 
     static func save(_ state: GameState) {
         guard state.runManager.status != .completed else {
@@ -132,7 +140,10 @@ struct RunPersistenceManager {
             roundsSinceLastUpgrade: state.roundsSinceLastUpgrade,
             runManager: SavedRunManagerState(
                 startingBankrollCents: state.runManager.startingBankrollCents,
+                flowState: state.runManager.flowState.rawValue,
                 stageStartingBankrollCents: state.runManager.stageStartingBankrollCents,
+                currentStageStartingHeat: state.runManager.currentStageStartingHeat,
+                currentStageStartingChips: state.runManager.currentStageStartingChips,
                 currentStageIndex: state.runManager.currentStageIndex,
                 currentStageRoundsPlayed: state.runManager.currentStageRoundsPlayed,
                 currentStageWinningBets: state.runManager.currentStageWinningBets,
@@ -155,6 +166,10 @@ struct RunPersistenceManager {
                 playerBonusMultiplier: state.runManager.playerBonusMultiplier,
                 bankerBonusMultiplier: state.runManager.bankerBonusMultiplier,
                 futureStageRoundBonus: state.runManager.futureStageRoundBonus,
+                chips: state.runManager.chips,
+                heat: state.runManager.heat,
+                maxHeat: state.runManager.maxHeat,
+                lastStageResult: state.runManager.lastStageResult,
                 status: state.runManager.status.storageValue
             ),
             bossManager: SavedBossManagerState(
@@ -193,7 +208,8 @@ struct RunPersistenceManager {
             isGuidedFirstRun: state.isGuidedFirstRun,
             guidedExcitingWinDelivered: state.guidedExcitingWinDelivered,
             hasOfferedGuidedUpgrade: state.hasOfferedGuidedUpgrade,
-            runStartedAt: state.runStartedAt
+            runStartedAt: state.runStartedAt,
+            startingContactID: state.startingContact.id
         )
     }
 
@@ -239,12 +255,16 @@ struct RunPersistenceManager {
         state.guidedExcitingWinDelivered = snapshot.guidedExcitingWinDelivered
         state.hasOfferedGuidedUpgrade = snapshot.hasOfferedGuidedUpgrade
         state.runStartedAt = snapshot.runStartedAt
+        state.startingContact = startingContact(id: snapshot.startingContactID)
         return state
     }
 
     private static func restoreRunManager(_ snapshot: SavedRunManagerState) -> RunManager {
         var manager = RunManager(startingBankrollCents: snapshot.startingBankrollCents)
+        manager.flowState = StageFlowState(rawValue: snapshot.flowState ?? "") ?? restoredFlowState(status: snapshot.status)
         manager.stageStartingBankrollCents = max(0, snapshot.stageStartingBankrollCents ?? snapshot.startingBankrollCents)
+        manager.currentStageStartingHeat = max(0, snapshot.currentStageStartingHeat ?? 0)
+        manager.currentStageStartingChips = max(0, snapshot.currentStageStartingChips ?? 3)
         manager.currentStageIndex = min(max(0, snapshot.currentStageIndex), max(0, manager.stages.count - 1))
         manager.currentStageRoundsPlayed = max(0, snapshot.currentStageRoundsPlayed)
         manager.currentStageWinningBets = max(0, snapshot.currentStageWinningBets ?? 0)
@@ -267,6 +287,10 @@ struct RunPersistenceManager {
         manager.playerBonusMultiplier = max(1, snapshot.playerBonusMultiplier)
         manager.bankerBonusMultiplier = max(1, snapshot.bankerBonusMultiplier)
         manager.futureStageRoundBonus = max(0, snapshot.futureStageRoundBonus)
+        manager.chips = max(0, snapshot.chips ?? 3)
+        manager.heat = max(0, snapshot.heat ?? 0)
+        manager.maxHeat = max(1, snapshot.maxHeat ?? 10)
+        manager.lastStageResult = snapshot.lastStageResult
         manager.status = RunStatus(storageValue: snapshot.status)
         return manager
     }
@@ -308,6 +332,28 @@ struct RunPersistenceManager {
         }
 
         return Boss.allBosses.first { $0.id == id }
+    }
+
+    private static func startingContact(id: String?) -> StartingContact {
+        switch id {
+        case StartingContact.sampleInsideDealer.id:
+            return .sampleInsideDealer
+        default:
+            return .defaultFloorHost
+        }
+    }
+
+    private static func restoredFlowState(status: String) -> StageFlowState {
+        switch RunStatus(storageValue: status) {
+        case .failed:
+            return .runFailed
+        case .completed:
+            return .runComplete
+        case .stageCleared:
+            return .stageResult
+        case .active:
+            return .stagePreview
+        }
     }
 }
 

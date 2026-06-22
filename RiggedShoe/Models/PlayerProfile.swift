@@ -133,10 +133,10 @@ struct PlayerProfile: Codable, Equatable {
     ]
 
     static let defaultUnlockedStageRewardNames: Set<String> = [
-        "Pocket $25",
-        "Pocket $40",
-        "Pocket $75",
-        "Clean Slate",
+        "Ante Kickback",
+        "Table Comp",
+        "Chip Runner",
+        "Cool Down",
         "Double Down",
         "Rare Contact"
     ]

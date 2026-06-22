@@ -7,6 +7,7 @@ enum BossRewardEffect: Equatable {
     case revealCardsPermanently(count: Int)
     case setTiePayout(multiplier: Int)
     case gainCash(cents: Int)
+    case gainAnteScaledCash(multiplierPercent: Int, chips: Int)
     case duplicateRandomUpgrades(count: Int)
     case removeAllFaceCards
     case addRandomLegendaryUpgrade
@@ -55,8 +56,8 @@ struct BossReward: Identifiable, Equatable {
             ),
             BossReward(
                 name: "Vault Leak",
-                description: "Gain $25,000.",
-                effect: .gainCash(cents: 2_500_000)
+                description: "Gain up to 5x the boss ante and 6 Chips, capped by your current bankroll.",
+                effect: .gainAnteScaledCash(multiplierPercent: 500, chips: 6)
             ),
             BossReward(
                 name: "Echo Chamber",
@@ -120,6 +121,7 @@ struct BossReward: Identifiable, Equatable {
                  .revealCardsPermanently,
                  .setTiePayout,
                  .gainCash,
+                 .gainAnteScaledCash,
                  .removeAllFaceCards,
                  .casinoInsideContact:
                 return true

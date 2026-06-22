@@ -47,7 +47,7 @@ struct RunOverView: View {
                             .minimumScaleFactor(0.74)
                             .shadow(color: (isVictory ? CasinoTheme.gold : CasinoTheme.red).opacity(0.44), radius: 14)
 
-                        Text(isVictory ? "The debt ladder is paid." : "The casino called in the debt.")
+                        Text(isVictory ? "You beat the final table." : "Bankroll or Heat ended the run.")
                             .font((isCompact ? Font.subheadline : Font.headline).weight(.semibold))
                             .foregroundStyle(.white.opacity(0.70))
                             .multilineTextAlignment(.center)

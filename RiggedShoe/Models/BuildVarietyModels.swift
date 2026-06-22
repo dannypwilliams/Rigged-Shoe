@@ -244,26 +244,26 @@ struct SynergyDefinition: Identifiable, Equatable {
         SynergyDefinition(
             id: "counter_master",
             name: "Counter Master",
-            description: "5 Reveal upgrades: reveal +5 cards and gain $25 when your chosen bet wins.",
+            description: "5 Reveal upgrades: reveal +5 cards and gain 50% of ante when your chosen bet wins.",
             requiredTag: .reveal,
             requiredCount: 5,
-            effects: [.revealCards(count: 5), .chosenBetWinBonus(cents: 2_500)]
+            effects: [.revealCards(count: 5), .chosenBetAnteWinBonus(percentOfAnte: 50)]
         ),
         SynergyDefinition(
             id: "banker_empire",
             name: "Banker Empire",
-            description: "5 Banker upgrades: Banker wins gain +$75 and ignore commission.",
+            description: "5 Banker upgrades: Banker wins gain +1x ante and ignore commission.",
             requiredTag: .banker,
             requiredCount: 5,
-            effects: [.bankerWinBonus(cents: 7_500), .noCommission]
+            effects: [.bankerAnteWinBonus(percentOfAnte: 100), .noCommission]
         ),
         SynergyDefinition(
             id: "player_coalition",
             name: "Player Coalition",
-            description: "5 Player upgrades: Player wins gain +$75 and +25% profit.",
+            description: "5 Player upgrades: Player wins gain +1x ante and +25% profit.",
             requiredTag: .player,
             requiredCount: 5,
-            effects: [.playerWinBonus(cents: 7_500), .profitMultiplier(betType: .player, percent: 125)]
+            effects: [.playerAnteWinBonus(percentOfAnte: 100), .profitMultiplier(betType: .player, percent: 125)]
         ),
         SynergyDefinition(
             id: "shoe_architect",
@@ -284,18 +284,18 @@ struct SynergyDefinition: Identifiable, Equatable {
         SynergyDefinition(
             id: "economy_engine",
             name: "Economy Engine",
-            description: "5 Economy upgrades: gain $50 after every round.",
+            description: "5 Economy upgrades: gain 75% of ante after every round.",
             requiredTag: .economy,
             requiredCount: 5,
-            effects: [.roundStipend(cents: 5_000)]
+            effects: [.roundAnteStipend(percentOfAnte: 75)]
         ),
         SynergyDefinition(
             id: "boss_slayer",
             name: "Boss Slayer",
-            description: "3 Boss upgrades: gain $1,000 when a boss stage begins.",
+            description: "3 Boss upgrades: gain 5x ante when a boss stage begins.",
             requiredTag: .boss,
             requiredCount: 3,
-            effects: [.bossStageCash(cents: 100_000)]
+            effects: [.bossStageAnteCash(multiplierPercent: 500)]
         ),
         SynergyDefinition(
             id: "legendary_constellation",

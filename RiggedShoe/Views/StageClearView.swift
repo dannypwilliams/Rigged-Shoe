@@ -51,7 +51,7 @@ struct StageClearView: View {
                         .frame(height: isCompact ? 18 : 24)
 
                     VStack(spacing: isCompact ? 4 : 7) {
-                        Text("Stage Cleared")
+                        Text("Reward Draft")
                             .font(.system(size: isCompact ? 29 : 34, weight: .black, design: .rounded))
                             .foregroundStyle(CasinoTheme.gold)
                             .multilineTextAlignment(.center)
@@ -72,7 +72,7 @@ struct StageClearView: View {
                     HStack(spacing: 8) {
                         stat(title: "Gain", value: MoneyFormatter.signed(currentProfitCents), isCompact: isCompact)
                         stat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents), isCompact: isCompact)
-                        stat(title: "Rounds", value: "\(runManager.roundsRemaining)", isCompact: isCompact)
+                        stat(title: "Chips", value: "\(runManager.chips)", isCompact: isCompact)
                     }
 
                     if let nextStage {
@@ -100,7 +100,7 @@ struct StageClearView: View {
                             .font((isCompact ? Font.subheadline : Font.headline).weight(.black))
                             .foregroundStyle(.white)
 
-                        Text("Choose 1 of 3 stage rewards.")
+                            Text("Choose 1 of 3 rewards, then visit the shop.")
                             .font((isCompact ? Font.caption : Font.subheadline).weight(.semibold))
                             .foregroundStyle(.white.opacity(0.62))
                     }
@@ -213,9 +213,9 @@ struct StageClearView: View {
                 return "Next goal: Stage \(stage.id) - \(objective.title), or earn +\(MoneyFormatter.format(stage.targetProfitCents)) from stage start."
             }
 
-            return "Next goal: Stage \(stage.id) - \(objective.description)"
+            return "Next table: Stage \(stage.id) - \(objective.description)"
         }
 
-        return "Next goal: Stage \(stage.id) needs +\(MoneyFormatter.format(stage.targetProfitCents)) from the bankroll you start that stage with."
+        return "Next table: Stage \(stage.id), \(stage.roundLimit) hands against \(stage.opponentName)."
     }
 }

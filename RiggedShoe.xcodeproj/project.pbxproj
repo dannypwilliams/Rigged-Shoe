@@ -68,6 +68,11 @@
 		F40000000000000000000022 /* ShoeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40000000000000000000032 /* ShoeView.swift */; };
 		F40000000000000000000023 /* AnimatedCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40000000000000000000033 /* AnimatedCardView.swift */; };
 		F50000000000000000000021 /* CasinoFloorPagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50000000000000000000031 /* CasinoFloorPagerView.swift */; };
+		AA1000000000000000000001 /* RunState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000011 /* RunState.swift */; };
+		AA1000000000000000000002 /* OpponentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000012 /* OpponentModels.swift */; };
+		AA1000000000000000000003 /* ModifierModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000013 /* ModifierModels.swift */; };
+		AA1000000000000000000004 /* ShopModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000014 /* ShopModels.swift */; };
+		AA1000000000000000000005 /* RunFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000015 /* RunFlowViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -134,6 +139,11 @@
 		F40000000000000000000032 /* ShoeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoeView.swift; sourceTree = "<group>"; };
 		F40000000000000000000033 /* AnimatedCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCardView.swift; sourceTree = "<group>"; };
 		F50000000000000000000031 /* CasinoFloorPagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasinoFloorPagerView.swift; sourceTree = "<group>"; };
+		AA1000000000000000000011 /* RunState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunState.swift; sourceTree = "<group>"; };
+		AA1000000000000000000012 /* OpponentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentModels.swift; sourceTree = "<group>"; };
+		AA1000000000000000000013 /* ModifierModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModifierModels.swift; sourceTree = "<group>"; };
+		AA1000000000000000000014 /* ShopModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopModels.swift; sourceTree = "<group>"; };
+		AA1000000000000000000015 /* RunFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunFlowViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -204,6 +214,10 @@
 				B1000000000000000000003F /* Stage.swift */,
 				B10000000000000000000040 /* StageReward.swift */,
 				B10000000000000000000041 /* RunManager.swift */,
+				AA1000000000000000000011 /* RunState.swift */,
+				AA1000000000000000000012 /* OpponentModels.swift */,
+				AA1000000000000000000013 /* ModifierModels.swift */,
+				AA1000000000000000000014 /* ShopModels.swift */,
 				E10000000000000000000031 /* JuiceModels.swift */,
 				E10000000000000000000032 /* SettingsManager.swift */,
 				E10000000000000000000033 /* AudioManager.swift */,
@@ -250,6 +264,7 @@
 				F10000000000000000000032 /* SynergyView.swift */,
 				B10000000000000000000042 /* RunHUDView.swift */,
 				B10000000000000000000043 /* StageClearView.swift */,
+				AA1000000000000000000015 /* RunFlowViews.swift */,
 				B10000000000000000000044 /* RunOverView.swift */,
 				C10000000000000000000034 /* BossAnnouncementView.swift */,
 				C10000000000000000000035 /* BossHUDView.swift */,
@@ -393,6 +408,11 @@
 				F50000000000000000000021 /* CasinoFloorPagerView.swift in Sources */,
 				F40000000000000000000022 /* ShoeView.swift in Sources */,
 				F40000000000000000000023 /* AnimatedCardView.swift in Sources */,
+				AA1000000000000000000001 /* RunState.swift in Sources */,
+				AA1000000000000000000002 /* OpponentModels.swift in Sources */,
+				AA1000000000000000000003 /* ModifierModels.swift in Sources */,
+				AA1000000000000000000004 /* ShopModels.swift in Sources */,
+				AA1000000000000000000005 /* RunFlowViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
