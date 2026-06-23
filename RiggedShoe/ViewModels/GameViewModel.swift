@@ -731,6 +731,18 @@ final class GameViewModel: ObservableObject {
         persistRunState()
     }
 
+#if DEBUG
+    func debugPrepareStageOneBattleForUITesting() {
+        if state.runManager.flowState == .runStart {
+            continueFromRunStart()
+        }
+
+        if state.runManager.flowState == .stagePreview {
+            startStageBattle()
+        }
+    }
+#endif
+
     func continueFromStageResult() {
         if state.runManager.status == .failed {
             state.runManager.failRunAfterResult()

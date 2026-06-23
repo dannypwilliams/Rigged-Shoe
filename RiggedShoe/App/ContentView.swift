@@ -100,6 +100,9 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.2), value: viewModel.state.runManager.status)
         .animation(.easeInOut(duration: 0.2), value: viewModel.state.runManager.flowState)
         .onAppear {
+#if DEBUG
+            prepareUITestingLaunchStateIfNeeded()
+#endif
             updateMusicLayer()
         }
         .onChange(of: viewModel.state.latestRound?.id) { _, _ in
@@ -447,6 +450,10 @@ struct ContentView: View {
     }
 
     private var dealButtonTitle: String {
+        if isResolvingRoundPresentation || viewModel.isDealResolutionLocked {
+            return "Reviewing hand..."
+        }
+
         switch viewModel.state.runManager.flowState {
         case .runStart:
             return "Start Run"
@@ -500,10 +507,6 @@ struct ContentView: View {
 
         if viewModel.state.bankrollCents < viewModel.state.selectedBetAmountCents {
             return "Bankroll Too Low"
-        }
-
-        if viewModel.isDealResolutionLocked {
-            return "Resolving"
         }
 
         if viewModel.state.runManager.currentStageRoundsPlayed == 0,
@@ -563,8 +566,8 @@ struct ContentView: View {
             return "Start a new run from the run summary before dealing again."
         }
 
-        if viewModel.isDealResolutionLocked {
-            return "Resolving this hand. The next deal unlocks after the result."
+        if isResolvingRoundPresentation || viewModel.isDealResolutionLocked {
+            return "Reviewing hand result. The next action appears after the hand settles."
         }
 
         if viewModel.state.bossManager.pendingAnnouncementBoss != nil {
@@ -592,7 +595,7 @@ struct ContentView: View {
             return "This bet unlocks at Stage \(stage). Choose a smaller denomination."
         }
 
-        if let reason = viewModel.betCapReason(for: viewModel.state.selectedBetAmountCents) {
+        if let reason = wagerUnavailableReason(for: viewModel.state.selectedBetAmountCents) {
             return reason
         }
 
@@ -606,6 +609,38 @@ struct ContentView: View {
         }
 
         return "Clear the current table state before dealing again."
+    }
+
+    private func wagerUnavailableReason(for amountCents: Int) -> String? {
+        if viewModel.isGuidedOpeningHandLocked && (viewModel.state.selectedBetType != .player || amountCents != 2_500) {
+            return "Unlocks after the guided first hand."
+        }
+
+        if !viewModel.isBetAmountUnlocked(amountCents) {
+            let stage = viewModel.unlockStage(forBetAmountCents: amountCents)
+            return "Unavailable in this stage. Unlocks at Stage \(stage)."
+        }
+
+        if viewModel.state.bankrollCents < amountCents {
+            return "Insufficient bankroll for \(MoneyFormatter.format(amountCents))."
+        }
+
+        if let cap = viewModel.activeRevealBetCapCents,
+           amountCents > cap {
+            return "\(viewModel.activeShoeReveal?.title ?? "Reveal") table maximum is \(MoneyFormatter.format(cap))."
+        }
+
+        if !viewModel.isBetAmountPlayable(amountCents) {
+            return "Unavailable in this stage. Legal amounts are \(legalAmountSummary())."
+        }
+
+        return nil
+    }
+
+    private func legalAmountSummary() -> String {
+        viewModel.state.runManager.currentStage.betLimit.allowedBetAmountsCents
+            .map(MoneyFormatter.format)
+            .joined(separator: ", ")
     }
 
     private func dealRound() {
@@ -645,6 +680,17 @@ struct ContentView: View {
         hapticsManager.play(.medium, settings: settings)
         viewModel.continueFromRunStart()
     }
+
+#if DEBUG
+    private func prepareUITestingLaunchStateIfNeeded() {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("--ui-testing-stage-one-battle") else {
+            return
+        }
+
+        viewModel.debugPrepareStageOneBattleForUITesting()
+    }
+#endif
 
     private func startStageBattle() {
         hapticsManager.play(.medium, settings: settings)
@@ -747,6 +793,12 @@ struct ContentView: View {
         }
 
         isResolvingRoundPresentation = true
+
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-testing-hold-review-state") {
+            return
+        }
+#endif
 
         let cardInterval = 0.18
         let overlayDelay = Double(dealCardCount(for: result)) * cardInterval + 0.82

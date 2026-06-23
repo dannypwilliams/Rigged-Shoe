@@ -389,10 +389,12 @@ struct GameRoomView: View {
                         betAmountsCents: visibleBetAmounts,
                         allowedBetTypes: allowedBetTypes,
                         payoutRules: viewModel.currentPayoutRules,
-                        dealButtonTitle: dealButtonTitle,
-                        dealGuidanceText: dealGuidanceText,
+                        dealButtonTitle: isAnimatingDeal || viewModel.isDealResolutionLocked ? "Reviewing hand..." : dealButtonTitle,
+                        dealGuidanceText: isAnimatingDeal || viewModel.isDealResolutionLocked ? "Reviewing hand result. Next action appears after the hand settles." : dealGuidanceText,
                         rewardProgressText: dockStatusText,
                         canDeal: viewModel.canDeal && !isAnimatingDeal,
+                        isReviewingHand: isAnimatingDeal || viewModel.isDealResolutionLocked,
+                        isGuidedOpeningHandLocked: viewModel.isGuidedOpeningHandLocked,
                         revealBetCapCents: viewModel.activeRevealBetCapCents,
                         isCompact: isCompact,
                         currentStage: viewModel.state.runManager.stageReached,
@@ -2662,6 +2664,8 @@ private struct GameRoomBetDock: View {
     let dealGuidanceText: String
     let rewardProgressText: String
     let canDeal: Bool
+    let isReviewingHand: Bool
+    let isGuidedOpeningHandLocked: Bool
     let revealBetCapCents: Int?
     var isCompact = false
     let currentStage: Int
@@ -2699,6 +2703,7 @@ private struct GameRoomBetDock: View {
                 DealButton(
                     title: dealButtonTitle,
                     canDeal: canDeal,
+                    isReviewingHand: isReviewingHand,
                     isCompact: isCompact,
                     action: onDeal
                 )
@@ -2708,12 +2713,16 @@ private struct GameRoomBetDock: View {
 
             HStack(spacing: 8) {
                 ForEach(BetType.allCases) { betType in
+                    let guidedLocked = isGuidedOpeningHandLocked && betType != .player
+                    let disabledReason = guidedLocked ? "Unlocks after the guided first hand." : nil
                     BetChipButton(
                         title: betType.displayName,
-                        subtitle: betTypeSubtitle(for: betType),
+                        subtitle: guidedLocked ? "Guided lock" : betTypeSubtitle(for: betType),
                         isSelected: selectedBetType == betType,
-                        isDisabled: !allowedBetTypes.contains(betType),
-                        isCompact: isCompact
+                        isDisabled: !allowedBetTypes.contains(betType) || guidedLocked,
+                        disabledReason: disabledReason,
+                        isCompact: isCompact,
+                        accessibilityID: "bet-type-\(betType.id)"
                     ) {
                         onSelectBetType(betType)
                     }
@@ -2725,13 +2734,34 @@ private struct GameRoomBetDock: View {
                     let unlockStage = unlockStageForBetAmount(amountCents)
                     let isLocked = currentStage < unlockStage
                     let isCapped = revealBetCapCents.map { amountCents > $0 } ?? false
+                    let isGuidedAmountLocked = isGuidedOpeningHandLocked && amountCents != 2_500
+                    let isBankrollShort = bankrollCents < amountCents
                     let isPlayable = isBetAmountPlayable(amountCents)
+                    let reason = amountUnavailableReason(
+                        amountCents: amountCents,
+                        unlockStage: unlockStage,
+                        isLocked: isLocked,
+                        isCapped: isCapped,
+                        isGuidedAmountLocked: isGuidedAmountLocked,
+                        isBankrollShort: isBankrollShort,
+                        isPlayable: isPlayable
+                    )
                     BetChipButton(
                         title: MoneyFormatter.format(amountCents),
-                        subtitle: isLocked ? "Unlocks S\(unlockStage)" : isCapped ? "Reveal cap" : !isPlayable ? "Stage cap" : nil,
+                        subtitle: amountSubtitle(
+                            amountCents: amountCents,
+                            unlockStage: unlockStage,
+                            isLocked: isLocked,
+                            isCapped: isCapped,
+                            isGuidedAmountLocked: isGuidedAmountLocked,
+                            isBankrollShort: isBankrollShort,
+                            isPlayable: isPlayable
+                        ),
                         isSelected: selectedBetAmountCents == amountCents,
-                        isDisabled: bankrollCents < amountCents || isLocked || isCapped || !isPlayable,
-                        isCompact: isCompact
+                        isDisabled: isBankrollShort || isLocked || isCapped || isGuidedAmountLocked || !isPlayable,
+                        disabledReason: reason,
+                        isCompact: isCompact,
+                        accessibilityID: "bet-amount-\(amountCents)"
                     ) {
                         onSelectBetAmount(amountCents)
                     }
@@ -2747,7 +2777,8 @@ private struct GameRoomBetDock: View {
                         .font((isCompact ? Font.caption2 : Font.caption).weight(.semibold))
                         .foregroundStyle(.white.opacity(0.56))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .lineLimit(1)
+                        .lineLimit(isCompact ? 2 : 1)
+                        .fixedSize(horizontal: false, vertical: true)
 
                 }
             }
@@ -2775,6 +2806,74 @@ private struct GameRoomBetDock: View {
     private func betTypeSubtitle(for betType: BetType) -> String {
         payoutRules.payoutLabel(for: betType)
     }
+
+    private func amountSubtitle(
+        amountCents: Int,
+        unlockStage: Int,
+        isLocked: Bool,
+        isCapped: Bool,
+        isGuidedAmountLocked: Bool,
+        isBankrollShort: Bool,
+        isPlayable: Bool
+    ) -> String? {
+        if isGuidedAmountLocked {
+            return "Guided lock"
+        }
+
+        if isLocked {
+            return "Unlocks S\(unlockStage)"
+        }
+
+        if isBankrollShort {
+            return "Need bankroll"
+        }
+
+        if isCapped {
+            return "Table max"
+        }
+
+        if !isPlayable {
+            return "Unavailable"
+        }
+
+        return nil
+    }
+
+    private func amountUnavailableReason(
+        amountCents: Int,
+        unlockStage: Int,
+        isLocked: Bool,
+        isCapped: Bool,
+        isGuidedAmountLocked: Bool,
+        isBankrollShort: Bool,
+        isPlayable: Bool
+    ) -> String? {
+        if isGuidedAmountLocked {
+            return "Unlocks after the guided first hand."
+        }
+
+        if isLocked {
+            return "Unavailable in this stage. Unlocks at Stage \(unlockStage)."
+        }
+
+        if isBankrollShort {
+            return "Insufficient bankroll for \(MoneyFormatter.format(amountCents))."
+        }
+
+        if isCapped {
+            if let revealBetCapCents {
+                return "Table maximum is \(MoneyFormatter.format(revealBetCapCents))."
+            }
+
+            return "Table maximum is lower for this hand."
+        }
+
+        if !isPlayable {
+            return "Unavailable in this stage."
+        }
+
+        return nil
+    }
 }
 
 private struct BetChipButton: View {
@@ -2782,7 +2881,9 @@ private struct BetChipButton: View {
     var subtitle: String? = nil
     let isSelected: Bool
     let isDisabled: Bool
+    var disabledReason: String? = nil
     var isCompact = false
+    var accessibilityID: String? = nil
     let action: () -> Void
 
     var body: some View {
@@ -2809,7 +2910,11 @@ private struct BetChipButton: View {
             }
                 .foregroundStyle(isDisabled ? .white.opacity(0.30) : (isSelected ? .black : .white))
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: isCompact ? 34 : 42)
+                .frame(minHeight: 44)
+                .accessibilityElement(children: .ignore)
+                .accessibilityIdentifier(accessibilityID ?? title)
+                .accessibilityLabel(accessibilityLabel)
+                .accessibilityHint(accessibilityHint)
                 .background(
                     CrookedStickerShape(cornerRadius: 12)
                         .fill(isSelected ? CasinoTheme.gold : Color.white.opacity(0.09))
@@ -2821,12 +2926,39 @@ private struct BetChipButton: View {
         }
         .buttonStyle(.plain)
         .disabled(isDisabled)
+        .accessibilityIdentifier(accessibilityID ?? title)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
     private var chipLabel: String {
         title
             .replacingOccurrences(of: "$", with: "")
             .replacingOccurrences(of: ",", with: "")
+    }
+
+    private var accessibilityLabel: String {
+        var parts = [title]
+        if let subtitle {
+            parts.append(subtitle)
+        }
+        if isSelected {
+            parts.append("selected")
+        }
+        if isDisabled {
+            parts.append("disabled")
+        }
+        if let disabledReason {
+            parts.append(disabledReason)
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    private var accessibilityHint: String {
+        if let disabledReason {
+            return disabledReason
+        }
+
+        return "Selects this wager option."
     }
 }
 
@@ -3551,20 +3683,32 @@ private struct LobbyRoomCard: View {
 private struct DealButton: View {
     let title: String
     let canDeal: Bool
+    var isReviewingHand = false
     var isCompact = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(title.uppercased())
-                .font((isCompact ? Font.headline : Font.title2).weight(.black))
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
-                .frame(maxWidth: .infinity)
-                .frame(height: isCompact ? 48 : 58)
+            HStack(spacing: 8) {
+                if isReviewingHand {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(canDeal ? CasinoTheme.ink : .white.opacity(0.72))
+                }
+
+                Text(title.uppercased())
+                    .font((isCompact ? Font.headline : Font.title2).weight(.black))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: isCompact ? 48 : 58)
         }
         .buttonStyle(CrookedCasinoButtonStyle(tone: canDeal ? .gold : .black))
-        .disabled(!canDeal)
+        .disabled(!canDeal || isReviewingHand)
+        .accessibilityIdentifier(isReviewingHand ? "reviewing-hand-progress" : "deal-button")
+        .accessibilityLabel(isReviewingHand ? "Reviewing hand" : title)
+        .accessibilityHint(isReviewingHand ? "Next action appears after the hand settles." : "Deals one baccarat hand.")
     }
 }
 

@@ -41,83 +41,94 @@ struct StageClearView: View {
             GeometryReader { proxy in
                 let isCompact = proxy.size.height < 780
 
-                VStack(spacing: isCompact ? 10 : 14) {
-                    CasinoLightsView()
-                        .frame(height: isCompact ? 18 : 24)
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: isCompact ? 10 : 14) {
+                        CasinoLightsView()
+                            .frame(height: isCompact ? 18 : 24)
 
-                    VStack(spacing: isCompact ? 4 : 7) {
-                        Text("Take 1 Reward")
-                            .font(.system(size: isCompact ? 29 : 34, weight: .black, design: .rounded))
-                            .foregroundStyle(CasinoTheme.gold)
-                            .multilineTextAlignment(.center)
-                            .shadow(color: CasinoTheme.gold.opacity(0.40), radius: 12)
-
-                        Text("Stage \(runManager.currentStage.id)")
-                            .font((isCompact ? Font.headline : Font.title3).weight(.black))
-                            .foregroundStyle(.white)
-
-                        Text(clearReasonText)
-                            .font((isCompact ? Font.caption : Font.subheadline).weight(.bold))
-                            .foregroundStyle(.white.opacity(0.66))
-                            .multilineTextAlignment(.center)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                    }
-
-                    HStack(spacing: 8) {
-                        stat(title: "Gain", value: MoneyFormatter.signed(currentProfitCents), isCompact: isCompact)
-                        stat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents), isCompact: isCompact)
-                        stat(title: "Chips", value: "\(runManager.chips)", isCompact: isCompact)
-                    }
-
-                    if let nextStage {
-                        VStack(spacing: 3) {
-                            Text(nextStageGoalText(nextStage))
-                                .font(.system(size: isCompact ? 10 : 11, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white.opacity(0.62))
+                        VStack(spacing: isCompact ? 4 : 7) {
+                            Text("Take 1 Reward")
+                                .font(.system(size: isCompact ? 29 : 34, weight: .black, design: .rounded))
+                                .foregroundStyle(CasinoTheme.gold)
                                 .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.74)
+                                .lineLimit(nil)
+                                .minimumScaleFactor(0.82)
+                                .shadow(color: CasinoTheme.gold.opacity(0.40), radius: 12)
+                                .accessibilityAddTraits(.isHeader)
 
-                            if let unlockText = betUnlockText(for: nextStage) {
-                                Text(unlockText)
-                                    .font(.system(size: isCompact ? 9 : 10, weight: .black, design: .rounded))
-                                    .foregroundStyle(CasinoTheme.gold)
-                                    .textCase(.uppercase)
-                                    .lineLimit(1)
-                            }
+                            Text("Stage \(runManager.currentStage.id)")
+                                .font((isCompact ? Font.headline : Font.title3).weight(.black))
+                                .foregroundStyle(.white)
+
+                            Text(clearReasonText)
+                                .font((isCompact ? Font.caption : Font.subheadline).weight(.bold))
+                                .foregroundStyle(.white.opacity(0.66))
+                                .multilineTextAlignment(.center)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        .padding(.horizontal, 8)
-                    }
 
-                    VStack(spacing: 4) {
-                        Text("Reward Earned")
-                            .font((isCompact ? Font.subheadline : Font.headline).weight(.black))
-                            .foregroundStyle(.white)
+                        HStack(spacing: 8) {
+                            stat(title: "Gain", value: MoneyFormatter.signed(currentProfitCents), isCompact: isCompact)
+                            stat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents), isCompact: isCompact)
+                            stat(title: "Chips", value: "\(runManager.chips)", isCompact: isCompact)
+                        }
+
+                        if let nextStage {
+                            VStack(spacing: 3) {
+                                Text(nextStageGoalText(nextStage))
+                                    .font(.system(size: isCompact ? 10 : 11, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.62))
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+
+                                if let unlockText = betUnlockText(for: nextStage) {
+                                    Text(unlockText)
+                                        .font(.system(size: isCompact ? 9 : 10, weight: .black, design: .rounded))
+                                        .foregroundStyle(CasinoTheme.gold)
+                                        .textCase(.uppercase)
+                                        .lineLimit(nil)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                            .padding(.horizontal, 8)
+                        }
+
+                        VStack(spacing: 4) {
+                            Text("Reward Earned")
+                                .font((isCompact ? Font.subheadline : Font.headline).weight(.black))
+                                .foregroundStyle(.white)
 
                             Text("Choose 1 of 3 rewards, then visit the shop.")
-                            .font((isCompact ? Font.caption : Font.subheadline).weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.62))
-                    }
-
-                    VStack(spacing: isCompact ? 7 : 9) {
-                        ForEach(choices) { reward in
-                            Button {
-                                onSelect(reward)
-                            } label: {
-                                rewardCard(reward, isCompact: isCompact)
-                            }
-                            .buttonStyle(JuicyPressButtonStyle())
+                                .font((isCompact ? Font.caption : Font.subheadline).weight(.semibold))
+                                .foregroundStyle(.white.opacity(0.62))
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
+
+                        VStack(spacing: isCompact ? 7 : 9) {
+                            ForEach(Array(choices.enumerated()), id: \.element.id) { index, reward in
+                                Button {
+                                    onSelect(reward)
+                                } label: {
+                                    rewardCard(reward, isCompact: isCompact)
+                                }
+                                .buttonStyle(JuicyPressButtonStyle())
+                                .accessibilityIdentifier("reward-choice-\(index + 1)")
+                            }
+                        }
+                        .layoutPriority(1)
                     }
-                    .layoutPriority(1)
+                    .padding(.horizontal, 16)
+                    .padding(.top, max(proxy.safeAreaInsets.top, CGFloat(isCompact ? 8 : 14)))
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom, CGFloat(isCompact ? 16 : 22)))
+                    .frame(maxWidth: 520)
+                    .frame(minHeight: proxy.size.height, alignment: .top)
+                    .scaleEffect(didAppear ? 1 : 0.96)
+                    .opacity(didAppear ? 1 : 0)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, isCompact ? 8 : 14)
-                .padding(.bottom, isCompact ? 12 : 18)
-                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
-                .scaleEffect(didAppear ? 1 : 0.96)
-                .opacity(didAppear ? 1 : 0)
+                .frame(width: proxy.size.width, height: proxy.size.height)
             }
         }
         .onAppear {
@@ -186,6 +197,7 @@ struct StageClearView: View {
         }
         .overlay(DoodleAccentView(accent: CrookedCasinoTheme.felt, density: .low).allowsHitTesting(false))
         .shadow(color: CrookedCasinoTheme.felt.opacity(0.12), radius: 8, y: 4)
+        .accessibilityElement(children: .combine)
     }
 
     private func rewardLine(title: String, value: String) -> some View {
@@ -194,6 +206,8 @@ struct StageClearView: View {
                 .font(.system(size: 9, weight: .black, design: .rounded))
                 .foregroundStyle(CrookedCasinoTheme.ink.opacity(0.52))
                 .textCase(.uppercase)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .frame(width: 52, alignment: .leading)
 
             Text(value)

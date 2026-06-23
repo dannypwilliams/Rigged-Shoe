@@ -15,6 +15,12 @@ struct RunStartView: View {
         return "\(adjustedHeat)/\(maxHeat) \(HeatBand.band(for: adjustedHeat, maxHeat: maxHeat).rawValue)"
     }
 
+    private var contactColumns: [GridItem] {
+        [
+            GridItem(.adaptive(minimum: 142, maximum: 220), spacing: 8, alignment: .top)
+        ]
+    }
+
     var body: some View {
         RunFlowOverlay(accentColor: CasinoTheme.gold) {
             VStack(spacing: 12) {
@@ -35,8 +41,15 @@ struct RunStartView: View {
                     RunFlowStat(title: "Heat", value: contactHeatText)
                 }
 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                    ForEach(contacts) { contact in
+                Text("\(contacts.count) contacts available")
+                    .font(.caption2.weight(.black))
+                    .foregroundStyle(.white.opacity(0.56))
+                    .textCase(.uppercase)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("contact-count")
+
+                LazyVGrid(columns: contactColumns, spacing: 8) {
+                    ForEach(Array(contacts.enumerated()), id: \.element.id) { index, contact in
                         Button {
                             onSelectContact(contact)
                         } label: {
@@ -44,16 +57,28 @@ struct RunStartView: View {
                                 contact: contact,
                                 isSelected: contact.id == selectedContact.id
                             )
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityIdentifier("contact-card-\(index + 1)")
+                            .accessibilityLabel(contactAccessibilityLabel(contact: contact, index: index))
+                            .accessibilityHint("Selects this starting contact and updates the run details.")
                         }
                         .buttonStyle(JuicyPressButtonStyle())
+                        .frame(minHeight: 74)
+                        .accessibilityIdentifier("contact-card-\(index + 1)")
+                        .accessibilityAddTraits(contact.id == selectedContact.id ? [.isSelected] : [])
                     }
                 }
 
                 StartingContactDetailCard(contact: selectedContact)
 
-                PrimaryRunFlowButton(title: "Preview Stage 1", action: onContinue)
+                PrimaryRunFlowButton(title: "Preview Stage 1", accessibilityID: "preview-stage-1-button", action: onContinue)
             }
         }
+    }
+
+    private func contactAccessibilityLabel(contact: StartingContact, index: Int) -> String {
+        let selectedText = contact.id == selectedContact.id ? "selected" : "not selected"
+        return "\(contact.name), position \(index + 1) of \(contacts.count), \(contact.recommendedArchetype), \(contact.difficultyRating), \(selectedText)"
     }
 }
 
@@ -101,6 +126,8 @@ private struct StartingContactDetailCard: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(CasinoTheme.gold.opacity(0.52), lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("selected-contact-details")
     }
 }
 
@@ -142,6 +169,7 @@ private struct StartingContactChip: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(isSelected ? CasinoTheme.gold.opacity(0.75) : Color.white.opacity(0.10), lineWidth: 1)
         )
+        .contentShape(Rectangle())
     }
 }
 
@@ -165,6 +193,8 @@ struct StagePreviewView: View {
                     .foregroundStyle(preview.isBossStage ? CasinoTheme.red : CasinoTheme.gold)
                     .multilineTextAlignment(.center)
                     .lineLimit(nil)
+                    .minimumScaleFactor(0.82)
+                    .accessibilityAddTraits(.isHeader)
 
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(alignment: .top) {
@@ -235,8 +265,9 @@ struct StagePreviewView: View {
                     RunFlowStat(title: "Heat", value: heatText)
                 }
 
-                PrimaryRunFlowButton(title: "Enter Stage \(preview.stageNumber)", action: onEnterBattle)
+                PrimaryRunFlowButton(title: "Enter Stage \(preview.stageNumber)", accessibilityID: "enter-stage-\(preview.stageNumber)-button", action: onEnterBattle)
             }
+            .accessibilityIdentifier("stage-preview")
         }
     }
 }
@@ -260,6 +291,10 @@ struct StageResultView: View {
                 Text(result.title)
                     .font(.system(size: 36, weight: .black, design: .rounded))
                     .foregroundStyle(result.didWin ? CasinoTheme.gold : CasinoTheme.red)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .minimumScaleFactor(0.82)
+                    .accessibilityAddTraits(.isHeader)
 
                 Text("Stage \(result.stageNumber)")
                     .font(.headline.weight(.black))
@@ -311,8 +346,9 @@ struct StageResultView: View {
                     RunFlowStat(title: "Heat", value: heatText)
                 }
 
-                PrimaryRunFlowButton(title: primaryActionTitle, action: onContinue)
+                PrimaryRunFlowButton(title: primaryActionTitle, accessibilityID: "stage-result-primary-button", action: onContinue)
             }
+            .accessibilityIdentifier("stage-result")
         }
     }
 
@@ -378,7 +414,7 @@ struct ShopPhaseView: View {
                     .buttonStyle(CompactShopButtonStyle(isPrimary: false))
                     .disabled(viewModel.state.runManager.chips < viewModel.state.shopState.rerollCostChips)
 
-                    PrimaryRunFlowButton(title: nextStageButtonTitle, action: onContinue)
+                    PrimaryRunFlowButton(title: nextStageButtonTitle, accessibilityID: "shop-continue-button", action: onContinue)
                 }
 
                 ShopInventorySection(
@@ -773,8 +809,9 @@ private struct RunFlowOverlay<Content: View>: View {
                             .opacity(didAppear ? 1 : 0)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(minHeight: proxy.size.height, alignment: .center)
-                    .padding(.vertical, 14)
+                    .frame(minHeight: proxy.size.height, alignment: .top)
+                    .padding(.top, max(proxy.safeAreaInsets.top, 12))
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom, 16))
                 }
                 .frame(width: proxy.size.width, height: proxy.size.height)
                 .padding(.horizontal, 14)
@@ -799,6 +836,7 @@ private struct RunFlowStat: View {
                 .foregroundStyle(.white.opacity(0.56))
                 .textCase(.uppercase)
                 .lineLimit(1)
+                .minimumScaleFactor(0.80)
 
             Text(value)
                 .font(.system(size: 15, weight: .black, design: .rounded).monospacedDigit())
@@ -817,11 +855,21 @@ private struct RunFlowDetailRow: View {
     let value: String
 
     var body: some View {
+        ViewThatFits(in: .horizontal) {
+            horizontalLayout
+            verticalLayout
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var horizontalLayout: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
                 .font(.caption.weight(.black))
                 .foregroundStyle(.white.opacity(0.58))
                 .textCase(.uppercase)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
 
             Spacer(minLength: 12)
 
@@ -834,10 +882,30 @@ private struct RunFlowDetailRow: View {
                 .layoutPriority(1)
         }
     }
+
+    private var verticalLayout: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.caption.weight(.black))
+                .foregroundStyle(.white.opacity(0.58))
+                .textCase(.uppercase)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+
+            Text(value)
+                .font(.subheadline.weight(.black))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.leading)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
 }
 
 private struct PrimaryRunFlowButton: View {
     let title: String
+    var accessibilityID: String? = nil
     let action: () -> Void
 
     var body: some View {
@@ -848,5 +916,7 @@ private struct PrimaryRunFlowButton: View {
                 .padding(.vertical, 4)
         }
         .buttonStyle(CrookedCasinoButtonStyle(tone: .gold))
+        .frame(minHeight: 48)
+        .accessibilityIdentifier(accessibilityID ?? title)
     }
 }

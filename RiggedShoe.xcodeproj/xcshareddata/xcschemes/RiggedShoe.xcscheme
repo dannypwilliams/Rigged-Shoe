@@ -35,6 +35,20 @@
                ReferencedContainer = "container:RiggedShoe.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "U10000000000000000000002"
+               BuildableName = "RiggedShoeUITests.xctest"
+               BlueprintName = "RiggedShoeUITests"
+               ReferencedContainer = "container:RiggedShoe.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -51,6 +65,17 @@
                BlueprintIdentifier = "T10000000000000000000002"
                BuildableName = "RiggedShoeTests.xctest"
                BlueprintName = "RiggedShoeTests"
+               ReferencedContainer = "container:RiggedShoe.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "U10000000000000000000002"
+               BuildableName = "RiggedShoeUITests.xctest"
+               BlueprintName = "RiggedShoeUITests"
                ReferencedContainer = "container:RiggedShoe.xcodeproj">
             </BuildableReference>
          </TestableReference>
