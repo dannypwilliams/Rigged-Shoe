@@ -307,7 +307,6 @@ struct GameRoomView: View {
     @State private var isAnimatingDeal = false
     @State private var lastPresentedRoundID: UUID?
     @State private var helpTopic: UXHelpTopic?
-    @State private var isShowingGameInfo = false
     @State private var isShowingBattleLog = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -422,16 +421,6 @@ struct GameRoomView: View {
                 debugEvents: viewModel.state.debugGameEventLog
             )
         }
-        .confirmationDialog("Game Info", isPresented: $isShowingGameInfo, titleVisibility: .visible) {
-            Button("Baccarat Rules") { helpTopic = .baccarat }
-            Button("Dealer Shoe") { helpTopic = .shoe }
-            Button("Reveal / X-Ray") { helpTopic = .reveal }
-            Button("Tie Payout") { helpTopic = .tiePayout }
-            Button("Banker Commission") { helpTopic = .bankerCommission }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Quick reference for table rules, payouts, and shoe mechanics.")
-        }
         .onAppear {
             synchronizePresentationToCurrentRound()
         }
@@ -515,7 +504,7 @@ struct GameRoomView: View {
                 Spacer(minLength: 0)
 
                 Button {
-                    isShowingGameInfo = true
+                    helpTopic = .gameInfo
                 } label: {
                     Image(systemName: "questionmark.circle.fill")
                         .font(.system(size: 13, weight: .black, design: .rounded))
@@ -680,6 +669,7 @@ private enum BaccaratDealOwner: String, Equatable {
 }
 
 private enum UXHelpTopic: String, Identifiable {
+    case gameInfo
     case baccarat
     case shoe
     case reveal
@@ -696,6 +686,8 @@ private enum UXHelpTopic: String, Identifiable {
 
     var title: String {
         switch self {
+        case .gameInfo:
+            return "Game Info"
         case .baccarat:
             return "Baccarat Basics"
         case .shoe:
@@ -719,6 +711,8 @@ private enum UXHelpTopic: String, Identifiable {
 
     var summary: String {
         switch self {
+        case .gameInfo:
+            return "Quick reference for the release route, table rules, payouts, Chips, Heat, and the guided first hand."
         case .baccarat:
             return "Player and Banker are the two baccarat hands. You bet which hand wins, or bet Tie."
         case .shoe:
@@ -742,6 +736,15 @@ private enum UXHelpTopic: String, Identifiable {
 
     var bullets: [String] {
         switch self {
+        case .gameInfo:
+            return [
+                "Clear a stage by staying solvent through its fixed hand count: 5 hands in Stage 1, then 6 hands in Stage 2.",
+                "Stage 1 wagers are $25, $50, and $75. Stage 2 wagers are $50 and $100.",
+                "The guided first hand locks Player $25, then all legal sides and amounts unlock.",
+                "Player and Banker bets push for $0 on Tie. Tie bets pay 8:1.",
+                "Banker normally pays 0.95:1. No Commission Night in Stage 2 makes Banker pay 1:1.",
+                "Chips buy shop offers or rerolls. Heat only changes from visible rules, contacts, modifiers, Pit Boss Skim, or Crackdown."
+            ]
         case .baccarat:
             return [
                 "Cards total to the ones digit only. A 17 counts as 7.",

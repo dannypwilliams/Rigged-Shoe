@@ -13,12 +13,7 @@ struct StageClearView: View {
     }
 
     private var clearReasonText: String {
-        if let objective = runManager.currentStage.teachingObjective,
-           objective.isComplete(in: runManager, bankrollCents: bankrollCents) {
-            return "Objective complete: \(objective.title)"
-        }
-
-        return "Profit target reached"
+        "Cleared by staying solvent through \(runManager.currentRoundLimit) hands."
     }
 
     private var nextStage: Stage? {

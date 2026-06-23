@@ -353,7 +353,7 @@ final class GameViewModel: ObservableObject {
 
         switch offer.kind {
         case .modifier:
-            return canBuyModifier(id: offer.contentID) ? nil : "Active and bench slots full"
+            return canBuyModifier(id: offer.contentID) ? nil : "Modifier slots full"
         case .consumable:
             return state.consumables.count >= state.consumableSlotLimit ? "Consumable slot full" : nil
         case .attachment:
@@ -404,7 +404,6 @@ final class GameViewModel: ObservableObject {
         }
 
         return state.activeModifiers.count < state.activeModifierSlotLimit
-            || state.benchModifiers.count < state.benchModifierSlotLimit
     }
 
     @discardableResult
@@ -434,11 +433,6 @@ final class GameViewModel: ObservableObject {
         let instance = ModifierInstance(modifierID: id)
         if state.activeModifiers.count < state.activeModifierSlotLimit {
             state.activeModifiers.append(instance)
-            return true
-        }
-
-        if state.benchModifiers.count < state.benchModifierSlotLimit {
-            state.benchModifiers.append(instance)
             return true
         }
 
@@ -746,6 +740,13 @@ final class GameViewModel: ObservableObject {
         }
 
         if state.runManager.status == .completed {
+            recordRunEndIfNeeded()
+            persistRunState()
+            return
+        }
+
+        if state.runManager.currentStageIndex + 1 >= state.runManager.stages.count {
+            state.runManager.showRewardDraft()
             recordRunEndIfNeeded()
             persistRunState()
             return
@@ -1206,6 +1207,22 @@ final class GameViewModel: ObservableObject {
     }
 
 #if DEBUG
+    func debugSetBankrollForTesting(_ bankrollCents: Int) {
+        state.bankrollCents = max(0, bankrollCents)
+        normalizeSelectedBetForStage()
+        persistRunState()
+    }
+
+    func debugSetActiveModifiersForTesting(_ modifierIDs: [String]) {
+        state.activeModifiers = modifierIDs.map { ModifierInstance(modifierID: $0) }
+        persistRunState()
+    }
+
+    func debugSetShopStateForTesting(_ shopState: ShopState) {
+        state.shopState = shopState
+        persistRunState()
+    }
+
     func debugFastForwardThreeRounds() {
         track(.debugAction, properties: ["action": "fastForwardThreeRounds"])
 
@@ -1234,7 +1251,9 @@ final class GameViewModel: ObservableObject {
                 )
             }
             refreshBossRewardDraftState()
-        } else if state.runManager.status == .stageCleared, state.pendingStageRewardChoices.isEmpty {
+        } else if state.runManager.status == .stageCleared,
+                  state.runManager.currentStageIndex + 1 < state.runManager.stages.count,
+                  state.pendingStageRewardChoices.isEmpty {
             createStageRewardDraft()
         }
 
@@ -1840,7 +1859,9 @@ final class GameViewModel: ObservableObject {
                 return
             }
 
-            createStageRewardDraft()
+            if state.runManager.currentStageIndex + 1 < state.runManager.stages.count {
+                createStageRewardDraft()
+            }
             persistRunState()
             return
         }
@@ -1972,7 +1993,8 @@ final class GameViewModel: ObservableObject {
     }
 
     func selectStageReward(_ reward: StageReward) {
-        guard state.runManager.status == .stageCleared else {
+        guard state.runManager.status == .stageCleared,
+              state.pendingStageRewardChoices.contains(where: { $0.id == reward.id }) else {
             return
         }
 
@@ -2094,10 +2116,23 @@ final class GameViewModel: ObservableObject {
             .sorted()
 
         state.selectedBetAmountCents = legalAmounts.last ?? unlockedBetAmountsCents.first ?? minimumUnlockedBetAmountCents
+        resolveNoLegalBetIfNeeded(legalAmounts: legalAmounts)
         clampSelectedBetForRevealCap()
         if previousAmount != state.selectedBetAmountCents {
             showBetAdjustedExplanation(from: previousAmount, to: state.selectedBetAmountCents)
         }
+    }
+
+    private func resolveNoLegalBetIfNeeded(legalAmounts: [Int]) {
+        guard legalAmounts.isEmpty,
+              state.runManager.status == .active,
+              state.runManager.flowState != .runStart,
+              state.bankrollCents < state.runManager.currentStage.minimumBetCents else {
+            return
+        }
+
+        appendDebugBattleEvent("[Bet] No legal wager available; resolving stage failure")
+        state.runManager.evaluateStage(bankrollCents: state.bankrollCents)
     }
 
     private func clampSelectedBetForRevealCap() {

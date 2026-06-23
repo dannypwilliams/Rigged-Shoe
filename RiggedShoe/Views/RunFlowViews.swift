@@ -203,7 +203,7 @@ struct StagePreviewView: View {
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white.opacity(0.62))
                         .fixedSize(horizontal: false, vertical: true)
-                    RunFlowDetailRow(title: "Reward", value: preview.stageNumber == 1 ? "+2 Chips, then Take 1 Reward" : "Run result")
+                    RunFlowDetailRow(title: "Reward", value: preview.stageNumber == 1 ? "+2 Chips, then Take 1 Reward" : "Final result")
                     RunFlowDetailRow(title: "Optional Bonus", value: "\(preview.secondaryObjectiveTitle) - \(preview.secondaryObjectiveReward)")
                     Text(preview.secondaryObjectiveSummary)
                         .font(.caption.weight(.bold))
@@ -235,7 +235,7 @@ struct StagePreviewView: View {
                     RunFlowStat(title: "Heat", value: heatText)
                 }
 
-                PrimaryRunFlowButton(title: "Start Stage \(preview.stageNumber)", action: onEnterBattle)
+                PrimaryRunFlowButton(title: "Enter Stage \(preview.stageNumber)", action: onEnterBattle)
             }
         }
     }
@@ -311,9 +311,17 @@ struct StageResultView: View {
                     RunFlowStat(title: "Heat", value: heatText)
                 }
 
-                PrimaryRunFlowButton(title: result.didWin ? "Draft Reward" : "Run Summary", action: onContinue)
+                PrimaryRunFlowButton(title: primaryActionTitle, action: onContinue)
             }
         }
+    }
+
+    private var primaryActionTitle: String {
+        if result.didWin {
+            return result.stageNumber == 1 ? "Take 1 Reward" : "Replay"
+        }
+
+        return "Replay"
     }
 
     private func signedNumber(_ value: Int) -> String {

@@ -512,20 +512,16 @@ struct RunManager: Equatable {
         if let failureReason {
             switch failureReason {
             case .bankrollBusted:
-                return "You could not cover \(currentStage.opponent.name)'s table minimum. Their pressure outlasted your bankroll."
+                return "You could not cover the \(MoneyFormatter.format(currentStage.minimumBetCents)) table minimum."
             case .heatMaxed:
-                return "Your build generated too much Heat before it could outscore \(currentStage.opponent.name)."
+                return "Crackdown applied a visible bankroll penalty. The run can continue if you remain solvent."
             case .bossDefeat:
-                return "\(currentStage.opponent.name) punished this build's main line. Try adding Heat control or a pivot tag."
+                return "The table condition failed before the fixed hand count was cleared."
             case .stageCondition:
-                return "You finished behind \(currentStage.opponent.name): \(MoneyFormatter.signed(stageProfitCents(bankrollCents: bankrollCents))) vs \(MoneyFormatter.signed(currentStageOpponentProfitCents))."
+                return "The stage condition failed before the fixed hand count was cleared."
             }
         }
 
-        if stageProfitCents(bankrollCents: bankrollCents) < currentStageOpponentProfitCents {
-            return "Your table profit did not catch \(currentStage.opponent.name). You needed \(MoneyFormatter.format(currentStageOpponentProfitCents - stageProfitCents(bankrollCents: bankrollCents))) more."
-        }
-
-        return "The table ended before your build converted its engine into enough profit."
+        return "You did not remain solvent through the fixed hand count."
     }
 }

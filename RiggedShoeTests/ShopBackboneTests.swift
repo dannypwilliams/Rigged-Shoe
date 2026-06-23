@@ -442,6 +442,135 @@ final class ShopBackboneTests: XCTestCase {
         }
     }
 
+    @MainActor
+    func testFinalStageClearCompletesRunWithoutRewardDraft() {
+        RunPersistenceManager.clear()
+        var metaProgression = isolatedMetaProgression()
+        metaProgression.markGuidedFirstRunCompleted()
+        let viewModel = GameViewModel(metaProgression: metaProgression)
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        viewModel.debugInstantStageClear()
+        viewModel.continueFromStageResult()
+
+        guard let reward = viewModel.state.pendingStageRewardChoices.first else {
+            XCTFail("Expected Stage 1 reward")
+            return
+        }
+
+        viewModel.selectStageReward(reward)
+        viewModel.continueFromShop()
+        viewModel.startStageBattle()
+        viewModel.debugInstantStageClear()
+
+        XCTAssertEqual(viewModel.state.runManager.currentStage.id, 2)
+        XCTAssertEqual(viewModel.state.runManager.flowState, .stageResult)
+        XCTAssertTrue(viewModel.state.pendingStageRewardChoices.isEmpty)
+
+        viewModel.continueFromStageResult()
+
+        XCTAssertEqual(viewModel.state.runManager.status, .completed)
+        XCTAssertEqual(viewModel.state.runManager.flowState, .runComplete)
+        XCTAssertTrue(viewModel.state.pendingStageRewardChoices.isEmpty)
+    }
+
+    @MainActor
+    func testStageRewardSelectionIsIdempotentAfterFirstAcceptedTap() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        viewModel.debugInstantStageClear()
+
+        guard let reward = viewModel.state.pendingStageRewardChoices.first else {
+            XCTFail("Expected Stage 1 reward")
+            return
+        }
+
+        viewModel.selectStageReward(reward)
+        let bankrollAfterFirstSelection = viewModel.state.bankrollCents
+        let chipsAfterFirstSelection = viewModel.state.runManager.chips
+        let heatAfterFirstSelection = viewModel.state.runManager.heat
+        let activeModifiersAfterFirstSelection = viewModel.state.activeModifiers
+        let shopOffersAfterFirstSelection = viewModel.state.shopState.offers
+
+        viewModel.selectStageReward(reward)
+
+        XCTAssertEqual(viewModel.state.bankrollCents, bankrollAfterFirstSelection)
+        XCTAssertEqual(viewModel.state.runManager.chips, chipsAfterFirstSelection)
+        XCTAssertEqual(viewModel.state.runManager.heat, heatAfterFirstSelection)
+        XCTAssertEqual(viewModel.state.activeModifiers, activeModifiersAfterFirstSelection)
+        XCTAssertEqual(viewModel.state.shopState.offers, shopOffersAfterFirstSelection)
+    }
+
+    @MainActor
+    func testBelowMinimumBankrollResolvesInsteadOfDeadEndingBattle() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        viewModel.debugSetBankrollForTesting(VerticalSliceBalance.stage1MinimumBetCents - 1)
+
+        XCTAssertEqual(viewModel.state.runManager.status, .failed)
+        XCTAssertEqual(viewModel.state.runManager.flowState, .stageResult)
+        XCTAssertEqual(viewModel.state.runManager.lastStageResult?.failureReason, .bankrollBusted)
+        XCTAssertFalse(viewModel.canDeal)
+    }
+
+    @MainActor
+    func testFullModifierCapacityBlocksNewShopModifierInsteadOfHiddenBenchOverflow() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+        let ownedIDs = Array(ActiveModifierCatalog.regularIDs.prefix(VerticalSliceBalance.activeModifierSlots))
+        guard let offerID = ActiveModifierCatalog.regularIDs.first(where: { !ownedIDs.contains($0) }) else {
+            XCTFail("Expected an unowned production modifier")
+            return
+        }
+        let offer = ShopOffer(kind: .modifier, contentID: offerID, priceChips: 1)
+
+        viewModel.debugSetActiveModifiersForTesting(ownedIDs)
+        viewModel.debugSetShopStateForTesting(ShopState(ante: 25, offers: [offer]))
+
+        XCTAssertFalse(viewModel.canBuyShopOffer(offer))
+        XCTAssertEqual(viewModel.shopOfferBlockedReason(offer), "Modifier slots full")
+
+        viewModel.buyShopOffer(offer)
+
+        XCTAssertEqual(viewModel.state.activeModifiers.map(\.modifierID), ownedIDs)
+        XCTAssertTrue(viewModel.state.benchModifiers.isEmpty)
+    }
+
+    @MainActor
+    func testRewardSelectionRestoresToShopWithoutReapplyingReward() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        viewModel.debugInstantStageClear()
+
+        guard let reward = viewModel.state.pendingStageRewardChoices.first else {
+            XCTFail("Expected Stage 1 reward")
+            return
+        }
+
+        viewModel.selectStageReward(reward)
+        let restored = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        XCTAssertEqual(restored.state.runManager.flowState, .shop)
+        XCTAssertTrue(restored.state.pendingStageRewardChoices.isEmpty)
+        XCTAssertEqual(restored.state.bankrollCents, viewModel.state.bankrollCents)
+        XCTAssertEqual(restored.state.runManager.chips, viewModel.state.runManager.chips)
+        XCTAssertEqual(restored.state.activeModifiers, viewModel.state.activeModifiers)
+    }
+
     func testStageRewardShopAndBossLoopCanAdvanceEndToEnd() {
         var manager = RunManager()
         XCTAssertEqual(manager.flowState, .runStart)
