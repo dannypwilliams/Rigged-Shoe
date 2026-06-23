@@ -163,7 +163,8 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
         try app.performAccessibilityAudit(for: [
             .hitRegion,
             .sufficientElementDescription,
-            .trait
+            .trait,
+            .textClipped
         ])
     }
 

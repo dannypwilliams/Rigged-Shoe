@@ -21,29 +21,29 @@ struct ContentView: View {
             CasinoTheme.background(for: viewModel.metaProgression.profile.selectedThemeID)
                 .ignoresSafeArea()
 
-            CasinoFloorPagerView(
-                selectedPage: $selectedPage,
-                viewModel: viewModel,
-                settings: settings,
-                audioManager: audioManager,
-                dealButtonTitle: dealButtonTitle,
-                dealGuidanceText: dealGuidanceText,
-                onDealRound: dealRound,
-                onPurchaseUnlockable: purchaseUnlockable,
-                onToggleRunModifier: toggleRunModifier,
-                onSelectChallenge: selectChallenge,
-                onToggleDailyRun: toggleDailyRun,
-                onSelectTheme: selectTheme,
-                onReplayTutorial: replayTutorial,
-                onShowGlossary: showGlossary,
-                onShowSupport: showSupport,
-                onResetProfile: resetProfile,
-                onShowDebug: debugAction
-            )
-            .tint(CasinoTheme.gold)
-            .modifier(ScreenShakeEffect(animatableData: shakeTrigger))
-            .allowsHitTesting(!isMainContentCovered)
-            .accessibilityHidden(isMainContentCovered)
+            if !isMainContentCovered {
+                CasinoFloorPagerView(
+                    selectedPage: $selectedPage,
+                    viewModel: viewModel,
+                    settings: settings,
+                    audioManager: audioManager,
+                    dealButtonTitle: dealButtonTitle,
+                    dealGuidanceText: dealGuidanceText,
+                    onDealRound: dealRound,
+                    onPurchaseUnlockable: purchaseUnlockable,
+                    onToggleRunModifier: toggleRunModifier,
+                    onSelectChallenge: selectChallenge,
+                    onToggleDailyRun: toggleDailyRun,
+                    onSelectTheme: selectTheme,
+                    onReplayTutorial: replayTutorial,
+                    onShowGlossary: showGlossary,
+                    onShowSupport: showSupport,
+                    onResetProfile: resetProfile,
+                    onShowDebug: debugAction
+                )
+                .tint(CasinoTheme.gold)
+                .modifier(ScreenShakeEffect(animatableData: shakeTrigger))
+            }
 
             runFlowOverlay
 

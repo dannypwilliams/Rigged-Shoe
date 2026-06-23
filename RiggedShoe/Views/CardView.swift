@@ -32,6 +32,7 @@ struct CardView: View {
         }
         .aspectRatio(0.68, contentMode: .fit)
         .animation(.spring(response: 0.32, dampingFraction: 0.82), value: isFaceDown)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityText)
     }
 

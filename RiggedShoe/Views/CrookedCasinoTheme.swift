@@ -748,8 +748,8 @@ struct CrookedCasinoButtonStyle: ButtonStyle {
         configuration.label
             .font(.headline.weight(.black))
             .foregroundStyle(isEnabled ? tone.foreground : CrookedCasinoTheme.paperLight.opacity(0.48))
-            .lineLimit(1)
-            .minimumScaleFactor(0.70)
+            .lineLimit(2)
+            .minimumScaleFactor(0.62)
             .padding(.horizontal, 14)
             .padding(.vertical, 11)
             .frame(maxWidth: .infinity)
@@ -1093,9 +1093,14 @@ struct DoodleAccentView: View {
                 .font(.system(size: markSize, weight: .black))
                 .foregroundStyle(accent.opacity(0.34))
         case 1:
-            Text("*")
-                .font(.system(size: markSize * 1.2, weight: .black, design: .rounded))
-                .foregroundStyle(CrookedCasinoTheme.mutedRed.opacity(0.42))
+            Path { path in
+                path.move(to: CGPoint(x: markSize * 0.5, y: 0))
+                path.addLine(to: CGPoint(x: markSize * 0.5, y: markSize))
+                path.move(to: CGPoint(x: 0, y: markSize * 0.5))
+                path.addLine(to: CGPoint(x: markSize, y: markSize * 0.5))
+            }
+            .stroke(CrookedCasinoTheme.mutedRed.opacity(0.42), style: StrokeStyle(lineWidth: 1.2, lineCap: .round))
+            .frame(width: markSize, height: markSize)
         case 2:
             Path { path in
                 path.move(to: CGPoint(x: 0, y: markSize * 0.45))

@@ -43,7 +43,7 @@ struct ShoeView: View {
         .scaleEffect(impactPulse ? 1.025 : 1.0)
         .rotationEffect(.degrees(shoeImpact == .shuffled && impactPulse ? -1.2 : 0))
         .animation(.spring(response: 0.24, dampingFraction: 0.55), value: impactPulse)
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Dealer shoe, \(cardsRemaining) cards remaining")
         .onAppear {
             securityScan = true
@@ -334,15 +334,17 @@ private struct ShoeHiddenStackZone: View {
         VStack(alignment: .leading, spacing: 5) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("RIGGED")
-                    .font(.system(size: 8, weight: .black, design: .rounded))
+                    .font(.system(size: 7, weight: .black, design: .rounded))
                     .foregroundStyle(labelColor.opacity(0.74))
                     .tracking(0.8)
+                    .frame(height: 9, alignment: .bottom)
 
                 Text("SHOE")
-                    .font(.system(size: 22, weight: .black, design: .rounded))
+                    .font(.system(size: 16, weight: .black, design: .rounded))
                     .foregroundStyle(labelColor)
                     .minimumScaleFactor(0.75)
                     .lineLimit(1)
+                    .frame(height: 21, alignment: .top)
                     .shadow(color: labelColor.opacity(0.24), radius: 8)
             }
 
@@ -354,6 +356,7 @@ private struct ShoeHiddenStackZone: View {
             }
             .frame(width: 74, height: 58, alignment: .leading)
         }
+        .accessibilityHidden(true)
     }
 
     private var labelColor: Color {
@@ -517,15 +520,17 @@ private struct ShoeMetadataZone: View {
 
             VStack(alignment: .trailing, spacing: 0) {
                 Text("\(cardsRemaining)")
-                    .font(.system(size: 21, weight: .black, design: .rounded).monospacedDigit())
+                    .font(.system(size: 17, weight: .black, design: .rounded).monospacedDigit())
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.62)
+                    .frame(height: 22, alignment: .center)
 
                 Text("left")
-                    .font(.system(size: 9, weight: .black, design: .rounded))
+                    .font(.system(size: 8, weight: .black, design: .rounded))
                     .foregroundStyle(.white.opacity(0.56))
                     .textCase(.uppercase)
+                    .frame(height: 10, alignment: .center)
             }
 
             ProgressView(value: Double(shoePercent), total: 100)
@@ -537,10 +542,11 @@ private struct ShoeMetadataZone: View {
                 .accessibilityHidden(true)
 
             Text("Shoe: \(shoePercent)%")
-                .font(.system(size: 8, weight: .black, design: .rounded))
+                .font(.system(size: 7, weight: .black, design: .rounded))
                 .foregroundStyle(.white.opacity(0.62))
                 .lineLimit(1)
                 .minimumScaleFactor(0.65)
+                .frame(height: 9, alignment: .center)
 
             if let status = statusText {
                 Text(status)

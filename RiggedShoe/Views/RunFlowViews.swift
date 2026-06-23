@@ -289,16 +289,18 @@ struct StageResultView: View {
         RunFlowOverlay(accentColor: accent) {
             VStack(spacing: 16) {
                 Text(result.title)
-                    .font(.system(size: 36, weight: .black, design: .rounded))
+                    .font(.system(size: 34, weight: .black, design: .rounded))
                     .foregroundStyle(result.didWin ? CasinoTheme.gold : CasinoTheme.red)
                     .multilineTextAlignment(.center)
                     .lineLimit(nil)
                     .minimumScaleFactor(0.82)
+                    .frame(minHeight: 48, alignment: .center)
                     .accessibilityAddTraits(.isHeader)
 
                 Text("Stage \(result.stageNumber)")
                     .font(.headline.weight(.black))
                     .foregroundStyle(.white.opacity(0.72))
+                    .frame(height: 24, alignment: .center)
 
                 HStack(spacing: 8) {
                     RunFlowStat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents))
@@ -837,16 +839,20 @@ private struct RunFlowStat: View {
                 .textCase(.uppercase)
                 .lineLimit(1)
                 .minimumScaleFactor(0.80)
+                .frame(height: 13, alignment: .center)
 
             Text(value)
                 .font(.system(size: 15, weight: .black, design: .rounded).monospacedDigit())
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.62)
+                .frame(height: 20, alignment: .center)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
         .crookedPanel(kind: .felt, strokeColor: CrookedCasinoTheme.paper.opacity(0.50), cornerRadius: 10)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title), \(value)")
     }
 }
 
@@ -859,45 +865,48 @@ private struct RunFlowDetailRow: View {
             horizontalLayout
             verticalLayout
         }
-        .accessibilityElement(children: .combine)
     }
 
     private var horizontalLayout: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
-                .font(.caption.weight(.black))
+                .font(.system(size: 10, weight: .black, design: .rounded))
                 .foregroundStyle(.white.opacity(0.58))
                 .textCase(.uppercase)
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
+                .frame(minHeight: 14, alignment: .center)
 
             Spacer(minLength: 12)
 
             Text(value)
-                .font(.subheadline.weight(.black))
+                .font(.system(size: 13, weight: .black, design: .rounded))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.trailing)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
                 .layoutPriority(1)
+                .frame(minHeight: 18, alignment: .center)
         }
     }
 
     private var verticalLayout: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
-                .font(.caption.weight(.black))
+                .font(.system(size: 10, weight: .black, design: .rounded))
                 .foregroundStyle(.white.opacity(0.58))
                 .textCase(.uppercase)
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
+                .frame(minHeight: 14, alignment: .leading)
 
             Text(value)
-                .font(.subheadline.weight(.black))
+                .font(.system(size: 13, weight: .black, design: .rounded))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.leading)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(minHeight: 18, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -912,11 +921,16 @@ private struct PrimaryRunFlowButton: View {
         Button(action: action) {
             Text(title)
                 .font(.headline.weight(.black))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.70)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 4)
+                .accessibilityHidden(true)
         }
         .buttonStyle(CrookedCasinoButtonStyle(tone: .gold))
         .frame(minHeight: 48)
         .accessibilityIdentifier(accessibilityID ?? title)
+        .accessibilityLabel(title)
     }
 }

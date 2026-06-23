@@ -1473,16 +1473,23 @@ private struct TableHandZone: View {
         VStack(spacing: isCompact ? 7 : 10) {
             HStack {
                 Text(title)
-                    .font((isCompact ? Font.subheadline : Font.headline).weight(.black))
+                    .font(.system(size: isCompact ? 12 : 17, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+                    .frame(height: isCompact ? 17 : 22, alignment: .center)
+                    .accessibilityHidden(true)
 
                 Spacer()
 
                 Text(total.map { "\($0)" } ?? "--")
-                    .font((isCompact ? Font.subheadline : Font.title3).monospacedDigit().weight(.black))
+                    .font(.system(size: isCompact ? 13 : 20, weight: .black, design: .rounded).monospacedDigit())
                     .foregroundStyle(total == nil ? .white.opacity(0.32) : CasinoTheme.gold)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                     .frame(width: isCompact ? 30 : 36, height: isCompact ? 30 : 36)
                     .background(Circle().fill(Color.black.opacity(0.24)))
+                    .accessibilityHidden(true)
             }
 
             HStack(spacing: isCompact ? -16 : -12) {
@@ -1510,6 +1517,26 @@ private struct TableHandZone: View {
         .crookedPanel(kind: .felt, strokeColor: (isWinner ? CrookedCasinoTheme.dirtyGold : accentColor), cornerRadius: isCompact ? 14 : 18)
         .shadow(color: isWinner ? CasinoTheme.gold.opacity(0.22) : .clear, radius: isWinner ? 16 : 0)
         .opacity(isDimmed ? 0.72 : 1.0)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        var parts = ["\(title) hand"]
+        if let total {
+            parts.append("total \(total)")
+        } else {
+            parts.append("no total yet")
+        }
+        if cards.isEmpty {
+            parts.append("no cards dealt")
+        } else {
+            parts.append(cards.map { "\($0.rank.shortName) \($0.suit.symbol)" }.joined(separator: ", "))
+        }
+        if isWinner {
+            parts.append("winner")
+        }
+        return parts.joined(separator: ", ")
     }
 }
 
@@ -2683,27 +2710,42 @@ private struct GameRoomBetDock: View {
     let onDeal: () -> Void
     let onShowHelp: (UXHelpTopic) -> Void
 
+    private var dockRewardStatusText: String {
+        if isCompact, isGuidedOpeningHandLocked {
+            return "Guided: Player $25"
+        }
+
+        return rewardProgressText
+    }
+
     var body: some View {
         VStack(spacing: isCompact ? 6 : 10) {
             HStack(alignment: .center, spacing: 10) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Selected Bet")
-                        .font(.system(size: 9, weight: .black, design: .rounded))
+                        .font(.system(size: isCompact ? 7 : 9, weight: .black, design: .rounded))
                         .foregroundStyle(.white.opacity(0.48))
                         .textCase(.uppercase)
+                        .frame(height: isCompact ? 9 : 11, alignment: .bottom)
+                        .accessibilityHidden(true)
 
                     Text("\(selectedBetType.displayName) - \(MoneyFormatter.format(selectedBetAmountCents))")
-                        .font((isCompact ? Font.subheadline : Font.headline).monospacedDigit().weight(.black))
+                        .font(.system(size: isCompact ? 12 : 17, weight: .black, design: .rounded).monospacedDigit())
                         .foregroundStyle(.white)
                         .lineLimit(1)
+                        .frame(height: isCompact ? 17 : 22, alignment: .center)
+                        .accessibilityHidden(true)
 
-                    Label(rewardProgressText, systemImage: "sparkles")
-                        .font(.system(size: isCompact ? 8 : 9, weight: .black, design: .rounded))
+                    Label(dockRewardStatusText, systemImage: "sparkles")
+                        .font(.system(size: isCompact ? 7 : 9, weight: .black, design: .rounded))
                         .foregroundStyle(CasinoTheme.gold.opacity(0.82))
                         .textCase(.uppercase)
                         .lineLimit(isCompact ? 2 : 1)
                         .minimumScaleFactor(0.72)
+                        .frame(minHeight: isCompact ? 18 : 12, alignment: .topLeading)
+                        .accessibilityHidden(true)
                 }
+                .accessibilityHidden(true)
 
                 Spacer()
 
@@ -2902,9 +2944,11 @@ private struct BetChipButton: View {
 
                 VStack(spacing: 2) {
                     Text(title)
-                        .font((isCompact ? Font.caption : Font.subheadline).weight(.black))
+                        .font(.system(size: isCompact ? 10 : 14, weight: .black, design: .rounded))
                         .lineLimit(1)
                         .minimumScaleFactor(0.68)
+                        .frame(height: isCompact ? 15 : 19, alignment: .center)
+                        .accessibilityHidden(true)
 
                     if let subtitle {
                         Text(subtitle)
@@ -2912,29 +2956,31 @@ private struct BetChipButton: View {
                             .textCase(.uppercase)
                             .lineLimit(1)
                             .minimumScaleFactor(0.70)
+                            .frame(height: isCompact ? 10 : 12, alignment: .center)
+                            .accessibilityHidden(true)
                     }
                 }
             }
-                .foregroundStyle(isDisabled ? .white.opacity(0.30) : (isSelected ? .black : .white))
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: 44)
-                .accessibilityElement(children: .ignore)
-                .accessibilityIdentifier(accessibilityID ?? title)
-                .accessibilityLabel(accessibilityLabel)
-                .accessibilityHint(accessibilityHint)
-                .background(
-                    CrookedStickerShape(cornerRadius: 12)
-                        .fill(isSelected ? CasinoTheme.gold : Color.white.opacity(0.09))
-                )
-                .overlay(
-                    CrookedStickerShape(cornerRadius: 12)
-                        .stroke(Color.white.opacity(isSelected ? 0.0 : 0.14), lineWidth: 1)
-                )
+            .foregroundStyle(isDisabled ? .white.opacity(0.30) : (isSelected ? .black : .white))
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 44)
+            .accessibilityHidden(true)
+            .background(
+                CrookedStickerShape(cornerRadius: 12)
+                    .fill(isSelected ? CasinoTheme.gold : Color.white.opacity(0.09))
+            )
+            .overlay(
+                CrookedStickerShape(cornerRadius: 12)
+                    .stroke(Color.white.opacity(isSelected ? 0.0 : 0.14), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
         .disabled(isDisabled)
         .accessibilityIdentifier(accessibilityID ?? title)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint(accessibilityHint)
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+        .accessibilityHidden(isDisabled)
     }
 
     private var chipLabel: String {
@@ -3704,12 +3750,14 @@ private struct DealButton: View {
                 }
 
                 Text(title.uppercased())
-                    .font((isCompact ? Font.headline : Font.title2).weight(.black))
+                    .font(.system(size: isCompact ? 13 : 20, weight: .black, design: .rounded))
                     .lineLimit(1)
-                    .minimumScaleFactor(0.72)
+                    .minimumScaleFactor(0.58)
+                    .frame(height: isCompact ? 17 : 25, alignment: .center)
+                    .accessibilityHidden(true)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: isCompact ? 48 : 58)
+            .frame(minHeight: isCompact ? 48 : 58)
         }
         .buttonStyle(CrookedCasinoButtonStyle(tone: canDeal ? .gold : .black))
         .disabled(!canDeal || isReviewingHand)
