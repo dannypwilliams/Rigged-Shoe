@@ -749,6 +749,14 @@ final class GameViewModel: ObservableObject {
             debugInstantStageClear()
         }
     }
+
+    func debugPrepareStageOneRewardForUITesting() {
+        debugPrepareStageOneResultForUITesting()
+
+        if state.runManager.flowState == .stageResult {
+            continueFromStageResult()
+        }
+    }
 #endif
 
     func continueFromStageResult() {

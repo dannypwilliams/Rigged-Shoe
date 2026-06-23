@@ -94,6 +94,14 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
         XCTAssertTrue(app.buttons["reward-choice-1"].isHittable)
     }
 
+    func testStageOneRewardChoiceIsImmediatelyReachable() {
+        launch(extraArguments: ["--ui-testing-stage-one-reward"])
+
+        let firstReward = app.buttons["reward-choice-1"]
+        XCTAssertTrue(firstReward.waitForExistence(timeout: 8))
+        XCTAssertTrue(firstReward.isHittable)
+    }
+
     private func contactButton(_ index: Int) -> XCUIElement {
         let identified = app.buttons["contact-card-\(index)"]
         if identified.exists {

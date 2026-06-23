@@ -5,6 +5,7 @@ struct StageClearView: View {
     let bankrollCents: Int
     let choices: [StageReward]
     let onSelect: (StageReward) -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var didAppear = false
     @State private var particleTrigger = UUID()
 
@@ -40,85 +41,28 @@ struct StageClearView: View {
 
             GeometryReader { proxy in
                 let isCompact = proxy.size.height < 780
+                let prioritizesRewardChoices = dynamicTypeSize.isAccessibilitySize
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: isCompact ? 10 : 14) {
-                        CasinoLightsView()
-                            .frame(height: isCompact ? 18 : 24)
-
-                        VStack(spacing: isCompact ? 4 : 7) {
-                            Text("Take 1 Reward")
-                                .font(.system(size: isCompact ? 29 : 34, weight: .black, design: .rounded))
-                                .foregroundStyle(CasinoTheme.gold)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(nil)
-                                .minimumScaleFactor(0.82)
-                                .shadow(color: CasinoTheme.gold.opacity(0.40), radius: 12)
-                                .accessibilityAddTraits(.isHeader)
-
-                            Text("Stage \(runManager.currentStage.id)")
-                                .font((isCompact ? Font.headline : Font.title3).weight(.black))
-                                .foregroundStyle(.white)
-
-                            Text(clearReasonText)
-                                .font((isCompact ? Font.caption : Font.subheadline).weight(.bold))
-                                .foregroundStyle(.white.opacity(0.66))
-                                .multilineTextAlignment(.center)
-                                .lineLimit(nil)
-                                .fixedSize(horizontal: false, vertical: true)
+                        if !prioritizesRewardChoices {
+                            CasinoLightsView()
+                                .frame(height: isCompact ? 18 : 24)
                         }
 
-                        HStack(spacing: 8) {
-                            stat(title: "Gain", value: MoneyFormatter.signed(currentProfitCents), isCompact: isCompact)
-                            stat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents), isCompact: isCompact)
-                            stat(title: "Chips", value: "\(runManager.chips)", isCompact: isCompact)
+                        rewardHeader(isCompact: isCompact, showsReason: !prioritizesRewardChoices)
+
+                        if prioritizesRewardChoices {
+                            rewardChoices(isCompact: isCompact)
+                            rewardPrompt(isCompact: isCompact)
+                            statsRow(isCompact: isCompact)
+                            nextStageSummary(isCompact: isCompact)
+                        } else {
+                            statsRow(isCompact: isCompact)
+                            nextStageSummary(isCompact: isCompact)
+                            rewardPrompt(isCompact: isCompact)
+                            rewardChoices(isCompact: isCompact)
                         }
-
-                        if let nextStage {
-                            VStack(spacing: 3) {
-                                Text(nextStageGoalText(nextStage))
-                                    .font(.system(size: isCompact ? 10 : 11, weight: .bold, design: .rounded))
-                                    .foregroundStyle(.white.opacity(0.62))
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(nil)
-                                    .fixedSize(horizontal: false, vertical: true)
-
-                                if let unlockText = betUnlockText(for: nextStage) {
-                                    Text(unlockText)
-                                        .font(.system(size: isCompact ? 9 : 10, weight: .black, design: .rounded))
-                                        .foregroundStyle(CasinoTheme.gold)
-                                        .textCase(.uppercase)
-                                        .lineLimit(nil)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                            }
-                            .padding(.horizontal, 8)
-                        }
-
-                        VStack(spacing: 4) {
-                            Text("Reward Earned")
-                                .font((isCompact ? Font.subheadline : Font.headline).weight(.black))
-                                .foregroundStyle(.white)
-
-                            Text("Choose 1 of 3 rewards, then visit the shop.")
-                                .font((isCompact ? Font.caption : Font.subheadline).weight(.semibold))
-                                .foregroundStyle(.white.opacity(0.62))
-                                .multilineTextAlignment(.center)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-
-                        VStack(spacing: isCompact ? 7 : 9) {
-                            ForEach(Array(choices.enumerated()), id: \.element.id) { index, reward in
-                                Button {
-                                    onSelect(reward)
-                                } label: {
-                                    rewardCard(reward, isCompact: isCompact)
-                                }
-                                .buttonStyle(JuicyPressButtonStyle())
-                                .accessibilityIdentifier("reward-choice-\(index + 1)")
-                            }
-                        }
-                        .layoutPriority(1)
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, max(proxy.safeAreaInsets.top, CGFloat(isCompact ? 8 : 14)))
@@ -137,6 +81,93 @@ struct StageClearView: View {
                 didAppear = true
             }
         }
+    }
+
+    private func rewardHeader(isCompact: Bool, showsReason: Bool) -> some View {
+        VStack(spacing: isCompact ? 4 : 7) {
+            Text("Take 1 Reward")
+                .font(.system(size: isCompact ? 29 : 34, weight: .black, design: .rounded))
+                .foregroundStyle(CasinoTheme.gold)
+                .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .minimumScaleFactor(0.82)
+                .shadow(color: CasinoTheme.gold.opacity(0.40), radius: 12)
+                .accessibilityAddTraits(.isHeader)
+
+            Text("Stage \(runManager.currentStage.id)")
+                .font((isCompact ? Font.headline : Font.title3).weight(.black))
+                .foregroundStyle(.white)
+
+            if showsReason {
+                Text(clearReasonText)
+                    .font((isCompact ? Font.caption : Font.subheadline).weight(.bold))
+                    .foregroundStyle(.white.opacity(0.66))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func statsRow(isCompact: Bool) -> some View {
+        HStack(spacing: 8) {
+            stat(title: "Gain", value: MoneyFormatter.signed(currentProfitCents), isCompact: isCompact)
+            stat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents), isCompact: isCompact)
+            stat(title: "Chips", value: "\(runManager.chips)", isCompact: isCompact)
+        }
+    }
+
+    @ViewBuilder
+    private func nextStageSummary(isCompact: Bool) -> some View {
+        if let nextStage {
+            VStack(spacing: 3) {
+                Text(nextStageGoalText(nextStage))
+                    .font(.system(size: isCompact ? 10 : 11, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.62))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let unlockText = betUnlockText(for: nextStage) {
+                    Text(unlockText)
+                        .font(.system(size: isCompact ? 9 : 10, weight: .black, design: .rounded))
+                        .foregroundStyle(CasinoTheme.gold)
+                        .textCase(.uppercase)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.horizontal, 8)
+        }
+    }
+
+    private func rewardPrompt(isCompact: Bool) -> some View {
+        VStack(spacing: 4) {
+            Text("Reward Earned")
+                .font((isCompact ? Font.subheadline : Font.headline).weight(.black))
+                .foregroundStyle(.white)
+
+            Text("Choose 1 of 3 rewards, then visit the shop.")
+                .font((isCompact ? Font.caption : Font.subheadline).weight(.semibold))
+                .foregroundStyle(.white.opacity(0.62))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func rewardChoices(isCompact: Bool) -> some View {
+        VStack(spacing: isCompact ? 7 : 9) {
+            ForEach(Array(choices.enumerated()), id: \.element.id) { index, reward in
+                Button {
+                    onSelect(reward)
+                } label: {
+                    rewardCard(reward, isCompact: isCompact)
+                }
+                .buttonStyle(JuicyPressButtonStyle())
+                .accessibilityIdentifier("reward-choice-\(index + 1)")
+            }
+        }
+        .layoutPriority(1)
     }
 
     private func stat(title: String, value: String, isCompact: Bool) -> some View {

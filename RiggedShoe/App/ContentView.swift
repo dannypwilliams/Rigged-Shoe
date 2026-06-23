@@ -684,6 +684,11 @@ struct ContentView: View {
 #if DEBUG
     private func prepareUITestingLaunchStateIfNeeded() {
         let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("--ui-testing-stage-one-reward") {
+            viewModel.debugPrepareStageOneRewardForUITesting()
+            return
+        }
+
         if arguments.contains("--ui-testing-stage-one-result") {
             viewModel.debugPrepareStageOneResultForUITesting()
             return
