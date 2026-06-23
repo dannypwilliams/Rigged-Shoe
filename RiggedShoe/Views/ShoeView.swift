@@ -534,6 +534,7 @@ private struct ShoeMetadataZone: View {
                 .frame(width: 56, height: 5)
                 .background(Capsule().fill(.white.opacity(0.12)))
                 .clipShape(Capsule())
+                .accessibilityHidden(true)
 
             Text("Shoe: \(shoePercent)%")
                 .font(.system(size: 8, weight: .black, design: .rounded))

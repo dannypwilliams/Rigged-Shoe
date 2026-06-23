@@ -102,6 +102,27 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
         XCTAssertTrue(firstReward.isHittable)
     }
 
+    func testStageOneBattlePassesCoreAccessibilityAudit() throws {
+        launch(extraArguments: ["--ui-testing-stage-one-battle"])
+
+        XCTAssertTrue(app.buttons["deal-button"].waitForExistence(timeout: 8))
+        try performCoreAccessibilityAudit()
+    }
+
+    func testStageOneResultPassesCoreAccessibilityAudit() throws {
+        launch(extraArguments: ["--ui-testing-stage-one-result"])
+
+        XCTAssertTrue(app.descendants(matching: .any)["stage-result"].waitForExistence(timeout: 8))
+        try performCoreAccessibilityAudit()
+    }
+
+    func testStageOneRewardPassesCoreAccessibilityAudit() throws {
+        launch(extraArguments: ["--ui-testing-stage-one-reward"])
+
+        XCTAssertTrue(app.buttons["reward-choice-1"].waitForExistence(timeout: 8))
+        try performCoreAccessibilityAudit()
+    }
+
     private func contactButton(_ index: Int) -> XCUIElement {
         let identified = app.buttons["contact-card-\(index)"]
         if identified.exists {
@@ -136,6 +157,14 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
             app.swipeUp()
             remainingSwipes -= 1
         }
+    }
+
+    private func performCoreAccessibilityAudit() throws {
+        try app.performAccessibilityAudit(for: [
+            .hitRegion,
+            .sufficientElementDescription,
+            .trait
+        ])
     }
 
     private func launch(extraArguments: [String] = []) {
