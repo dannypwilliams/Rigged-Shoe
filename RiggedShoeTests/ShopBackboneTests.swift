@@ -540,10 +540,13 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertFalse(viewModel.canBuyShopOffer(offer))
         XCTAssertEqual(viewModel.shopOfferBlockedReason(offer), "Modifier slots full")
 
+        let chipsBeforeRejectedPurchase = viewModel.state.runManager.chips
         viewModel.buyShopOffer(offer)
 
+        XCTAssertEqual(viewModel.state.runManager.chips, chipsBeforeRejectedPurchase)
         XCTAssertEqual(viewModel.state.activeModifiers.map(\.modifierID), ownedIDs)
         XCTAssertTrue(viewModel.state.benchModifiers.isEmpty)
+        XCTAssertFalse(viewModel.state.shopState.offers[0].isSoldOut)
     }
 
     @MainActor
@@ -569,6 +572,244 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertEqual(restored.state.bankrollCents, viewModel.state.bankrollCents)
         XCTAssertEqual(restored.state.runManager.chips, viewModel.state.runManager.chips)
         XCTAssertEqual(restored.state.activeModifiers, viewModel.state.activeModifiers)
+    }
+
+    @MainActor
+    func testPresentationStateAndDisabledWagerReasonsAreStableForTrackA() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+
+        XCTAssertEqual(viewModel.presentationState, .guidedOpeningLock)
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .banker, amountCents: 2_500), .guidedLock)
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .player, amountCents: 5_000), .guidedLock)
+
+        viewModel.dealRound()
+        guard let roundID = viewModel.state.latestRound?.id else {
+            XCTFail("Expected guided hand to resolve")
+            return
+        }
+        XCTAssertEqual(viewModel.presentationState, .resolvingHand(roundID: roundID))
+
+        viewModel.completeDealPresentation(for: roundID)
+        XCTAssertNil(viewModel.disabledWagerReason(for: .player, amountCents: 2_500))
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .player, amountCents: 2_499), .stageUnavailable)
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .player, amountCents: 7_501), .stageUnavailable)
+        viewModel.debugSetBankrollForTesting(3_000)
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .player, amountCents: 5_000), .insufficientBankroll)
+
+        viewModel.debugInstantStageClear()
+        XCTAssertEqual(viewModel.presentationState, .finalHandReview(roundID: roundID))
+    }
+
+    @MainActor
+    func testGuidedDealRapidActivationResolvesOnceAndLeavesShoeAt308() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+
+        viewModel.dealRound()
+        viewModel.dealRound()
+        viewModel.dealRound()
+
+        XCTAssertEqual(viewModel.state.runManager.currentStageRoundsPlayed, 1)
+        XCTAssertEqual(viewModel.state.shoe.cardsRemaining, 308)
+        XCTAssertTrue(viewModel.isDealResolutionLocked)
+    }
+
+    @MainActor
+    func testWagerBoundariesAcrossStageOneAndTwoAndNoQuarterBankrollCap() {
+        RunPersistenceManager.clear()
+        var metaProgression = isolatedMetaProgression()
+        metaProgression.markGuidedFirstRunCompleted()
+        let viewModel = GameViewModel(metaProgression: metaProgression)
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .player, amountCents: 2_499), .stageUnavailable)
+        XCTAssertNil(viewModel.disabledWagerReason(for: .player, amountCents: 2_500))
+        XCTAssertNil(viewModel.disabledWagerReason(for: .player, amountCents: 5_000))
+        XCTAssertNil(viewModel.disabledWagerReason(for: .player, amountCents: 7_500))
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .player, amountCents: 7_501), .stageUnavailable)
+
+        viewModel.debugInstantStageClear()
+        viewModel.continueFromStageResult()
+        selectFirstStageReward(in: viewModel)
+        viewModel.continueFromShop()
+        viewModel.startStageBattle()
+
+        XCTAssertEqual(viewModel.state.runManager.currentStage.id, 2)
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .player, amountCents: 4_999), .stageUnavailable)
+        XCTAssertNil(viewModel.disabledWagerReason(for: .player, amountCents: 5_000))
+        XCTAssertNil(viewModel.disabledWagerReason(for: .player, amountCents: 10_000))
+        XCTAssertEqual(viewModel.disabledWagerReason(for: .player, amountCents: 10_001), .stageUnavailable)
+        XCTAssertEqual(viewModel.state.runManager.maximumBetCents(bankrollCents: 25_000), 10_000)
+    }
+
+    @MainActor
+    func testBelowMinimumStageOneAndTwoResolveWithoutDeadBattlePhase() {
+        RunPersistenceManager.clear()
+        let stageOne = GameViewModel(metaProgression: isolatedMetaProgression())
+        stageOne.selectStartingContact(.defaultFloorHost)
+        stageOne.continueFromRunStart()
+        stageOne.startStageBattle()
+        stageOne.debugSetBankrollForTesting(VerticalSliceBalance.stage1MinimumBetCents - 1)
+
+        XCTAssertEqual(stageOne.state.runManager.flowState, .stageResult)
+        XCTAssertEqual(stageOne.state.runManager.lastStageResult?.failureReason, .bankrollBusted)
+        XCTAssertFalse(stageOne.canDeal)
+
+        RunPersistenceManager.clear()
+        var metaProgression = isolatedMetaProgression()
+        metaProgression.markGuidedFirstRunCompleted()
+        let stageTwo = GameViewModel(metaProgression: metaProgression)
+        stageTwo.selectStartingContact(.defaultFloorHost)
+        stageTwo.continueFromRunStart()
+        stageTwo.startStageBattle()
+        stageTwo.debugInstantStageClear()
+        stageTwo.continueFromStageResult()
+        selectFirstStageReward(in: stageTwo)
+        stageTwo.continueFromShop()
+        stageTwo.startStageBattle()
+        stageTwo.debugSetBankrollForTesting(VerticalSliceBalance.stage2MinimumBetCents - 1)
+
+        XCTAssertEqual(stageTwo.state.runManager.currentStage.id, 2)
+        XCTAssertEqual(stageTwo.state.runManager.flowState, .stageResult)
+        XCTAssertEqual(stageTwo.state.runManager.lastStageResult?.failureReason, .bankrollBusted)
+        XCTAssertFalse(stageTwo.canDeal)
+    }
+
+    @MainActor
+    func testRestoreCheckpointsDoNotDuplicateDurableEffectsOrTransientPresentation() {
+        RunPersistenceManager.clear()
+        var metaProgression = isolatedMetaProgression()
+        metaProgression.markGuidedFirstRunCompleted()
+        let viewModel = GameViewModel(metaProgression: metaProgression)
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        let contactRestore = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(contactRestore.state.runManager.flowState, .stagePreview)
+        XCTAssertTrue(contactRestore.state.hasAppliedStartingContact)
+
+        viewModel.startStageBattle()
+        viewModel.dealRound()
+        let settledRestore = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(settledRestore.state.runManager.currentStageRoundsPlayed, 1)
+        XCTAssertNil(settledRestore.state.latestRound)
+        XCTAssertTrue(settledRestore.state.history.isEmpty)
+        XCTAssertEqual(settledRestore.presentationState, .idle)
+
+        viewModel.debugInstantStageClear()
+        let resultRestore = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(resultRestore.state.runManager.flowState, .stageResult)
+        XCTAssertEqual(resultRestore.state.runManager.status, .stageCleared)
+        XCTAssertNil(resultRestore.state.latestRound)
+
+        viewModel.continueFromStageResult()
+        let rewardPreRestore = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(rewardPreRestore.state.runManager.flowState, .rewardDraft)
+        XCTAssertFalse(rewardPreRestore.state.pendingStageRewardChoices.isEmpty)
+
+        let chipsBeforeReward = viewModel.state.runManager.chips
+        selectFirstStageReward(in: viewModel)
+        let rewardPostRestore = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(rewardPostRestore.state.runManager.flowState, .shop)
+        XCTAssertEqual(rewardPostRestore.state.runManager.chips, viewModel.state.runManager.chips)
+        XCTAssertGreaterThanOrEqual(rewardPostRestore.state.runManager.chips, chipsBeforeReward)
+        XCTAssertTrue(rewardPostRestore.state.pendingStageRewardChoices.isEmpty)
+
+        if let offer = viewModel.state.shopState.offers.first, viewModel.canBuyShopOffer(offer) {
+            let chipsBeforePurchase = viewModel.state.runManager.chips
+            viewModel.buyShopOffer(offer)
+            let shopPurchaseRestore = GameViewModel(metaProgression: metaProgression)
+            XCTAssertEqual(shopPurchaseRestore.state.runManager.chips, viewModel.state.runManager.chips)
+            XCTAssertLessThanOrEqual(shopPurchaseRestore.state.runManager.chips, chipsBeforePurchase)
+            XCTAssertEqual(shopPurchaseRestore.state.shopState.offers.first?.isSoldOut, true)
+        }
+
+        viewModel.continueFromShop()
+        let stageTwoPreviewRestore = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(stageTwoPreviewRestore.state.runManager.currentStage.id, 2)
+        XCTAssertEqual(stageTwoPreviewRestore.state.runManager.flowState, .stagePreview)
+        XCTAssertNil(stageTwoPreviewRestore.state.latestRound)
+
+        viewModel.startStageBattle()
+        viewModel.dealRound()
+        let stageTwoMidRestore = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(stageTwoMidRestore.state.runManager.currentStage.id, 2)
+        XCTAssertEqual(stageTwoMidRestore.state.runManager.flowState, .battle)
+        XCTAssertEqual(stageTwoMidRestore.state.runManager.currentStageRoundsPlayed, 1)
+        XCTAssertNil(stageTwoMidRestore.state.latestRound)
+
+        viewModel.debugSetBankrollForTesting(VerticalSliceBalance.stage2MinimumBetCents - 1)
+        let belowMinimumRestore = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(belowMinimumRestore.state.runManager.flowState, .stageResult)
+        XCTAssertEqual(belowMinimumRestore.state.runManager.lastStageResult?.failureReason, .bankrollBusted)
+    }
+
+    @MainActor
+    func testRewardRestoreAndRapidDoubleSelectApplyOnce() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        viewModel.debugInstantStageClear()
+        viewModel.continueFromStageResult()
+
+        guard let reward = viewModel.state.pendingStageRewardChoices.first else {
+            XCTFail("Expected reward")
+            return
+        }
+
+        viewModel.selectStageReward(reward)
+        let bankrollAfterReward = viewModel.state.bankrollCents
+        let chipsAfterReward = viewModel.state.runManager.chips
+        let activeModifiersAfterReward = viewModel.state.activeModifiers
+
+        viewModel.selectStageReward(reward)
+        let restored = GameViewModel(metaProgression: isolatedMetaProgression())
+        restored.selectStageReward(reward)
+
+        XCTAssertEqual(restored.state.bankrollCents, bankrollAfterReward)
+        XCTAssertEqual(restored.state.runManager.chips, chipsAfterReward)
+        XCTAssertEqual(restored.state.activeModifiers, activeModifiersAfterReward)
+        XCTAssertEqual(restored.state.runManager.flowState, .shop)
+    }
+
+    @MainActor
+    func testStructuredLoggerCapturesFocusedStateEvents() {
+        RunPersistenceManager.clear()
+        let logger = SpyRiggedShoeLogger()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression(), logger: logger)
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        viewModel.selectBetAmount(5_000)
+        viewModel.selectBetAmount(4_999)
+        viewModel.dealRound()
+
+        let events = logger.records.map(\.event)
+        XCTAssertTrue(events.contains(.runStarted))
+        XCTAssertTrue(events.contains(.runSaved))
+        XCTAssertTrue(events.contains(.contactSelected))
+        XCTAssertTrue(events.contains(.stageEntered))
+        XCTAssertTrue(events.contains(.wagerRejected))
+        XCTAssertTrue(events.contains(.handStarted))
+        XCTAssertTrue(events.contains(.handResolved))
+        XCTAssertTrue(logger.records.allSatisfy { $0.runID == viewModel.state.runID })
+        XCTAssertFalse(logger.records.contains { $0.fields.keys.contains("deck") || $0.fields.keys.contains("shoeCards") })
     }
 
     func testStageRewardShopAndBossLoopCanAdvanceEndToEnd() {
@@ -680,5 +921,23 @@ final class ShopBackboneTests: XCTestCase {
         let summary = viewModel.debugRunPhase3Checks()
 
         XCTAssertEqual(summary, "Phase 3 checks passed: 14/14")
+    }
+
+    @MainActor
+    private func selectFirstStageReward(in viewModel: GameViewModel, file: StaticString = #filePath, line: UInt = #line) {
+        guard let reward = viewModel.state.pendingStageRewardChoices.first else {
+            XCTFail("Expected a pending stage reward", file: file, line: line)
+            return
+        }
+
+        viewModel.selectStageReward(reward)
+    }
+}
+
+private final class SpyRiggedShoeLogger: RiggedShoeLogging {
+    private(set) var records: [RiggedShoeLogRecord] = []
+
+    func log(_ record: RiggedShoeLogRecord) {
+        records.append(record)
     }
 }

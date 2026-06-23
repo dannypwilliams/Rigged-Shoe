@@ -1,4 +1,57 @@
 import Foundation
+import OSLog
+
+enum RiggedShoeLogEvent: String, Equatable {
+    case runStarted
+    case runRestored
+    case runSaved
+    case contactSelected
+    case stageEntered
+    case stageResolved
+    case wagerAccepted
+    case wagerRejected
+    case handStarted
+    case handResolved
+    case presentationChanged
+    case shoeChanged
+    case bankrollChanged
+    case chipsChanged
+    case heatChanged
+    case rewardSelected
+    case shopEntered
+    case shopPurchaseAccepted
+    case shopPurchaseRejected
+    case shopRerolled
+    case modifierChanged
+    case noLegalWager
+    case replayStarted
+}
+
+struct RiggedShoeLogRecord: Equatable {
+    let event: RiggedShoeLogEvent
+    let runID: UUID
+    let stage: Int?
+    let hand: Int?
+    let fields: [String: String]
+}
+
+protocol RiggedShoeLogging {
+    func log(_ record: RiggedShoeLogRecord)
+}
+
+struct OSRiggedShoeLogger: RiggedShoeLogging {
+    private let logger = Logger(subsystem: "com.danielwilliams.RiggedShoe", category: "state")
+
+    func log(_ record: RiggedShoeLogRecord) {
+        let fields = record.fields
+            .sorted { $0.key < $1.key }
+            .map { "\($0.key)=\($0.value)" }
+            .joined(separator: " ")
+        logger.info(
+            "event=\(record.event.rawValue, privacy: .public) runID=\(record.runID.uuidString, privacy: .public) stage=\(record.stage ?? 0, privacy: .public) hand=\(record.hand ?? 0, privacy: .public) \(fields, privacy: .public)"
+        )
+    }
+}
 
 enum AnalyticsEventName: String, Codable, CaseIterable {
     case runStarted

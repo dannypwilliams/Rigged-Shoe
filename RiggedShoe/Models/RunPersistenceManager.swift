@@ -53,6 +53,7 @@ struct SavedBossManagerState: Codable, Equatable {
 struct SavedRunState: Codable, Equatable {
     var version: Int
     var savedAt: Date
+    var runID: UUID?
     var bankrollCents: Int
     var selectedBetType: BetType
     var selectedBetAmountCents: Int
@@ -106,7 +107,7 @@ struct SavedRunState: Codable, Equatable {
 struct RunPersistenceManager {
     private static let storageKey = "riggedShoe.activeRun.v2"
     private static let corruptStorageKey = "riggedShoe.activeRun.corruptBackup.v1"
-    private static let currentVersion = 6
+    private static let currentVersion = 7
 
     #if DEBUG
     static var activeRunStorageKeyForTesting: String {
@@ -150,6 +151,7 @@ struct RunPersistenceManager {
         SavedRunState(
             version: currentVersion,
             savedAt: Date(),
+            runID: state.runID,
             bankrollCents: state.bankrollCents,
             selectedBetType: state.selectedBetType,
             selectedBetAmountCents: state.selectedBetAmountCents,
@@ -254,6 +256,7 @@ struct RunPersistenceManager {
     private static func restore(_ snapshot: SavedRunState, configuration: RunConfiguration) -> GameState {
         var state = GameState(configuration: configuration)
         let legacyChipCompensation = legacyUpgradeChipCompensation(for: snapshot.acquiredUpgradeNames + snapshot.pendingUpgradeNames)
+        state.runID = snapshot.runID ?? UUID()
         state.bankrollCents = snapshot.bankrollCents
         state.selectedBetType = snapshot.selectedBetType
         state.selectedBetAmountCents = snapshot.selectedBetAmountCents

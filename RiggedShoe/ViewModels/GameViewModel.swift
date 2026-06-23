@@ -32,6 +32,20 @@ struct ShoeControlOption: Identifiable, Equatable {
     }
 }
 
+enum GameplayPresentationState: Equatable {
+    case idle
+    case guidedOpeningLock
+    case resolvingHand(roundID: UUID)
+    case finalHandReview(roundID: UUID)
+    case stageResultReview
+}
+
+enum DisabledWagerReason: String, Equatable {
+    case guidedLock
+    case stageUnavailable
+    case insufficientBankroll
+}
+
 @MainActor
 final class GameViewModel: ObservableObject {
     @Published private(set) var state: GameState
@@ -39,20 +53,24 @@ final class GameViewModel: ObservableObject {
     @Published private(set) var analytics: AnalyticsManager
     @Published private(set) var isDealResolutionLocked = false
     private let sessionStartedAt = Date()
+    private let logger: RiggedShoeLogging
     private var modifierEngine = ModifierEngine()
 
     let betAmountsCents = Array(Set(Stage.verticalSliceStages.flatMap(\.betLimit.allowedBetAmountsCents))).sorted()
 
-    init(metaProgression: MetaProgressionManager = MetaProgressionManager()) {
+    init(metaProgression: MetaProgressionManager = MetaProgressionManager(), logger: RiggedShoeLogging = OSRiggedShoeLogger()) {
+        self.logger = logger
         self.metaProgression = metaProgression
         self.analytics = AnalyticsManager()
         let configuration = metaProgression.runConfiguration()
 
         if let restoredState = RunPersistenceManager.restore(configuration: configuration) {
             self.state = restoredState
+            normalizeTransientPresentationAfterRestore()
             clearLegacyShoeUpgradeDraftIfNeeded()
             normalizeSelectedBetForStage()
             lockGuidedOpeningBetIfNeeded()
+            logState(.runRestored, fields: ["flow": state.runManager.flowState.rawValue, "status": state.runManager.status.storageValueForLogging])
         } else {
             self.state = GameState(configuration: configuration)
             clearLegacyShoeUpgradeDraftIfNeeded()
@@ -61,6 +79,7 @@ final class GameViewModel: ObservableObject {
             applyRunStartImmediateEffects()
             applyStageStartEffects()
             trackRunStarted()
+            logState(.runStarted, fields: ["flow": state.runManager.flowState.rawValue])
             persistRunState()
         }
     }
@@ -92,6 +111,56 @@ final class GameViewModel: ObservableObject {
         isGuidedOpeningHandLocked
             ? "First hand: Player $25. Other bets unlock after the deal."
             : nil
+    }
+
+    var presentationState: GameplayPresentationState {
+        if let latestRoundID = state.latestRound?.id {
+            if state.runManager.flowState == .stageResult,
+               state.runManager.currentStageRoundsPlayed >= state.runManager.currentRoundLimit {
+                return .finalHandReview(roundID: latestRoundID)
+            }
+
+            if isDealResolutionLocked {
+                return .resolvingHand(roundID: latestRoundID)
+            }
+        }
+
+        if state.runManager.flowState == .stageResult {
+            return .stageResultReview
+        }
+
+        if isGuidedOpeningHandLocked {
+            return .guidedOpeningLock
+        }
+
+        return .idle
+    }
+
+    func disabledWagerReason(for betType: BetType, amountCents: Int) -> DisabledWagerReason? {
+        if isGuidedOpeningHandLocked,
+           (betType != .player || amountCents != minimumUnlockedBetAmountCents) {
+            return .guidedLock
+        }
+
+        guard state.runManager.status == .active,
+              state.runManager.flowState == .battle,
+              state.pendingUpgradeChoices.isEmpty,
+              state.pendingStageRewardChoices.isEmpty,
+              state.bossManager.pendingAnnouncementBoss == nil,
+              state.bossManager.pendingBossRewardChoices.isEmpty else {
+            return .stageUnavailable
+        }
+
+        if amountCents > state.bankrollCents {
+            return .insufficientBankroll
+        }
+
+        if !state.runManager.isBetAmountAllowed(amountCents, bankrollCents: state.bankrollCents)
+            || amountCents > contactAdjustedMaxBetCents {
+            return .stageUnavailable
+        }
+
+        return nil
     }
 
     var unlockedBetAmountsCents: [Int] {
@@ -192,6 +261,7 @@ final class GameViewModel: ObservableObject {
         }
 
         state.startingContact = contact
+        logState(.contactSelected, fields: ["contactID": contact.id])
         persistRunState()
     }
 
@@ -217,6 +287,7 @@ final class GameViewModel: ObservableObject {
         state.hasAppliedStartingContact = true
         modifierEngine.resetRun()
         appendDebugBattleEvent("Starting contact selected: \(contact.name)")
+        logState(.contactSelected, fields: ["contactID": contact.id, "applied": "true"])
     }
 
     func prepareShop(forceReroll: Bool = false, emitShopEnteredEvent: Bool = true) {
@@ -233,6 +304,7 @@ final class GameViewModel: ObservableObject {
         )
         state.seededGenerator = generator
         appendDebugBattleEvent("Shop entered: tier \(ShopState.tier(for: state.runManager.currentStage.id, defeatedBosses: state.bossManager.defeatedBosses.count))")
+        logState(.shopEntered, fields: ["offers": "\(state.shopState.offers.count)", "reroll": "\(forceReroll)"])
         if emitShopEnteredEvent {
             emitOutOfHandModifierEvent(.shopEntered)
         }
@@ -251,6 +323,7 @@ final class GameViewModel: ObservableObject {
 
     func rerollShop() {
         guard state.runManager.chips >= state.shopState.rerollCostChips else {
+            logState(.shopPurchaseRejected, fields: ["reason": "insufficientChips", "action": "reroll"])
             return
         }
 
@@ -260,6 +333,7 @@ final class GameViewModel: ObservableObject {
         prepareShop(forceReroll: true, emitShopEnteredEvent: false)
         state.shopState.rerollsThisStage = nextRerollCount
         appendDebugBattleEvent("GameEvent.shopRerolled cost=\(rerollCost)")
+        logState(.shopRerolled, fields: ["costChips": "\(rerollCost)", "rerollCount": "\(nextRerollCount)"])
         emitOutOfHandModifierEvent(.shopRerolled)
     }
 
@@ -267,9 +341,11 @@ final class GameViewModel: ObservableObject {
         guard let index = state.shopState.offers.firstIndex(where: { $0.id == offer.id }),
               !state.shopState.offers[index].isSoldOut,
               canBuyShopOffer(offer) else {
+            logState(.shopPurchaseRejected, fields: ["offerID": offer.contentID, "kind": offer.kind.rawValue, "reason": shopOfferBlockedReason(offer) ?? "unavailable"])
             return
         }
 
+        let chipsBeforePurchase = state.runManager.chips
         let previousOwnedLevel = highestOwnedModifierLevel(for: offer.contentID)
 
         switch offer.kind {
@@ -306,6 +382,7 @@ final class GameViewModel: ObservableObject {
         if offer.kind == .modifier {
             let currentLevel = highestOwnedModifierLevel(for: offer.contentID)
             appendDebugBattleEvent("GameEvent.modifierBought \(offer.contentID)")
+            logState(.modifierChanged, fields: ["modifierID": offer.contentID, "action": "bought"])
             emitOutOfHandModifierEvent(.modifierBought(modifierID: offer.contentID))
 
             if let previousOwnedLevel,
@@ -316,6 +393,14 @@ final class GameViewModel: ObservableObject {
         } else {
             appendDebugBattleEvent("Shop item bought \(offer.contentID)")
         }
+        logState(
+            .shopPurchaseAccepted,
+            fields: [
+                "offerID": offer.contentID,
+                "kind": offer.kind.rawValue,
+                "chipsDelta": "\(state.runManager.chips - chipsBeforePurchase)"
+            ]
+        )
         persistRunState()
     }
 
@@ -719,6 +804,7 @@ final class GameViewModel: ObservableObject {
         resetVisibleBattleStateForStage(reason: "run start contact confirmed")
         resolveStageStartedModifiersIfNeeded()
         state.runManager.startRunPreview()
+        logState(.stageEntered, fields: ["flow": state.runManager.flowState.rawValue])
         persistRunState()
     }
 
@@ -728,6 +814,7 @@ final class GameViewModel: ObservableObject {
             resetVisibleBattleStateForStage(reason: "stage battle entry")
         }
         normalizeSelectedBetForStage()
+        logState(.stageEntered, fields: ["flow": state.runManager.flowState.rawValue])
         persistRunState()
     }
 
@@ -735,12 +822,14 @@ final class GameViewModel: ObservableObject {
         if state.runManager.status == .failed {
             state.runManager.failRunAfterResult()
             recordRunEndIfNeeded()
+            logState(.stageResolved, fields: ["result": "failed", "flow": state.runManager.flowState.rawValue])
             persistRunState()
             return
         }
 
         if state.runManager.status == .completed {
             recordRunEndIfNeeded()
+            logState(.stageResolved, fields: ["result": "completed", "flow": state.runManager.flowState.rawValue])
             persistRunState()
             return
         }
@@ -748,6 +837,7 @@ final class GameViewModel: ObservableObject {
         if state.runManager.currentStageIndex + 1 >= state.runManager.stages.count {
             state.runManager.showRewardDraft()
             recordRunEndIfNeeded()
+            logState(.stageResolved, fields: ["result": "completed", "flow": state.runManager.flowState.rawValue])
             persistRunState()
             return
         }
@@ -758,6 +848,7 @@ final class GameViewModel: ObservableObject {
         }
 
         state.runManager.showRewardDraft()
+        logState(.stageResolved, fields: ["result": "cleared", "flow": state.runManager.flowState.rawValue])
         persistRunState()
     }
 
@@ -814,6 +905,7 @@ final class GameViewModel: ObservableObject {
             queueShoeUpgradeRewardIfNeeded()
         }
         state.shopState = ShopState()
+        logState(.stageEntered, fields: ["flow": state.runManager.flowState.rawValue])
         persistRunState()
     }
 
@@ -1034,6 +1126,7 @@ final class GameViewModel: ObservableObject {
 
     func selectBetType(_ betType: BetType) {
         guard !isGuidedOpeningHandLocked || betType == .player else {
+            logState(.wagerRejected, fields: ["reason": DisabledWagerReason.guidedLock.rawValue, "betType": betType.rawValue])
             state.selectedBetType = .player
             state.roundPresentation.upgradeMessages = ["Tutorial Hand: Player bet locked"]
             state.roundPresentation.payoutLedgerLines = []
@@ -1043,15 +1136,18 @@ final class GameViewModel: ObservableObject {
         }
 
         guard state.challengeID.allowsBet(betType) else {
+            logState(.wagerRejected, fields: ["reason": DisabledWagerReason.stageUnavailable.rawValue, "betType": betType.rawValue])
             return
         }
 
         state.selectedBetType = betType
+        logState(.wagerAccepted, fields: ["betType": betType.rawValue, "amountCents": "\(state.selectedBetAmountCents)"])
         persistRunState()
     }
 
     func selectBetAmount(_ amountCents: Int) {
         guard !isGuidedOpeningHandLocked || amountCents == minimumUnlockedBetAmountCents else {
+            logState(.wagerRejected, fields: ["reason": DisabledWagerReason.guidedLock.rawValue, "amountCents": "\(amountCents)"])
             state.selectedBetAmountCents = minimumUnlockedBetAmountCents
             state.roundPresentation.upgradeMessages = ["Tutorial Hand: minimum bet locked"]
             state.roundPresentation.payoutLedgerLines = []
@@ -1061,10 +1157,12 @@ final class GameViewModel: ObservableObject {
         }
 
         guard isBetAmountUnlocked(amountCents) else {
+            logState(.wagerRejected, fields: ["reason": DisabledWagerReason.stageUnavailable.rawValue, "amountCents": "\(amountCents)"])
             return
         }
 
         if let activeRevealBetCapCents, amountCents > activeRevealBetCapCents {
+            logState(.wagerRejected, fields: ["reason": DisabledWagerReason.stageUnavailable.rawValue, "amountCents": "\(amountCents)", "capCents": "\(activeRevealBetCapCents)"])
             registerManualShoeControl(
                 message: "\(activeShoeReveal?.title ?? "Reveal") caps bets at \(MoneyFormatter.format(activeRevealBetCapCents))",
                 impact: .none
@@ -1073,6 +1171,7 @@ final class GameViewModel: ObservableObject {
         }
 
         state.selectedBetAmountCents = amountCents
+        logState(.wagerAccepted, fields: ["betType": state.selectedBetType.rawValue, "amountCents": "\(amountCents)"])
         persistRunState()
     }
 
@@ -1569,6 +1668,8 @@ final class GameViewModel: ObservableObject {
     func dealRound(allowPresentationLockBypass: Bool = false) {
         let canDealNow = allowPresentationLockBypass ? canDealIgnoringPresentationLock : canDeal
         guard canDealNow else {
+            let reason = disabledWagerReason(for: state.selectedBetType, amountCents: state.selectedBetAmountCents)
+            logState(.wagerRejected, fields: ["reason": reason?.rawValue ?? "dealLocked"])
             return
         }
 
@@ -1583,6 +1684,8 @@ final class GameViewModel: ObservableObject {
         var shoeImpact = ShoeImpact.none
         var activationMessages: [String] = []
         var payoutLedgerLines: [PayoutLedgerLine] = []
+        logState(.handStarted, hand: battleLogHandNumber, fields: ["betType": state.selectedBetType.rawValue, "amountCents": "\(state.selectedBetAmountCents)"])
+        logState(.presentationChanged, hand: battleLogHandNumber, fields: ["state": "\(presentationState)"])
         appendDebugBattleEvent("Hand \(battleLogHandNumber): GameEvent.handStarted")
         var preBetModifierResolutions = resolveActiveModifiers(event: .handStarted(handIndex: battleLogHandNumber), handNumber: battleLogHandNumber)
 
@@ -1791,6 +1894,20 @@ final class GameViewModel: ObservableObject {
 
         state.runManager.evaluateStage(bankrollCents: state.bankrollCents)
         enrichLastStageResultWithBuildArchetype()
+        logState(
+            .handResolved,
+            hand: battleLogHandNumber,
+            fields: [
+                "winner": result.winner.rawValue,
+                "betType": result.betType.rawValue,
+                "bankrollDeltaCents": "\(state.bankrollCents - bankrollBeforeRound)",
+                "shoeDelta": "\(state.shoe.cardsRemaining - cardsBeforeRound)"
+            ]
+        )
+        logState(.bankrollChanged, hand: battleLogHandNumber, fields: ["deltaCents": "\(state.bankrollCents - bankrollBeforeRound)"])
+        logState(.chipsChanged, hand: battleLogHandNumber, fields: ["delta": "\(state.runManager.chips - chipsBeforeRound)"])
+        logState(.heatChanged, hand: battleLogHandNumber, fields: ["delta": "\(state.runManager.heat - heatBeforeRound)"])
+        logState(.shoeChanged, hand: battleLogHandNumber, fields: ["deltaCards": "\(state.shoe.cardsRemaining - cardsBeforeRound)"])
         appendBattleLogEntry(
             handNumber: battleLogHandNumber,
             result: result,
@@ -1995,14 +2112,28 @@ final class GameViewModel: ObservableObject {
     func selectStageReward(_ reward: StageReward) {
         guard state.runManager.status == .stageCleared,
               state.pendingStageRewardChoices.contains(where: { $0.id == reward.id }) else {
+            logState(.rewardSelected, fields: ["rewardID": reward.id.uuidString, "accepted": "false"])
             return
         }
 
+        let bankrollBeforeReward = state.bankrollCents
+        let chipsBeforeReward = state.runManager.chips
+        let heatBeforeReward = state.runManager.heat
         applyStageReward(reward)
         state.runManager.updateHighs(bankrollCents: state.bankrollCents)
         recordRunSnapshot()
         state.pendingStageRewardChoices = []
         state.rewardDraftState = nil
+        logState(
+            .rewardSelected,
+            fields: [
+                "rewardID": reward.id.uuidString,
+                "accepted": "true",
+                "bankrollDeltaCents": "\(state.bankrollCents - bankrollBeforeReward)",
+                "chipsDelta": "\(state.runManager.chips - chipsBeforeReward)",
+                "heatDelta": "\(state.runManager.heat - heatBeforeReward)"
+            ]
+        )
 
         if state.runManager.status == .completed {
             recordRunEndIfNeeded()
@@ -2018,14 +2149,28 @@ final class GameViewModel: ObservableObject {
 
     func selectBossReward(_ reward: BossReward) {
         guard !state.bossManager.pendingBossRewardChoices.isEmpty else {
+            logState(.rewardSelected, fields: ["rewardID": reward.id.uuidString, "accepted": "false"])
             return
         }
 
+        let bankrollBeforeReward = state.bankrollCents
+        let chipsBeforeReward = state.runManager.chips
+        let heatBeforeReward = state.runManager.heat
         applyBossReward(reward)
         state.runManager.updateHighs(bankrollCents: state.bankrollCents)
         recordRunSnapshot()
         state.bossManager.clearBossRewardChoices()
         state.rewardDraftState = nil
+        logState(
+            .rewardSelected,
+            fields: [
+                "rewardID": reward.id.uuidString,
+                "accepted": "true",
+                "bankrollDeltaCents": "\(state.bankrollCents - bankrollBeforeReward)",
+                "chipsDelta": "\(state.runManager.chips - chipsBeforeReward)",
+                "heatDelta": "\(state.runManager.heat - heatBeforeReward)"
+            ]
+        )
 
         if state.runManager.status == .completed {
             recordRunEndIfNeeded()
@@ -2048,7 +2193,16 @@ final class GameViewModel: ObservableObject {
         applyRunStartImmediateEffects()
         applyStageStartEffects()
         trackRunStarted()
+        logState(.replayStarted, fields: ["flow": state.runManager.flowState.rawValue])
         persistRunState()
+    }
+
+    private func normalizeTransientPresentationAfterRestore() {
+        isDealResolutionLocked = false
+        state.latestRound = nil
+        state.history.removeAll()
+        state.roundPresentation = RoundPresentationState()
+        state.isXRayActiveForNextHand = false
     }
 
     private func resetVisibleBattleStateForStage(reason: String) {
@@ -2133,6 +2287,7 @@ final class GameViewModel: ObservableObject {
 
         appendDebugBattleEvent("[Bet] No legal wager available; resolving stage failure")
         state.runManager.evaluateStage(bankrollCents: state.bankrollCents)
+        logState(.noLegalWager, fields: ["minimumCents": "\(state.runManager.currentStage.minimumBetCents)", "bankrollCents": "\(state.bankrollCents)"])
     }
 
     private func clampSelectedBetForRevealCap() {
@@ -4600,6 +4755,7 @@ final class GameViewModel: ObservableObject {
 
     private func persistRunState() {
         RunPersistenceManager.save(state)
+        logState(.runSaved, fields: ["flow": state.runManager.flowState.rawValue, "status": state.runManager.status.storageValueForLogging])
     }
 
     private func trackRunStarted() {
@@ -4624,6 +4780,18 @@ final class GameViewModel: ObservableObject {
         analytics = manager
     }
 
+    private func logState(_ event: RiggedShoeLogEvent, hand: Int? = nil, fields: [String: String] = [:]) {
+        logger.log(
+            RiggedShoeLogRecord(
+                event: event,
+                runID: state.runID,
+                stage: state.runManager.currentStage.id,
+                hand: hand ?? state.runManager.totalRoundsPlayed,
+                fields: fields
+            )
+        )
+    }
+
     private func topArchetypeName() -> String {
         var counts: [UpgradeTag: Int] = [:]
 
@@ -4634,5 +4802,20 @@ final class GameViewModel: ObservableObject {
         }
 
         return counts.max { first, second in first.value < second.value }?.key.displayName ?? "None"
+    }
+}
+
+private extension RunStatus {
+    var storageValueForLogging: String {
+        switch self {
+        case .active:
+            return "active"
+        case .stageCleared:
+            return "stageCleared"
+        case .failed:
+            return "failed"
+        case .completed:
+            return "completed"
+        }
     }
 }

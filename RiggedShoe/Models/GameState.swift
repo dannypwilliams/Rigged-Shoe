@@ -1,6 +1,7 @@
 import Foundation
 
 struct GameState: Equatable {
+    var runID = UUID()
     var bankrollCents: Int
     var selectedBetType: BetType = .player
     var selectedBetAmountCents: Int = VerticalSliceBalance.stage1MinimumBetCents
