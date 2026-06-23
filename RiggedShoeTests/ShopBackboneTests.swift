@@ -727,6 +727,18 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(rewardPostRestore.state.runManager.chips, chipsBeforeReward)
         XCTAssertTrue(rewardPostRestore.state.pendingStageRewardChoices.isEmpty)
 
+        if let frozenOffer = viewModel.state.shopState.offers.first {
+            viewModel.toggleFreezeShopOffer(frozenOffer)
+            let frozenID = frozenOffer.id
+            viewModel.rerollShop()
+            let shopRerollRestore = GameViewModel(metaProgression: metaProgression)
+            XCTAssertEqual(shopRerollRestore.state.runManager.flowState, .shop)
+            XCTAssertEqual(shopRerollRestore.state.shopState.rerollsThisStage, viewModel.state.shopState.rerollsThisStage)
+            XCTAssertTrue(shopRerollRestore.state.shopState.offers.contains { offer in
+                offer.id == frozenID && offer.isFrozen && !offer.isSoldOut
+            })
+        }
+
         if let offer = viewModel.state.shopState.offers.first, viewModel.canBuyShopOffer(offer) {
             let chipsBeforePurchase = viewModel.state.runManager.chips
             viewModel.buyShopOffer(offer)
@@ -754,6 +766,48 @@ final class ShopBackboneTests: XCTestCase {
         let belowMinimumRestore = GameViewModel(metaProgression: metaProgression)
         XCTAssertEqual(belowMinimumRestore.state.runManager.flowState, .stageResult)
         XCTAssertEqual(belowMinimumRestore.state.runManager.lastStageResult?.failureReason, .bankrollBusted)
+    }
+
+    @MainActor
+    func testRunCompleteClearsPersistenceAndReplayStartsFresh() {
+        RunPersistenceManager.clear()
+        var metaProgression = isolatedMetaProgression()
+        metaProgression.markGuidedFirstRunCompleted()
+        let viewModel = GameViewModel(metaProgression: metaProgression)
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        viewModel.debugInstantStageClear()
+        viewModel.continueFromStageResult()
+        selectFirstStageReward(in: viewModel)
+        viewModel.continueFromShop()
+        viewModel.startStageBattle()
+        viewModel.debugInstantStageClear()
+
+        XCTAssertEqual(viewModel.state.runManager.currentStage.id, 2)
+        XCTAssertEqual(viewModel.state.runManager.status, .stageCleared)
+        XCTAssertTrue(viewModel.state.pendingStageRewardChoices.isEmpty)
+
+        viewModel.continueFromStageResult()
+        XCTAssertEqual(viewModel.state.runManager.status, .completed)
+        XCTAssertEqual(viewModel.state.runManager.flowState, .runComplete)
+        XCTAssertTrue(viewModel.state.pendingStageRewardChoices.isEmpty)
+
+        let restoredAfterCompletion = GameViewModel(metaProgression: metaProgression)
+        XCTAssertEqual(restoredAfterCompletion.state.runManager.flowState, .runStart)
+        XCTAssertEqual(restoredAfterCompletion.state.runManager.status, .active)
+        XCTAssertEqual(restoredAfterCompletion.state.bankrollCents, VerticalSliceBalance.startingBankrollCents)
+        XCTAssertEqual(restoredAfterCompletion.state.runManager.chips, VerticalSliceBalance.startingChips)
+        XCTAssertEqual(restoredAfterCompletion.state.runManager.heat, VerticalSliceBalance.startingHeat)
+        XCTAssertEqual(restoredAfterCompletion.state.activeModifierSlotLimit, VerticalSliceBalance.activeModifierSlots)
+
+        viewModel.startNewRun()
+        XCTAssertEqual(viewModel.state.runManager.flowState, .runStart)
+        XCTAssertEqual(viewModel.state.bankrollCents, VerticalSliceBalance.startingBankrollCents)
+        XCTAssertEqual(viewModel.state.runManager.chips, VerticalSliceBalance.startingChips)
+        XCTAssertEqual(viewModel.state.runManager.heat, VerticalSliceBalance.startingHeat)
+        XCTAssertTrue(viewModel.state.pendingStageRewardChoices.isEmpty)
     }
 
     @MainActor

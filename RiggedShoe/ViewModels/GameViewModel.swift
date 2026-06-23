@@ -335,6 +335,7 @@ final class GameViewModel: ObservableObject {
         appendDebugBattleEvent("GameEvent.shopRerolled cost=\(rerollCost)")
         logState(.shopRerolled, fields: ["costChips": "\(rerollCost)", "rerollCount": "\(nextRerollCount)"])
         emitOutOfHandModifierEvent(.shopRerolled)
+        persistRunState()
     }
 
     func buyShopOffer(_ offer: ShopOffer) {
