@@ -506,6 +506,11 @@ struct ContentView: View {
             return "Resolving"
         }
 
+        if viewModel.state.runManager.currentStageRoundsPlayed == 0,
+           viewModel.state.latestRound == nil {
+            return "Deal First Hand"
+        }
+
         return viewModel.canDeal ? "Deal" : "Bankroll Too Low"
     }
 

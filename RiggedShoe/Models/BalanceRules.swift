@@ -60,6 +60,54 @@ enum BuildArchetype: String, CaseIterable, Codable, Equatable, Hashable {
     }
 }
 
+enum VerticalSliceArchetype: String, CaseIterable, Codable, Equatable, Hashable {
+    case cardReader = "Card Reader"
+    case compScammer = "Comp Scammer"
+    case heatGambler = "Heat Gambler"
+
+    var fantasyTag: String {
+        switch self {
+        case .cardReader:
+            return "Reads just enough of the shoe to pick a smarter side."
+        case .compScammer:
+            return "Turns pushes, losses, and casino freebies into value."
+        case .heatGambler:
+            return "Converts suspicious pressure into bigger payouts."
+        }
+    }
+
+    var shortLabel: String {
+        rawValue
+    }
+}
+
+enum HeatBand: String, Codable, Equatable {
+    case cool = "Cool"
+    case noticed = "Noticed"
+    case watched = "Watched"
+    case hot = "Hot"
+    case exposed = "Exposed"
+
+    static func band(for heat: Int, maxHeat: Int) -> HeatBand {
+        let capacity = max(1, maxHeat)
+        let clamped = min(capacity, max(0, heat))
+        let percent = clamped * 100 / capacity
+
+        switch percent {
+        case 0...24:
+            return .cool
+        case 25...49:
+            return .noticed
+        case 50...74:
+            return .watched
+        case 75..<100:
+            return .hot
+        default:
+            return .exposed
+        }
+    }
+}
+
 struct BuildContract: Codable, Equatable, Identifiable {
     var id: BuildArchetype { archetype }
     let archetype: BuildArchetype

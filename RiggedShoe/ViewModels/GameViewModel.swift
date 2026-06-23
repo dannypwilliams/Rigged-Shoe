@@ -722,6 +722,7 @@ final class GameViewModel: ObservableObject {
 
     func continueFromRunStart() {
         applyStartingContactIfNeeded()
+        resetVisibleBattleStateForStage(reason: "run start contact confirmed")
         resolveStageStartedModifiersIfNeeded()
         state.runManager.startRunPreview()
         persistRunState()
@@ -801,6 +802,7 @@ final class GameViewModel: ObservableObject {
         }
 
         state.runManager.advanceAfterStageClear(bankrollCents: state.bankrollCents)
+        resetVisibleBattleStateForStage(reason: "shop complete")
         prepareBossAnnouncementIfNeeded()
         applyStageStartEffects()
         normalizeSelectedBetForStage()
@@ -1213,6 +1215,8 @@ final class GameViewModel: ObservableObject {
         track(.debugAction, properties: ["action": "instantStageClear"])
         let targetBankroll = state.runManager.stageTargetBankrollCents()
         state.bankrollCents = max(state.bankrollCents, targetBankroll)
+        state.runManager.currentStageRoundsPlayed = state.runManager.currentRoundLimit
+        state.runManager.currentStageOpponentProfitCents = 0
         state.runManager.evaluateStage(bankrollCents: state.bankrollCents)
 
         if state.runManager.status == .completed {
@@ -1697,7 +1701,20 @@ final class GameViewModel: ObservableObject {
         }
         activationMessages += modifierResolutions.flatMap(\.messages)
         payoutLedgerLines += modifierLedgerLines
-        let allModifierResolutions = preDealModifierResolutions + bossPreDealResolutions + modifierResolutions
+        var heatPressureResolutions = baselineHeatResolutions(
+            result: result,
+            betAmountCents: betAmountCents,
+            bankrollBeforeRound: bankrollBeforeRound,
+            handNumber: battleLogHandNumber
+        )
+        appendHeatPreventionIfNeeded(to: &heatPressureResolutions, handNumber: battleLogHandNumber)
+        let heatLedgerLines = applyModifierResolutions(heatPressureResolutions)
+        activationMessages += heatPressureResolutions.flatMap(\.messages)
+        payoutLedgerLines += heatLedgerLines
+        let exposurePenalty = applyHeatExposurePenaltyIfNeeded()
+        activationMessages += exposurePenalty.messages
+        payoutLedgerLines += exposurePenalty.ledgerLines
+        let allModifierResolutions = preDealModifierResolutions + bossPreDealResolutions + modifierResolutions + heatPressureResolutions
         let triggerFeedback = triggerFeedbackEntries(
             activationMessages: activationMessages,
             payoutLedgerLines: payoutLedgerLines,
@@ -2002,12 +2019,52 @@ final class GameViewModel: ObservableObject {
     func startNewRun() {
         RunPersistenceManager.clear()
         state = GameState(configuration: metaProgression.runConfiguration())
+        isDealResolutionLocked = false
         normalizeSelectedBetForStage()
         lockGuidedOpeningBetIfNeeded()
         applyRunStartImmediateEffects()
         applyStageStartEffects()
         trackRunStarted()
         persistRunState()
+    }
+
+    private func resetVisibleBattleStateForStage(reason: String) {
+        let stageNumber = state.runManager.currentStage.id
+        isDealResolutionLocked = false
+        state.latestRound = nil
+        state.history.removeAll()
+        state.roundPresentation = RoundPresentationState()
+        state.pendingUpgradeChoices = []
+        state.rewardDraftState = nil
+        state.previousRoundLossCents = 0
+        state.smallBetWinStreak = 0
+        state.consecutiveLosses = 0
+        state.lastRoundDidWin = false
+        state.lastBetAmountCents = 0
+        state.playerWinStreak = 0
+        state.bankerWinStreak = 0
+        state.tieStreak = 0
+        state.hasMovedCardThisStage = false
+        state.isXRayActiveForNextHand = false
+        state.modifierRevealCount = 0
+        state.selectedBetType = defaultBetTypeForCurrentStage()
+        state.selectedBetAmountCents = state.runManager.currentStage.minimumBetCents
+        modifierEngine.resetStage()
+        appendDebugBattleEvent("[StageFlow] Entering stage \(stageNumber): reset hand/presentation state (\(reason))")
+        appendDebugBattleEvent("[StageFlow] Cleared handState, resultBanner, animationPhase, pendingTriggers")
+        appendDebugBattleEvent("[StageFlow] Active build persists: \(state.activeModifiers.map(\.modifierID).joined(separator: ","))")
+    }
+
+    private func defaultBetTypeForCurrentStage() -> BetType {
+        if state.challengeID.allowsBet(.player) {
+            return .player
+        }
+
+        if state.challengeID.allowsBet(.banker) {
+            return .banker
+        }
+
+        return .tie
     }
 
     private func drawCard() -> Card {
@@ -2547,6 +2604,112 @@ final class GameViewModel: ObservableObject {
         }
 
         return ledgerLines
+    }
+
+    private func baselineHeatResolutions(
+        result: RoundResult,
+        betAmountCents: Int,
+        bankrollBeforeRound: Int,
+        handNumber: Int
+    ) -> [ModifierResolution] {
+        let minimumBet = state.runManager.minimumBetCents()
+        let maximumBet = state.runManager.maximumBetCents(bankrollCents: bankrollBeforeRound)
+        let stageNumber = state.runManager.currentStage.id
+        var heatDelta = 0
+        var reasons: [String] = []
+
+        if betAmountCents >= maximumBet {
+            let maxBetHeat = stageNumber <= 1 ? 1 : 2
+            heatDelta += maxBetHeat
+            reasons.append("max bet")
+        } else if betAmountCents >= max(minimumBet, maximumBet * 2 / 3) {
+            heatDelta += 1
+            reasons.append("large bet")
+        } else if stageNumber >= 2, betAmountCents > minimumBet {
+            heatDelta += 1
+            reasons.append("medium bet")
+        }
+
+        if result.didWin, betAmountCents >= maximumBet {
+            heatDelta += 1
+            reasons.append("max-bet win")
+        }
+
+        if result.didWin, result.winner == .tie {
+            heatDelta += 2
+            reasons.append("Tie payout")
+        }
+
+        let tableHeat = state.runManager.currentStage.effectiveTableRules.compactMap { rule -> Int? in
+            if case .heatGainOnSuspiciousWin(let amount) = rule, result.didWin {
+                return amount
+            }
+
+            if case .heatGainOnLoss(let amount) = rule, !result.didWin, !result.isPush {
+                return amount
+            }
+
+            return nil
+        }.reduce(0, +)
+
+        if tableHeat > 0 {
+            heatDelta += tableHeat
+            reasons.append(state.runManager.currentStage.tableEvent.name)
+        }
+
+        if !result.didWin, !result.isPush, state.runManager.heat >= state.runManager.maxHeat / 2 {
+            heatDelta -= 1
+            reasons.append("loss cooled the table")
+        }
+
+        guard heatDelta != 0 else {
+            return []
+        }
+
+        let signedHeat = heatDelta > 0 ? "+\(heatDelta)" : "\(heatDelta)"
+        let reasonText = reasons.joined(separator: ", ")
+        appendDebugBattleEvent("[Heat] Heat changed by \(signedHeat): reason=\(reasonText)")
+
+        return [
+            ModifierResolution(
+                modifierID: "system.heat-pressure",
+                modifierName: "Table Heat",
+                level: 1,
+                trigger: .handResolved,
+                messages: ["Heat \(signedHeat): \(reasonText)"],
+                heatDelta: heatDelta
+            )
+        ]
+    }
+
+    private func applyHeatExposurePenaltyIfNeeded() -> (messages: [String], ledgerLines: [PayoutLedgerLine]) {
+        guard state.runManager.heat >= state.runManager.maxHeat else {
+            return ([], [])
+        }
+
+        let heatBeforePenalty = state.runManager.heat
+        let penaltyCents = min(
+            state.bankrollCents,
+            max(state.runManager.currentStage.minimumBetCents, state.bankrollCents / 10)
+        )
+        state.bankrollCents = max(0, state.bankrollCents - penaltyCents)
+        state.runManager.heat = max(0, state.runManager.maxHeat / 2)
+        state.runManager.updateHighs(bankrollCents: state.bankrollCents)
+        appendDebugBattleEvent("[Heat] Pit Boss Warning: heat \(heatBeforePenalty)->\(state.runManager.heat) bankrollPenalty=\(MoneyFormatter.format(penaltyCents))")
+
+        return (
+            [
+                "Pit Boss Warning: Heat maxed",
+                "Pit Boss Warning: lost \(MoneyFormatter.format(penaltyCents)), Heat cooled to \(state.runManager.heat)"
+            ],
+            [
+                PayoutLedgerLine(
+                    title: "Pit Boss Warning",
+                    detail: "Heat maxed; casino took a bankroll penalty",
+                    amountCents: -penaltyCents
+                )
+            ]
+        )
     }
 
     private func modifierStageStats() -> ModifierStageStats {
@@ -4054,10 +4217,15 @@ final class GameViewModel: ObservableObject {
         state.runManager.lastStageResult = StageResultData(
             stageNumber: result.stageNumber,
             didWin: result.didWin,
+            startingBankrollCents: result.startingBankrollCents,
+            endingBankrollCents: result.endingBankrollCents,
             profitCents: result.profitCents,
             opponentName: result.opponentName,
             opponentProfitCents: result.opponentProfitCents,
             bankrollChangeCents: result.bankrollChangeCents,
+            objectiveDescription: result.objectiveDescription,
+            objectiveProgressText: result.objectiveProgressText,
+            scoreMarginCents: result.scoreMarginCents,
             heatChange: result.heatChange,
             chipsEarned: result.chipsEarned,
             failureReason: result.failureReason,
@@ -4066,8 +4234,35 @@ final class GameViewModel: ObservableObject {
             secondaryObjectiveCompleted: result.secondaryObjectiveCompleted,
             secondaryObjectiveReward: result.secondaryObjectiveReward,
             lossExplanation: result.lossExplanation,
-            buildArchetype: BuildArchetypeDetector.detect(activeModifiers: state.activeModifiers)
+            buildArchetype: BuildArchetypeDetector.detect(activeModifiers: state.activeModifiers),
+            triggeredModifierSummaries: stageModifierActivitySummary(stageNumber: result.stageNumber)
         )
+    }
+
+    private func stageModifierActivitySummary(stageNumber: Int) -> [String] {
+        let lines = state.battleLog
+            .filter { $0.stageNumber == stageNumber }
+            .flatMap(\.importantEffects)
+            .filter { $0.kind == .modifier || $0.kind == .payout || $0.kind == .chips || $0.kind == .heat || $0.kind == .reveal || $0.kind == .shoe }
+
+        guard !lines.isEmpty else {
+            return ["No modifier triggers recorded this stage."]
+        }
+
+        var counts: [String: Int] = [:]
+        for line in lines {
+            counts[line.title, default: 0] += 1
+        }
+
+        return counts
+            .sorted { lhs, rhs in
+                if lhs.value == rhs.value {
+                    return lhs.key < rhs.key
+                }
+                return lhs.value > rhs.value
+            }
+            .prefix(5)
+            .map { "\($0.key) triggered \($0.value)x" }
     }
 
     private func prepareBossAnnouncementIfNeeded() {

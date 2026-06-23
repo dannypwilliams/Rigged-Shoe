@@ -349,10 +349,10 @@ struct GameRoomView: View {
                             .layoutPriority(1)
                         }
 
-                        if !viewModel.state.battleLog.isEmpty || !viewModel.state.roundPresentation.triggerFeedback.isEmpty {
+                        if !currentStageBattleLogEntries.isEmpty || !viewModel.state.roundPresentation.triggerFeedback.isEmpty {
                             BattleTriggerFeedView(
                                 feedback: viewModel.state.roundPresentation.triggerFeedback,
-                                latestEntries: Array(viewModel.state.battleLog.prefix(isCompact ? 2 : 3)),
+                                latestEntries: Array(currentStageBattleLogEntries.prefix(isCompact ? 2 : 3)),
                                 triggerID: viewModel.state.roundPresentation.sequenceID,
                                 isCompact: isCompact,
                                 onOpenLog: { isShowingBattleLog = true }
@@ -468,6 +468,10 @@ struct GameRoomView: View {
         }
 
         return currentStageAmounts
+    }
+
+    private var currentStageBattleLogEntries: [BattleLogEntry] {
+        viewModel.state.battleLog.filter { $0.stageNumber == viewModel.state.runManager.stageReached }
     }
 
     private var dockStatusText: String {

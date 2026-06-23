@@ -556,6 +556,103 @@ extension Modifier {
 
         return "\(prefix): \(details)"
     }
+
+    var verticalSliceArchetype: VerticalSliceArchetype {
+        if tags.contains(.heat) || tags.contains(.betControl) || heatCost > 0 {
+            return .heatGambler
+        }
+
+        if tags.contains(.economy) || tags.contains(.comeback) || tags.contains(.consumable) || tags.contains(.attachment) {
+            return .compScammer
+        }
+
+        if tags.contains(.shoeVision) || tags.contains(.shoeControl) || tags.contains(.cardSculpting) || tags.contains(.natural) || tags.contains(.pair) {
+            return .cardReader
+        }
+
+        return .cardReader
+    }
+
+    var triggerLine: String {
+        let conditionText = conditions.compactMap(\.shopLabel).joined(separator: ", ")
+        if !conditionText.isEmpty {
+            return conditionText
+        }
+
+        let triggerText = triggers.map(\.shopLabel).sorted().joined(separator: ", ")
+        return triggerText.isEmpty ? "Passive while active" : triggerText
+    }
+
+    var effectLine: String {
+        let effectText = effects.map(\.shopDescription).joined(separator: "; ")
+        return effectText.isEmpty ? summary : effectText
+    }
+
+    var heatImpactText: String {
+        if heatCost > 0 {
+            return "Heat: +\(heatCost) when triggered"
+        }
+
+        if effects.contains(where: { effect in
+            switch effect {
+            case .gainHeat:
+                return true
+            case .levelScaled(let level1, let level2, let level3):
+                return (level1 + level2 + level3).contains { nested in
+                    if case .gainHeat = nested { return true }
+                    return false
+                }
+            case .composite(let nested):
+                return nested.contains { nestedEffect in
+                    if case .gainHeat = nestedEffect { return true }
+                    return false
+                }
+            default:
+                return false
+            }
+        }) {
+            return "Heat: can add Heat"
+        }
+
+        if effects.contains(where: { effect in
+            switch effect {
+            case .reduceHeat, .preventHeat:
+                return true
+            case .levelScaled(let level1, let level2, let level3):
+                return (level1 + level2 + level3).contains { nested in
+                    if case .reduceHeat = nested { return true }
+                    if case .preventHeat = nested { return true }
+                    return false
+                }
+            case .composite(let nested):
+                return nested.contains { nestedEffect in
+                    if case .reduceHeat = nestedEffect { return true }
+                    if case .preventHeat = nestedEffect { return true }
+                    return false
+                }
+            default:
+                return false
+            }
+        }) {
+            return "Heat: reduces or prevents Heat"
+        }
+
+        return "Heat: +0"
+    }
+
+    var lifecycleText: String {
+        let scope = useLimits.contains { limit in
+            switch limit {
+            case .perStage, .perStageByLevel:
+                return true
+            case .perHand, .perRun:
+                return false
+            }
+        } ? "Stage-bound" : "Run-bound"
+
+        let mode = triggers.isEmpty ? "Passive" : "Triggered"
+        return "\(mode) - \(scope)"
+    }
 }
 
 /// Player-owned copy of a modifier.
@@ -660,7 +757,7 @@ extension Modifier {
         ),
         Modifier(
             id: "core.opening-tell",
-            name: "Opening Tell",
+            name: "Bent Corner",
             summary: "Reveal real upcoming shoe cards at stage start.",
             rulesText: "At the start of each stage, reveal the next shoe cards. Level 3 reveals five and requests a simple side forecast.",
             rarity: .rare,
@@ -678,7 +775,7 @@ extension Modifier {
         ),
         Modifier(
             id: "core.clean-hands",
-            name: "Clean Hands",
+            name: "All-In Alibi",
             summary: "Prevent early Heat gains each stage.",
             rulesText: "When Heat would be gained, prevent the first Heat gains each stage. Level 3 also gives +1 Chip whenever Heat is prevented.",
             rarity: .common,
@@ -699,7 +796,7 @@ extension Modifier {
         ),
         Modifier(
             id: "core.lucky-chip",
-            name: "Lucky Chip",
+            name: "Comp Points",
             summary: "First winning bet each stage grants Chips.",
             rulesText: "The first time your bet wins each stage, gain Chips. Level 2 also grants bankroll equal to half the ante.",
             rarity: .common,
@@ -732,7 +829,7 @@ extension Modifier {
             return activeDefinition
         }
 
-        allContent.first { $0.id == id }
+        return allContent.first { $0.id == id }
     }
 
     static var expandedContent: [Modifier] {
@@ -810,7 +907,7 @@ extension Modifier {
             contentModifier(id: "banker.commission-dodge", name: "Commission Dodge", summary: "Banker wins add a small commission refund.", rarity: .common, tags: [.banker, .economy], trigger: .wagerWon, effects: payoutLevels(.banker, 5, 9, 14), minShopTier: 1, conditions: [.all([.betType(.banker), .winningSide(.banker)])]),
             contentModifier(id: "banker.house-favorite", name: "House Favorite", summary: "First Banker win each stage grants +1 Chip.", rarity: .uncommon, tags: [.banker, .economy], trigger: .wagerWon, effects: [.levelScaled(level1: [.grantChips(amount: 1)], level2: [.grantChips(amount: 1), .grantBankrollFromAnte(percent: 50)], level3: [.grantChips(amount: 2)])], minShopTier: 1, conditions: [.all([.betType(.banker), .winningSide(.banker), .firstBankerSideWinThisStage])], useLimits: [.perStage(1)]),
             contentModifier(id: "banker.banco-battery", name: "Banco Battery", summary: "Banker wins build steady ante-scaled bankroll.", rarity: .rare, tags: [.banker, .streak], trigger: .wagerWon, effects: anteLevels(35, 60, 100), minShopTier: 2, conditions: [.all([.betType(.banker), .winningSide(.banker)])]),
-            contentModifier(id: "banker.dealers-nod", name: "Dealer's Nod", summary: "Banker wins reveal one future card.", rarity: .uncommon, tags: [.banker, .shoeVision], trigger: .wagerWon, effects: [.revealUpcomingCards(count: 1)], minShopTier: 2, conditions: [.all([.betType(.banker), .winningSide(.banker)])]),
+            contentModifier(id: "banker.dealers-nod", name: "Dealer's Blink", summary: "Banker wins reveal one future card.", rarity: .uncommon, tags: [.banker, .shoeVision], trigger: .wagerWon, effects: [.revealUpcomingCards(count: 1)], minShopTier: 2, conditions: [.all([.betType(.banker), .winningSide(.banker)])]),
             contentModifier(id: "banker.banker-anchor", name: "Banker Anchor", summary: "Banker losses refund a little when you stay loyal.", rarity: .common, tags: [.banker, .comeback], trigger: .wagerLost, effects: [.lossRefund(percent: 20, maxCents: nil)], minShopTier: 1, conditions: [.betType(.banker)], useLimits: [.perStageByLevel(level1: 1, level2: 2, level3: 3)]),
             contentModifier(id: "banker.backroom-banco", name: "Backroom Banco", summary: "Strong Banker payout bonus, but it adds Heat.", rarity: .epic, tags: [.banker, .heat], trigger: .wagerWon, effects: payoutLevels(.banker, 18, 28, 45), minShopTier: 3, conditions: [.all([.betType(.banker), .winningSide(.banker)])], heatCost: 1),
             contentModifier(id: "banker.loyal-customer", name: "Loyal Customer", summary: "Your first winning bet each stage pays more if it is Banker.", rarity: .rare, tags: [.banker, .streak], trigger: .wagerWon, effects: anteLevels(75, 115, 175), minShopTier: 3, conditions: [.all([.betType(.banker), .winningSide(.banker), .firstWinningBetThisStage])], useLimits: [.perStage(1)]),
@@ -826,7 +923,7 @@ extension Modifier {
             contentModifier(id: "player.punto-strike", name: "Punto Strike", summary: "Player bets gain ante-scaled burst bankroll on wins.", rarity: .rare, tags: [.player, .tempo], trigger: .wagerWon, effects: anteLevels(60, 100, 160), minShopTier: 2, conditions: [.all([.betType(.player), .winningSide(.player)])]),
             contentModifier(id: "player.countertrend", name: "Countertrend", summary: "First Player win each stage grants 60% ante bankroll.", rarity: .common, tags: [.player, .comeback], trigger: .wagerWon, effects: anteLevels(60, 100, 150), minShopTier: 1, conditions: [.all([.betType(.player), .winningSide(.player), .firstPlayerSideWinThisStage])], useLimits: [.perStage(1)]),
             contentModifier(id: "player.sharp-turn", name: "Sharp Turn", summary: "Player wins give Chips once per stage.", rarity: .uncommon, tags: [.player, .economy], trigger: .wagerWon, effects: [.grantChipsOnFirstStageTrigger(amount: 1)], minShopTier: 2, conditions: [.all([.betType(.player), .winningSide(.player)])], useLimits: [.perStage(1)]),
-            contentModifier(id: "player.break-pattern", name: "Break the Pattern", summary: "Player wins pay a larger bonus during boss pressure.", rarity: .epic, tags: [.player, .boss], trigger: .wagerWon, effects: payoutLevels(.player, 20, 35, 55), minShopTier: 4, conditions: [.all([.betType(.player), .winningSide(.player)])]),
+            contentModifier(id: "player.break-pattern", name: "Backroom Break", summary: "Player wins pay a larger bonus during boss pressure.", rarity: .epic, tags: [.player, .boss], trigger: .wagerWon, effects: payoutLevels(.player, 20, 35, 55), minShopTier: 4, conditions: [.all([.betType(.player), .winningSide(.player)])]),
             contentModifier(id: "player.punto-insurance", name: "Punto Insurance", summary: "First losing Player bet each stage refunds 20%.", rarity: .common, tags: [.player, .comeback], trigger: .wagerLost, effects: [.levelScaled(level1: [.lossRefund(percent: 20, maxCents: nil)], level2: [.lossRefund(percent: 32, maxCents: nil)], level3: [.lossRefund(percent: 45, maxCents: nil)])], minShopTier: 1, conditions: [.betType(.player)], useLimits: [.perStage(1)]),
             contentModifier(id: "player.underdog-side", name: "Underdog Side", summary: "Player wins pay more but add Heat.", rarity: .rare, tags: [.player, .heat], trigger: .wagerWon, effects: payoutLevels(.player, 18, 30, 46), minShopTier: 3, conditions: [.all([.betType(.player), .winningSide(.player)])], heatCost: 1),
             contentModifier(id: "player.player-tempo", name: "Player Tempo", summary: "Any Player win advances your economy.", rarity: .uncommon, tags: [.player, .economy], trigger: .wagerWon, effects: [.levelScaled(level1: [.grantBankrollFromAnte(percent: 30)], level2: [.grantBankrollFromAnte(percent: 50)], level3: [.grantBankrollFromAnte(percent: 75), .grantChips(amount: 1)])], minShopTier: 2, conditions: [.all([.betType(.player), .winningSide(.player)])])
@@ -850,8 +947,8 @@ extension Modifier {
     private static var shoeVisionContent: [Modifier] {
         [
             contentModifier(id: "vision.dealer-glance", name: "Dealer Glance", summary: "Reveal one card at each stage start.", rarity: .common, tags: [.shoeVision], trigger: .stageStarted, effects: [.revealUpcomingCards(count: 1)], minShopTier: 1, useLimits: [.perStage(1)]),
-            contentModifier(id: "vision.soft-peek", name: "Soft Peek", summary: "Reveal two cards at stage start.", rarity: .common, tags: [.shoeVision], trigger: .stageStarted, effects: [.revealUpcomingCards(count: 2)], minShopTier: 1, useLimits: [.perStage(1)]),
-            contentModifier(id: "vision.deep-read", name: "Deep Read", summary: "Reveal four cards when the stage begins.", rarity: .rare, tags: [.shoeVision], trigger: .stageStarted, effects: [.revealUpcomingCards(count: 4)], minShopTier: 3, useLimits: [.perStage(1)]),
+            contentModifier(id: "vision.soft-peek", name: "Burn Watcher", summary: "Reveal two cards at stage start.", rarity: .common, tags: [.shoeVision], trigger: .stageStarted, effects: [.revealUpcomingCards(count: 2)], minShopTier: 1, useLimits: [.perStage(1)]),
+            contentModifier(id: "vision.deep-read", name: "Marked Sleeve", summary: "Reveal four cards when the stage begins.", rarity: .rare, tags: [.shoeVision], trigger: .stageStarted, effects: [.revealUpcomingCards(count: 4)], minShopTier: 3, useLimits: [.perStage(1)]),
             contentModifier(id: "vision.pattern-memory", name: "Pattern Memory", summary: "Reveals and pays a tiny ante stipend after wins.", rarity: .uncommon, tags: [.shoeVision, .economy], trigger: .wagerWon, effects: [.revealUpcomingCards(count: 1), .grantBankrollFromAnte(percent: 20)], minShopTier: 2),
             contentModifier(id: "vision.face-down-count", name: "Face Down Count", summary: "Card draws create compact shoe knowledge.", rarity: .common, tags: [.shoeVision], trigger: .cardDrawn, effects: [.custom(id: "count-card", description: "Logged one drawn card for the counter.")], minShopTier: 1),
             contentModifier(id: "vision.third-card-forecast", name: "Third Card Forecast", summary: "Stage start reveals enough for third-card planning.", rarity: .epic, tags: [.shoeVision], trigger: .stageStarted, effects: [.revealUpcomingCardsWithForecast(count: 5)], minShopTier: 4, useLimits: [.perStage(1)]),
@@ -880,8 +977,8 @@ extension Modifier {
         [
             contentModifier(id: "bet.small-ball", name: "Small Ball", summary: "Small winning bets gain a steady ante bonus.", rarity: .common, tags: [.betControl, .economy], trigger: .wagerWon, effects: anteLevels(25, 45, 70), minShopTier: 1),
             contentModifier(id: "bet.careful-hands", name: "Careful Hands", summary: "First loss each stage refunds part of the bet.", rarity: .common, tags: [.betControl, .comeback], trigger: .wagerLost, effects: [.lossRefund(percent: 25, maxCents: nil)], minShopTier: 1, useLimits: [.perStage(1)]),
-            contentModifier(id: "bet.press-edge", name: "Press the Edge", summary: "Wins after committing to a side pay more.", rarity: .uncommon, tags: [.betControl, .streak], trigger: .wagerWon, effects: payoutLevels(nil, 10, 16, 24), minShopTier: 2),
-            contentModifier(id: "bet.high-roller", name: "High Roller", summary: "Winning bets pay more but add Heat.", rarity: .rare, tags: [.betControl, .heat], trigger: .wagerWon, effects: payoutLevels(nil, 20, 32, 50), minShopTier: 2, heatCost: 1),
+            contentModifier(id: "bet.press-edge", name: "Dirty Streak", summary: "Wins after committing to a side pay more.", rarity: .uncommon, tags: [.betControl, .streak], trigger: .wagerWon, effects: payoutLevels(nil, 10, 16, 24), minShopTier: 2),
+            contentModifier(id: "bet.high-roller", name: "Red Flag Bet", summary: "Winning bets pay more but add Heat.", rarity: .rare, tags: [.betControl, .heat], trigger: .wagerWon, effects: payoutLevels(nil, 20, 32, 50), minShopTier: 2, heatCost: 1),
             contentModifier(id: "bet.insurance-marker", name: "Insurance Marker", summary: "Losses get a partial refund.", rarity: .uncommon, tags: [.betControl, .comeback], trigger: .wagerLost, effects: [.levelScaled(level1: [.lossRefund(percent: 15, maxCents: nil)], level2: [.lossRefund(percent: 25, maxCents: nil)], level3: [.lossRefund(percent: 35, maxCents: nil)])], minShopTier: 2),
             contentModifier(id: "bet.loss-limit", name: "Loss Limit", summary: "First two losses each stage refund modestly.", rarity: .rare, tags: [.betControl, .comeback], trigger: .wagerLost, effects: [.lossRefund(percent: 30, maxCents: nil)], minShopTier: 3, useLimits: [.perStageByLevel(level1: 1, level2: 2, level3: 2)]),
             contentModifier(id: "bet.flat-better", name: "Flat Better", summary: "Any win pays a small predictable bonus.", rarity: .common, tags: [.betControl], trigger: .wagerWon, effects: anteLevels(20, 35, 55), minShopTier: 1),
@@ -893,7 +990,7 @@ extension Modifier {
 
     private static var economyContent: [Modifier] {
         [
-            contentModifier(id: "economy.interest-ledger", name: "Interest Ledger", summary: "Stage starts pay a tiny bankroll stipend.", rarity: .common, tags: [.economy], trigger: .stageStarted, effects: anteLevels(35, 60, 100), minShopTier: 1, useLimits: [.perStage(1)]),
+            contentModifier(id: "economy.interest-ledger", name: "Loyalty Fraud", summary: "Stage starts pay a tiny bankroll stipend.", rarity: .common, tags: [.economy], trigger: .stageStarted, effects: anteLevels(35, 60, 100), minShopTier: 1, useLimits: [.perStage(1)]),
             contentModifier(id: "economy.shop-regular", name: "Shop Regular", summary: "Rerolls become easier to afford.", rarity: .uncommon, tags: [.economy], trigger: .shopRerolled, effects: [.addRerollDiscount(chips: 1)], minShopTier: 2),
             contentModifier(id: "economy.freeze-discount", name: "Freeze Discount", summary: "Shop entry discounts prices by 5%.", rarity: .common, tags: [.economy], trigger: .shopEntered, effects: [.addShopDiscount(percent: 5)], minShopTier: 1),
             contentModifier(id: "economy.duplicate-finder", name: "Duplicate Finder", summary: "Buying modifiers helps find copies.", rarity: .rare, tags: [.economy], trigger: .modifierBought, effects: [.custom(id: "duplicate-finder", description: "Future shops bias toward owned modifiers.")], minShopTier: 3),
@@ -965,15 +1062,15 @@ extension Modifier {
             contentModifier(id: "boss.inside-job", name: "Inside Job", summary: "Boss starts reveal a guarded forecast.", rarity: .epic, tags: [.boss, .shoeVision, .opponentSabotage], trigger: .bossStarted, effects: [.revealUpcomingCardsWithForecast(count: 4)], minShopTier: 4, useLimits: [.perStage(1)], heatCost: 1),
             contentModifier(id: "boss.countermeasure", name: "Countermeasure", summary: "Prevent one boss Heat spike each stage.", rarity: .uncommon, tags: [.boss, .heat], trigger: .heatGained, effects: [.preventHeat(amount: 1)], minShopTier: 2, useLimits: [.perStage(1)]),
             contentModifier(id: "boss.boss-bounty", name: "Boss Bounty", summary: "Defeating bosses pays Chips and bankroll.", rarity: .rare, tags: [.boss, .economy], trigger: .bossDefeated, effects: [.levelScaled(level1: [.grantChips(amount: 2), .grantBankrollFromAnte(percent: 100)], level2: [.grantChips(amount: 3), .grantBankrollFromAnte(percent: 150)], level3: [.grantChips(amount: 4), .grantBankrollFromAnte(percent: 225)])], minShopTier: 3),
-            contentModifier(id: "boss.house-crack", name: "House Crack", summary: "Late boss wins pay a risky but bounded bonus.", rarity: .legendary, tags: [.boss, .betControl, .heat], trigger: .wagerWon, effects: payoutLevels(nil, 30, 50, 75), minShopTier: 5, heatCost: 1)
+            contentModifier(id: "boss.house-crack", name: "Pit Boss Stare", summary: "Late boss wins pay a risky but bounded bonus.", rarity: .legendary, tags: [.boss, .betControl, .heat], trigger: .wagerWon, effects: payoutLevels(nil, 30, 50, 75), minShopTier: 5, heatCost: 1)
         ]
     }
 
     private static var debtLoanContent: [Modifier] {
         [
-            contentModifier(id: "debt.emergency-marker", name: "Emergency Marker", summary: "Stage starts can borrow a controlled bankroll cushion.", rarity: .common, tags: [.economy, .comeback], trigger: .stageStarted, effects: [.grantBankrollFromAnte(percent: 50), .gainHeat(amount: 1)], minShopTier: 1, useLimits: [.perStage(1)]),
+            contentModifier(id: "debt.emergency-marker", name: "Room Credit", summary: "Stage starts can borrow a controlled bankroll cushion.", rarity: .common, tags: [.economy, .comeback], trigger: .stageStarted, effects: [.grantBankrollFromAnte(percent: 50), .gainHeat(amount: 1)], minShopTier: 1, useLimits: [.perStage(1)]),
             contentModifier(id: "debt.debt-collector", name: "Debt Collector", summary: "Shop entry converts Heat pressure into Chips.", rarity: .rare, tags: [.economy, .heat], trigger: .shopEntered, effects: [.grantChips(amount: 2), .gainHeat(amount: 1)], minShopTier: 3),
-            contentModifier(id: "debt.last-dollar", name: "Last Dollar", summary: "First loss each stage refunds more when you are behind.", rarity: .uncommon, tags: [.comeback, .economy], trigger: .wagerLost, effects: [.levelScaled(level1: [.lossRefund(percent: 30, maxCents: nil)], level2: [.lossRefund(percent: 45, maxCents: nil)], level3: [.lossRefund(percent: 60, maxCents: nil), .grantChips(amount: 1)])], minShopTier: 2, useLimits: [.perStage(1)]),
+            contentModifier(id: "debt.last-dollar", name: "Free Drink Ticket", summary: "First loss each stage refunds more when you are behind.", rarity: .uncommon, tags: [.comeback, .economy], trigger: .wagerLost, effects: [.levelScaled(level1: [.lossRefund(percent: 30, maxCents: nil)], level2: [.lossRefund(percent: 45, maxCents: nil)], level3: [.lossRefund(percent: 60, maxCents: nil), .grantChips(amount: 1)])], minShopTier: 2, useLimits: [.perStage(1)]),
             contentModifier(id: "debt.credit-line", name: "Credit Line", summary: "Boss stages grant a cash buffer but add Heat.", rarity: .epic, tags: [.economy, .boss, .heat], trigger: .bossStarted, effects: [.grantBankrollFromAnte(percent: 200), .gainHeat(amount: 1)], minShopTier: 4, useLimits: [.perStage(1)]),
             contentModifier(id: "debt.marker-chain", name: "Marker Chain", summary: "Buying modifiers can create a small bankroll rebate.", rarity: .uncommon, tags: [.economy], trigger: .modifierBought, effects: [.grantBankrollFromAnte(percent: 25)], minShopTier: 2)
         ]

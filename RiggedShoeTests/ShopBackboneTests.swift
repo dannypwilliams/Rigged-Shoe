@@ -253,6 +253,79 @@ final class ShopBackboneTests: XCTestCase {
         )
     }
 
+    func testStageResultSummarySeparatesBankrollAndScoreMargin() {
+        var manager = RunManager()
+        manager.startRunPreview()
+        manager.startStageBattle()
+        manager.currentStageRoundsPlayed = manager.currentRoundLimit
+        manager.currentStageOpponentProfitCents = 7_500
+
+        let endingBankroll = manager.stageStartingBankrollCents + 10_000
+        manager.evaluateStage(bankrollCents: endingBankroll)
+
+        let result = manager.lastStageResult
+        XCTAssertEqual(result?.startingBankrollCents, RunManager.defaultStartingBankrollCents)
+        XCTAssertEqual(result?.endingBankrollCents, endingBankroll)
+        XCTAssertEqual(result?.bankrollChangeCents, 10_000)
+        XCTAssertEqual(result?.scoreMarginCents, 2_500)
+        XCTAssertEqual(result?.scoreMarginText, "+25.00 pts")
+        XCTAssertFalse(result?.reasonText.contains("$25.00") ?? true)
+    }
+
+    @MainActor
+    func testContinuingFromShopStartsNextStageWithCleanBattlePresentation() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        viewModel.dealRound(allowPresentationLockBypass: true)
+        XCTAssertNotNil(viewModel.state.latestRound)
+
+        viewModel.debugInstantStageClear()
+        viewModel.continueFromStageResult()
+        guard let reward = viewModel.state.pendingStageRewardChoices.first(where: { $0.rebuildEffect == nil })
+            ?? viewModel.state.pendingStageRewardChoices.first else {
+            XCTFail("Expected a reward draft after stage clear")
+            return
+        }
+
+        viewModel.selectStageReward(reward)
+        XCTAssertEqual(viewModel.state.runManager.flowState, .shop)
+
+        viewModel.continueFromShop()
+        XCTAssertEqual(viewModel.state.runManager.stageReached, 2)
+        XCTAssertEqual(viewModel.state.runManager.flowState, .stagePreview)
+        XCTAssertNil(viewModel.state.latestRound)
+        XCTAssertTrue(viewModel.state.history.isEmpty)
+        XCTAssertTrue(viewModel.state.roundPresentation.triggerFeedback.isEmpty)
+        XCTAssertEqual(viewModel.state.selectedBetAmountCents, viewModel.state.runManager.currentStage.minimumBetCents)
+    }
+
+    @MainActor
+    func testLargeBetCreatesVisibleHeatPressure() {
+        RunPersistenceManager.clear()
+        var metaProgression = isolatedMetaProgression()
+        metaProgression.markGuidedFirstRunCompleted()
+        let viewModel = GameViewModel(metaProgression: metaProgression)
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+        let maxBet = viewModel.unlockedBetAmountsCents
+            .filter(viewModel.isBetAmountPlayable)
+            .max() ?? viewModel.state.runManager.minimumBetCents()
+        viewModel.selectBetAmount(maxBet)
+        viewModel.dealRound(allowPresentationLockBypass: true)
+
+        XCTAssertTrue(
+            viewModel.state.battleLog.contains { entry in
+                entry.heatDelta != 0 || entry.modifierEffects.contains { $0.title == "Table Heat" }
+            }
+        )
+    }
+
     func testStageRewardShopAndBossLoopCanAdvanceEndToEnd() {
         var manager = RunManager()
         XCTAssertEqual(manager.flowState, .runStart)

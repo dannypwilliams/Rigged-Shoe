@@ -501,10 +501,15 @@ struct StagePreviewData: Equatable {
 struct StageResultData: Codable, Equatable {
     let stageNumber: Int
     let didWin: Bool
+    let startingBankrollCents: Int
+    let endingBankrollCents: Int
     let profitCents: Int
     let opponentName: String
     let opponentProfitCents: Int
     let bankrollChangeCents: Int
+    let objectiveDescription: String
+    let objectiveProgressText: String
+    let scoreMarginCents: Int
     let heatChange: Int
     let chipsEarned: Int
     let failureReason: StageFailureReason?
@@ -514,6 +519,7 @@ struct StageResultData: Codable, Equatable {
     let secondaryObjectiveReward: String
     let lossExplanation: String
     let buildArchetype: String
+    let triggeredModifierSummaries: [String]
 
     var title: String {
         didWin ? "Stage Cleared" : "Stage Failed"
@@ -521,19 +527,31 @@ struct StageResultData: Codable, Equatable {
 
     var reasonText: String {
         if didWin {
-            return "You beat \(opponentName) \(MoneyFormatter.signed(profitCents - opponentProfitCents))."
+            return "Opponent defeated: \(opponentName). Score margin \(scoreMarginText)."
         }
 
         return lossExplanation.isEmpty ? (failureReason?.displayText ?? "Opponent outscored your table profit.") : lossExplanation
     }
 
+    var scoreMarginText: String {
+        let sign = scoreMarginCents > 0 ? "+" : ""
+        let whole = abs(scoreMarginCents) / 100
+        let cents = abs(scoreMarginCents) % 100
+        return "\(sign)\(scoreMarginCents < 0 ? "-" : "")\(whole).\(String(format: "%02d", cents)) pts"
+    }
+
     init(
         stageNumber: Int,
         didWin: Bool,
+        startingBankrollCents: Int,
+        endingBankrollCents: Int,
         profitCents: Int,
         opponentName: String,
         opponentProfitCents: Int,
         bankrollChangeCents: Int,
+        objectiveDescription: String,
+        objectiveProgressText: String,
+        scoreMarginCents: Int,
         heatChange: Int,
         chipsEarned: Int,
         failureReason: StageFailureReason?,
@@ -542,14 +560,20 @@ struct StageResultData: Codable, Equatable {
         secondaryObjectiveCompleted: Bool,
         secondaryObjectiveReward: String,
         lossExplanation: String,
-        buildArchetype: String
+        buildArchetype: String,
+        triggeredModifierSummaries: [String] = []
     ) {
         self.stageNumber = stageNumber
         self.didWin = didWin
+        self.startingBankrollCents = startingBankrollCents
+        self.endingBankrollCents = endingBankrollCents
         self.profitCents = profitCents
         self.opponentName = opponentName
         self.opponentProfitCents = opponentProfitCents
         self.bankrollChangeCents = bankrollChangeCents
+        self.objectiveDescription = objectiveDescription
+        self.objectiveProgressText = objectiveProgressText
+        self.scoreMarginCents = scoreMarginCents
         self.heatChange = heatChange
         self.chipsEarned = chipsEarned
         self.failureReason = failureReason
@@ -559,15 +583,21 @@ struct StageResultData: Codable, Equatable {
         self.secondaryObjectiveReward = secondaryObjectiveReward
         self.lossExplanation = lossExplanation
         self.buildArchetype = buildArchetype
+        self.triggeredModifierSummaries = triggeredModifierSummaries
     }
 
     enum CodingKeys: String, CodingKey {
         case stageNumber
         case didWin
+        case startingBankrollCents
+        case endingBankrollCents
         case profitCents
         case opponentName
         case opponentProfitCents
         case bankrollChangeCents
+        case objectiveDescription
+        case objectiveProgressText
+        case scoreMarginCents
         case heatChange
         case chipsEarned
         case failureReason
@@ -577,16 +607,22 @@ struct StageResultData: Codable, Equatable {
         case secondaryObjectiveReward
         case lossExplanation
         case buildArchetype
+        case triggeredModifierSummaries
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         stageNumber = try container.decode(Int.self, forKey: .stageNumber)
         didWin = try container.decode(Bool.self, forKey: .didWin)
+        startingBankrollCents = try container.decodeIfPresent(Int.self, forKey: .startingBankrollCents) ?? 0
+        endingBankrollCents = try container.decodeIfPresent(Int.self, forKey: .endingBankrollCents) ?? 0
         profitCents = try container.decode(Int.self, forKey: .profitCents)
         opponentName = try container.decodeIfPresent(String.self, forKey: .opponentName) ?? "Opponent"
         opponentProfitCents = try container.decodeIfPresent(Int.self, forKey: .opponentProfitCents) ?? 0
         bankrollChangeCents = try container.decode(Int.self, forKey: .bankrollChangeCents)
+        objectiveDescription = try container.decodeIfPresent(String.self, forKey: .objectiveDescription) ?? "Clear the stage objective."
+        objectiveProgressText = try container.decodeIfPresent(String.self, forKey: .objectiveProgressText) ?? ""
+        scoreMarginCents = try container.decodeIfPresent(Int.self, forKey: .scoreMarginCents) ?? (profitCents - opponentProfitCents)
         heatChange = try container.decode(Int.self, forKey: .heatChange)
         chipsEarned = try container.decode(Int.self, forKey: .chipsEarned)
         failureReason = try container.decodeIfPresent(StageFailureReason.self, forKey: .failureReason)
@@ -596,5 +632,6 @@ struct StageResultData: Codable, Equatable {
         secondaryObjectiveReward = try container.decodeIfPresent(String.self, forKey: .secondaryObjectiveReward) ?? "+1 Chip"
         lossExplanation = try container.decodeIfPresent(String.self, forKey: .lossExplanation) ?? ""
         buildArchetype = try container.decodeIfPresent(String.self, forKey: .buildArchetype) ?? "Hybrid Build"
+        triggeredModifierSummaries = try container.decodeIfPresent([String].self, forKey: .triggeredModifierSummaries) ?? []
     }
 }

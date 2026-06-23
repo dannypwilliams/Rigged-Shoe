@@ -152,15 +152,87 @@ struct StageClearView: View {
     }
 
     private func rewardCard(_ reward: StageReward, isCompact: Bool) -> some View {
-        CrookedCasinoCard(
-            kind: .uncommon,
-            eyebrow: "Stage Reward",
-            title: reward.name,
-            description: reward.description,
-            icon: .reward,
-            footer: "Claim after this draft",
-            isCompact: isCompact
-        )
+        VStack(alignment: .leading, spacing: isCompact ? 6 : 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(reward.name)
+                    .font(.system(size: isCompact ? 17 : 19, weight: .black, design: .rounded))
+                    .foregroundStyle(CrookedCasinoTheme.ink)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 8)
+
+                Text(rewardArchetype(reward).rawValue)
+                    .font(.system(size: 8, weight: .black, design: .rounded))
+                    .foregroundStyle(CrookedCasinoTheme.ink)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 4)
+                    .background(CrookedStickerShape(cornerRadius: 7).fill(CrookedCasinoTheme.dirtyGold.opacity(0.72)))
+            }
+
+            Text(rewardArchetype(reward).fantasyTag)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(CrookedCasinoTheme.ink.opacity(0.70))
+                .fixedSize(horizontal: false, vertical: true)
+
+            rewardLine(title: "Trigger", value: "Stage reward draft")
+            rewardLine(title: "Effect", value: reward.description)
+            rewardLine(title: "Heat", value: rewardHeatImpact(reward))
+        }
+        .padding(isCompact ? 12 : 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            CrookedStickerShape(cornerRadius: 13)
+                .fill(CrookedCasinoTheme.paperLight)
+                .overlay {
+                    CrookedStickerShape(cornerRadius: 13)
+                        .stroke(CrookedCasinoTheme.dirtyGold.opacity(0.72), lineWidth: 1.3)
+                }
+        }
+        .overlay(DoodleAccentView(accent: CrookedCasinoTheme.felt, density: .low).allowsHitTesting(false))
+        .shadow(color: CrookedCasinoTheme.felt.opacity(0.12), radius: 8, y: 4)
+    }
+
+    private func rewardLine(title: String, value: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(title)
+                .font(.system(size: 9, weight: .black, design: .rounded))
+                .foregroundStyle(CrookedCasinoTheme.ink.opacity(0.52))
+                .textCase(.uppercase)
+                .frame(width: 52, alignment: .leading)
+
+            Text(value)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(CrookedCasinoTheme.ink.opacity(0.82))
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func rewardArchetype(_ reward: StageReward) -> VerticalSliceArchetype {
+        let tags = RewardDraftState.tags(for: reward)
+        if tags.contains(.heat) || tags.contains(.betControl) {
+            return .heatGambler
+        }
+
+        if tags.contains(.economy) || tags.contains(.comeback) || tags.contains(.consumable) || tags.contains(.attachment) {
+            return .compScammer
+        }
+
+        return .cardReader
+    }
+
+    private func rewardHeatImpact(_ reward: StageReward) -> String {
+        if case .heatReduction(let amount)? = reward.rebuildEffect {
+            return "-\(amount) Heat"
+        }
+
+        if case .reduceHeat(let amount) = reward.effect {
+            return "-\(amount) Heat"
+        }
+
+        return "+0 Heat"
     }
 
     private func betUnlockText(for nextStage: Stage) -> String? {

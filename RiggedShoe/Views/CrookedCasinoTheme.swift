@@ -492,14 +492,13 @@ struct CrookedCasinoCard: View {
                 Text(title)
                     .font(.system(size: isCompact ? 16 : 19, weight: .black, design: .rounded))
                     .foregroundStyle(kind.labelColor)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(description)
                     .font(.system(size: isCompact ? 11 : 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(kind.labelColor.opacity(0.74))
-                    .lineLimit(isCompact ? 2 : 3)
-                    .minimumScaleFactor(0.76)
+                    .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if let footer {

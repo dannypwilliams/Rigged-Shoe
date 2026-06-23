@@ -192,8 +192,13 @@ struct RunCurrencyStrip: View {
     var body: some View {
         HStack(spacing: compact ? 6 : 8) {
             resourcePill(title: "Chips", value: "\(runManager.chips)", color: CasinoTheme.gold)
-            resourcePill(title: "Heat", value: "\(runManager.heat)/\(runManager.maxHeat)", color: CasinoTheme.red)
+            resourcePill(title: "Heat", value: heatText, color: CasinoTheme.red)
         }
+    }
+
+    private var heatText: String {
+        let band = HeatBand.band(for: runManager.heat, maxHeat: runManager.maxHeat)
+        return compact ? "\(runManager.heat)/\(runManager.maxHeat) \(band.rawValue)" : "\(runManager.heat)/\(runManager.maxHeat) - \(band.rawValue)"
     }
 
     private func resourcePill(title: String, value: String, color: Color) -> some View {

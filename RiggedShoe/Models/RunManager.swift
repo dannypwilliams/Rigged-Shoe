@@ -472,13 +472,19 @@ struct RunManager: Equatable {
         failureReason: StageFailureReason?
     ) -> StageResultData {
         let secondaryComplete = secondaryObjectiveComplete(bankrollCents: bankrollCents)
+        let objective = currentStage.teachingObjective
         return StageResultData(
             stageNumber: currentStage.id,
             didWin: didWin,
+            startingBankrollCents: stageStartingBankrollCents,
+            endingBankrollCents: bankrollCents,
             profitCents: stageProfitCents(bankrollCents: bankrollCents),
             opponentName: currentStage.opponent.name,
             opponentProfitCents: currentStageOpponentProfitCents,
             bankrollChangeCents: bankrollCents - stageStartingBankrollCents,
+            objectiveDescription: objective?.description ?? "End the stage ahead of the table.",
+            objectiveProgressText: objective?.progressText(in: self, bankrollCents: bankrollCents) ?? MoneyFormatter.signed(stageProfitCents(bankrollCents: bankrollCents)),
+            scoreMarginCents: stageProfitCents(bankrollCents: bankrollCents) - currentStageOpponentProfitCents,
             heatChange: heat - heatBeforeResult,
             chipsEarned: chipsEarned,
             failureReason: failureReason,

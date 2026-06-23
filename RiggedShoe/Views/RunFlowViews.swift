@@ -10,6 +10,11 @@ struct RunStartView: View {
     let onSelectContact: (StartingContact) -> Void
     let onContinue: () -> Void
 
+    private var contactHeatText: String {
+        let adjustedHeat = min(maxHeat, max(0, heat + selectedContact.heatAdjustment))
+        return "\(adjustedHeat)/\(maxHeat) \(HeatBand.band(for: adjustedHeat, maxHeat: maxHeat).rawValue)"
+    }
+
     var body: some View {
         RunFlowOverlay(accentColor: CasinoTheme.gold) {
             VStack(spacing: 12) {
@@ -43,12 +48,12 @@ struct RunStartView: View {
                     .padding(.horizontal, 2)
                     .padding(.vertical, 2)
                 }
-                .frame(height: 68)
+                .frame(height: 86)
 
                 HStack(spacing: 8) {
                     RunFlowStat(title: "Base Bankroll", value: MoneyFormatter.format(bankrollCents + selectedContact.bankrollAdjustmentCents))
                     RunFlowStat(title: "Chips", value: "\(max(0, chips + selectedContact.chipsAdjustment))")
-                    RunFlowStat(title: "Heat", value: "\(min(maxHeat, max(0, heat + selectedContact.heatAdjustment)))/\(maxHeat)")
+                    RunFlowStat(title: "Heat", value: contactHeatText)
                 }
 
                 PrimaryRunFlowButton(title: "Preview Stage 1", action: onContinue)
@@ -66,7 +71,8 @@ private struct StartingContactDetailCard: View {
                 Text(contact.name)
                     .font(.headline.weight(.black))
                     .foregroundStyle(.white)
-                    .lineLimit(1)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Spacer(minLength: 8)
 
@@ -81,12 +87,13 @@ private struct StartingContactDetailCard: View {
             Text(contact.recommendedArchetype)
                 .font(.caption.weight(.black))
                 .foregroundStyle(CasinoTheme.gold.opacity(0.86))
-                .lineLimit(1)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
 
             Text(contact.summary)
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.white.opacity(0.72))
-                .lineLimit(2)
+                .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
@@ -112,7 +119,8 @@ private struct StartingContactChip: View {
                 Text(contact.name)
                     .font(.system(size: 11, weight: .black, design: .rounded))
                     .foregroundStyle(isSelected ? CasinoTheme.gold : .white)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Spacer(minLength: 4)
 
@@ -127,9 +135,9 @@ private struct StartingContactChip: View {
             Text(contact.recommendedArchetype)
                 .font(.system(size: 9, weight: .bold, design: .rounded))
                 .foregroundStyle(.white.opacity(0.62))
-                .lineLimit(1)
+                .lineLimit(2)
         }
-        .frame(width: 148, height: 58, alignment: .topLeading)
+        .frame(width: 154, height: 74, alignment: .topLeading)
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -150,12 +158,18 @@ struct StagePreviewView: View {
     let maxHeat: Int
     let onEnterBattle: () -> Void
 
+    private var heatText: String {
+        "\(heat)/\(maxHeat) \(HeatBand.band(for: heat, maxHeat: maxHeat).rawValue)"
+    }
+
     var body: some View {
         RunFlowOverlay(accentColor: preview.isBossStage ? CasinoTheme.red : CasinoTheme.emerald) {
             VStack(spacing: 16) {
                 Text(preview.isBossStage ? "Boss Scout Report" : "Scout Report")
                     .font(.system(size: 34, weight: .black, design: .rounded))
                     .foregroundStyle(preview.isBossStage ? CasinoTheme.red : CasinoTheme.gold)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
 
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(alignment: .top) {
@@ -163,10 +177,14 @@ struct StagePreviewView: View {
                             Text("Stage \(preview.stageNumber) - \(preview.handCount) hands")
                                 .font(.title2.weight(.black))
                                 .foregroundStyle(.white)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
 
                             Text(preview.opponentName)
                                 .font(.headline.weight(.bold))
                                 .foregroundStyle(.white.opacity(0.72))
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
 
                             Text(preview.opponentSubtitle)
                                 .font(.caption.weight(.black))
@@ -225,7 +243,7 @@ struct StagePreviewView: View {
                 HStack(spacing: 8) {
                     RunFlowStat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents))
                     RunFlowStat(title: "Chips", value: "\(chips)")
-                    RunFlowStat(title: "Heat", value: "\(heat)/\(maxHeat)")
+                    RunFlowStat(title: "Heat", value: heatText)
                 }
 
                 PrimaryRunFlowButton(title: preview.isBossStage ? "Face the Boss" : "Enter Battle", action: onEnterBattle)
@@ -241,6 +259,10 @@ struct StageResultView: View {
     let maxHeat: Int
     let onContinue: () -> Void
 
+    private var heatText: String {
+        "\(heat)/\(maxHeat) \(HeatBand.band(for: heat, maxHeat: maxHeat).rawValue)"
+    }
+
     var body: some View {
         let accent = result.didWin ? CasinoTheme.emerald : CasinoTheme.red
 
@@ -255,12 +277,14 @@ struct StageResultView: View {
                     .foregroundStyle(.white.opacity(0.72))
 
                 VStack(spacing: 9) {
-                    RunFlowDetailRow(title: "Battle Result", value: result.reasonText)
+                    RunFlowDetailRow(title: "Result", value: result.reasonText)
                     RunFlowDetailRow(title: "Opponent", value: result.opponentName)
-                    RunFlowDetailRow(title: "Player Score", value: MoneyFormatter.signed(result.profitCents))
-                    RunFlowDetailRow(title: "Opponent Score", value: MoneyFormatter.signed(result.opponentProfitCents))
-                    RunFlowDetailRow(title: "Profit / Loss", value: MoneyFormatter.signed(result.profitCents))
+                    RunFlowDetailRow(title: "Started", value: MoneyFormatter.format(result.startingBankrollCents))
+                    RunFlowDetailRow(title: "Ended", value: MoneyFormatter.format(result.endingBankrollCents))
                     RunFlowDetailRow(title: "Bankroll Change", value: MoneyFormatter.signed(result.bankrollChangeCents))
+                    RunFlowDetailRow(title: "Objective", value: result.objectiveDescription)
+                    RunFlowDetailRow(title: "Progress", value: result.objectiveProgressText)
+                    RunFlowDetailRow(title: "Score Margin", value: result.scoreMarginText)
                     RunFlowDetailRow(title: "Heat Change", value: signedNumber(result.heatChange))
                     RunFlowDetailRow(title: "Chips Earned", value: "+\(result.chipsEarned)")
                     RunFlowDetailRow(title: "Table Event", value: result.tableEventName)
@@ -271,13 +295,30 @@ struct StageResultView: View {
                             : "\(result.secondaryObjectiveTitle) missed"
                     )
                     RunFlowDetailRow(title: "Main Build", value: result.buildArchetype)
+
+                    if !result.triggeredModifierSummaries.isEmpty {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Modifier Activity")
+                                .font(.caption.weight(.black))
+                                .foregroundStyle(.white.opacity(0.58))
+                                .textCase(.uppercase)
+
+                            ForEach(result.triggeredModifierSummaries, id: \.self) { summary in
+                                Text(summary)
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.white.opacity(0.78))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
                 .padding(16)
                 .crookedPanel(kind: result.didWin ? .felt : .warning, strokeColor: accent, cornerRadius: 14)
 
                 HStack(spacing: 8) {
                     RunFlowStat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents))
-                    RunFlowStat(title: "Heat", value: "\(heat)/\(maxHeat)")
+                    RunFlowStat(title: "Heat", value: heatText)
                 }
 
                 PrimaryRunFlowButton(title: result.didWin ? "Draft Reward" : "Run Summary", action: onContinue)
@@ -319,7 +360,7 @@ struct ShopPhaseView: View {
                         .frame(width: 112)
                 }
 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                LazyVGrid(columns: [GridItem(.flexible())], spacing: 8) {
                     ForEach(viewModel.state.shopState.offers) { offer in
                         ShopOfferCard(
                             offer: offer,
@@ -500,7 +541,12 @@ private struct ShopOfferCard: View {
     private var cardTags: [String] {
         var result = ["Cost \(offer.priceChips)"]
 
-        if let tags {
+        if offer.kind == .modifier,
+           let modifier = Modifier.definition(id: offer.contentID) {
+            result.append(modifier.verticalSliceArchetype.rawValue)
+            result.append(modifier.rarity.displayName)
+            result.append(modifier.heatImpactText)
+        } else if let tags {
             result.append(contentsOf: tags.components(separatedBy: " - "))
         }
 
@@ -579,7 +625,7 @@ private struct ShopOfferCard: View {
     private var kindText: String {
         if offer.kind == .modifier,
            let modifier = Modifier.definition(id: offer.contentID) {
-            return modifier.rarity.displayName.uppercased()
+            return modifier.verticalSliceArchetype.rawValue.uppercased()
         }
 
         return offer.kind.displayName.uppercased()
@@ -647,10 +693,12 @@ private struct ShopInventorySection: View {
                                 Text("\(modifier.name) L\(instance.level)")
                                     .font(.caption.weight(.black))
                                     .foregroundStyle(.white)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
                                 Text(modifier.shopMechanicText)
                                     .font(.system(size: 9, weight: .bold, design: .rounded))
                                     .foregroundStyle(.white.opacity(0.58))
-                                    .lineLimit(2)
+                                    .lineLimit(nil)
                                     .fixedSize(horizontal: false, vertical: true)
                                 if !instance.attachedIDs.isEmpty {
                                     Text(instance.attachedIDs.compactMap { Attachment.definition(id: $0)?.name }.joined(separator: ", "))
@@ -661,7 +709,8 @@ private struct ShopInventorySection: View {
                                     Text(modifier.tags.map(\.displayName).sorted().prefix(3).joined(separator: " - "))
                                         .font(.system(size: 9, weight: .bold, design: .rounded))
                                         .foregroundStyle(.white.opacity(0.48))
-                                        .lineLimit(1)
+                                        .lineLimit(nil)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
 
@@ -739,17 +788,18 @@ private struct RunFlowOverlay<Content: View>: View {
                 .ignoresSafeArea()
 
             GeometryReader { proxy in
-                VStack {
-                    Spacer(minLength: 0)
-
-                    content
-                        .padding(18)
-                        .frame(maxWidth: min(proxy.size.width - 28, 460))
-                        .crookedPanel(kind: .felt, strokeColor: accentColor, cornerRadius: 22)
-                        .scaleEffect(didAppear ? 1 : 0.96)
-                        .opacity(didAppear ? 1 : 0)
-
-                    Spacer(minLength: 0)
+                ScrollView(showsIndicators: false) {
+                    VStack {
+                        content
+                            .padding(18)
+                            .frame(maxWidth: min(proxy.size.width - 28, 460))
+                            .crookedPanel(kind: .felt, strokeColor: accentColor, cornerRadius: 22)
+                            .scaleEffect(didAppear ? 1 : 0.96)
+                            .opacity(didAppear ? 1 : 0)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: proxy.size.height, alignment: .center)
+                    .padding(.vertical, 14)
                 }
                 .frame(width: proxy.size.width, height: proxy.size.height)
                 .padding(.horizontal, 14)
@@ -804,8 +854,9 @@ private struct RunFlowDetailRow: View {
                 .font(.subheadline.weight(.black))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.trailing)
-                .lineLimit(2)
-                .minimumScaleFactor(0.78)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(1)
         }
     }
 }
