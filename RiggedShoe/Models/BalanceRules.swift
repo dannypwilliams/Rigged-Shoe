@@ -4,6 +4,31 @@ enum BalanceVersion: String, Codable, Equatable {
     case rebalancedV1
 }
 
+enum VerticalSliceBalance {
+    static let startingBankrollCents = 25_000
+    static let startingChips = 3
+    static let startingHeat = 0
+    static let activeModifierSlots = 5
+
+    static let stage1Hands = 5
+    static let stage1MinimumBetCents = 2_500
+    static let stage1MaximumBetCents = 7_500
+    static let stage1ClearChips = 2
+    static let stage1OptionalChallengeMaxHeat = 3
+    static let stage1OptionalChallengeChips = 1
+
+    static let stage2Hands = 6
+    static let stage2MinimumBetCents = 5_000
+    static let stage2MaximumBetCents = 10_000
+    static let stage2OptionalChallengeChips = 1
+
+    static let pitBossHeatThreshold = 7
+    static let pitBossSkimPercent = 25
+    static let pitBossHeatReduction = 2
+    static let crackdownBankrollPenaltyDivisor = 10
+    static let crackdownHeatReduction = 2
+}
+
 enum ModifierAcquisitionClass: String, Codable, Equatable {
     case starter
     case regular
@@ -85,25 +110,18 @@ enum HeatBand: String, Codable, Equatable {
     case cool = "Cool"
     case noticed = "Noticed"
     case watched = "Watched"
-    case hot = "Hot"
-    case exposed = "Exposed"
+    case crackdown = "Crackdown"
 
     static func band(for heat: Int, maxHeat: Int) -> HeatBand {
-        let capacity = max(1, maxHeat)
-        let clamped = min(capacity, max(0, heat))
-        let percent = clamped * 100 / capacity
-
-        switch percent {
-        case 0...24:
+        switch max(0, heat) {
+        case 0...3:
             return .cool
-        case 25...49:
+        case 4...6:
             return .noticed
-        case 50...74:
+        case 7...9:
             return .watched
-        case 75..<100:
-            return .hot
         default:
-            return .exposed
+            return .crackdown
         }
     }
 }

@@ -149,7 +149,7 @@ struct RewardDraftState: Identifiable, Codable, Equatable {
         return RewardDraftState(
             kind: .normalStage,
             stageNumber: stage.id,
-            title: "Stage \(stage.id) Reward Draft",
+            title: "Take 1 Reward",
             buildArchetype: BuildArchetypeDetector.detect(activeModifiers: activeModifiers),
             dominantTags: dominant,
             choices: rewards.map { reward in

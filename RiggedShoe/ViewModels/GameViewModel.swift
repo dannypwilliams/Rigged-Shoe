@@ -41,7 +41,7 @@ final class GameViewModel: ObservableObject {
     private let sessionStartedAt = Date()
     private var modifierEngine = ModifierEngine()
 
-    let betAmountsCents = Array(Set(Stage.allStages.flatMap(\.betLimit.allowedBetAmountsCents))).sorted()
+    let betAmountsCents = Array(Set(Stage.verticalSliceStages.flatMap(\.betLimit.allowedBetAmountsCents))).sorted()
 
     init(metaProgression: MetaProgressionManager = MetaProgressionManager()) {
         self.metaProgression = metaProgression
@@ -90,7 +90,7 @@ final class GameViewModel: ObservableObject {
 
     var guidedOpeningHandNotice: String? {
         isGuidedOpeningHandLocked
-            ? "Tutorial Hand: scripted Player bet. Other bets unlock after this hand."
+            ? "First hand: Player $25. Other bets unlock after the deal."
             : nil
     }
 
@@ -730,6 +730,9 @@ final class GameViewModel: ObservableObject {
 
     func startStageBattle() {
         state.runManager.startStageBattle()
+        if state.runManager.currentStageRoundsPlayed == 0 {
+            resetVisibleBattleStateForStage(reason: "stage battle entry")
+        }
         normalizeSelectedBetForStage()
         persistRunState()
     }
@@ -1004,7 +1007,7 @@ final class GameViewModel: ObservableObject {
         case .rewardDraft:
             return "Choose a stage reward"
         case .shop:
-            return "Shop: buy, freeze, or reroll"
+            return "Shop: buy, reroll, or continue"
         case .runComplete:
             return "Run complete"
         case .runFailed:
@@ -1703,17 +1706,15 @@ final class GameViewModel: ObservableObject {
         payoutLedgerLines += modifierLedgerLines
         var heatPressureResolutions = baselineHeatResolutions(
             result: result,
-            betAmountCents: betAmountCents,
-            bankrollBeforeRound: bankrollBeforeRound,
             handNumber: battleLogHandNumber
         )
         appendHeatPreventionIfNeeded(to: &heatPressureResolutions, handNumber: battleLogHandNumber)
         let heatLedgerLines = applyModifierResolutions(heatPressureResolutions)
         activationMessages += heatPressureResolutions.flatMap(\.messages)
         payoutLedgerLines += heatLedgerLines
-        let exposurePenalty = applyHeatExposurePenaltyIfNeeded()
-        activationMessages += exposurePenalty.messages
-        payoutLedgerLines += exposurePenalty.ledgerLines
+        let heatResponse = applyHeatResponseIfNeeded(bankrollBeforeRoundCents: bankrollBeforeRound)
+        activationMessages += heatResponse.messages
+        payoutLedgerLines += heatResponse.ledgerLines
         let allModifierResolutions = preDealModifierResolutions + bossPreDealResolutions + modifierResolutions + heatPressureResolutions
         let triggerFeedback = triggerFeedbackEntries(
             activationMessages: activationMessages,
@@ -2087,12 +2088,16 @@ final class GameViewModel: ObservableObject {
             return
         }
 
+        let previousAmount = state.selectedBetAmountCents
         let legalAmounts = unlockedBetAmountsCents
             .filter(isBetAmountPlayable)
             .sorted()
 
-        state.selectedBetAmountCents = legalAmounts.first ?? unlockedBetAmountsCents.first ?? 1_000
+        state.selectedBetAmountCents = legalAmounts.last ?? unlockedBetAmountsCents.first ?? minimumUnlockedBetAmountCents
         clampSelectedBetForRevealCap()
+        if previousAmount != state.selectedBetAmountCents {
+            showBetAdjustedExplanation(from: previousAmount, to: state.selectedBetAmountCents)
+        }
     }
 
     private func clampSelectedBetForRevealCap() {
@@ -2105,7 +2110,21 @@ final class GameViewModel: ObservableObject {
             .filter { $0 <= activeRevealBetCapCents && isBetAmountPlayable($0) }
             .sorted()
 
+        let previousAmount = state.selectedBetAmountCents
         state.selectedBetAmountCents = legalAmounts.last ?? minimumUnlockedBetAmountCents
+        if previousAmount != state.selectedBetAmountCents {
+            showBetAdjustedExplanation(from: previousAmount, to: state.selectedBetAmountCents)
+        }
+    }
+
+    private func showBetAdjustedExplanation(from oldAmountCents: Int, to newAmountCents: Int) {
+        state.roundPresentation.upgradeMessages = [
+            "Bet adjusted: \(MoneyFormatter.format(oldAmountCents)) is not legal here. Selected \(MoneyFormatter.format(newAmountCents))."
+        ]
+        state.roundPresentation.payoutLedgerLines = []
+        state.roundPresentation.triggerFeedback = []
+        state.roundPresentation.sequenceID = UUID()
+        appendDebugBattleEvent("[Bet] Bet adjusted \(MoneyFormatter.format(oldAmountCents)) -> \(MoneyFormatter.format(newAmountCents))")
     }
 
     private var canUseShoeControlNow: Bool {
@@ -2608,37 +2627,10 @@ final class GameViewModel: ObservableObject {
 
     private func baselineHeatResolutions(
         result: RoundResult,
-        betAmountCents: Int,
-        bankrollBeforeRound: Int,
         handNumber: Int
     ) -> [ModifierResolution] {
-        let minimumBet = state.runManager.minimumBetCents()
-        let maximumBet = state.runManager.maximumBetCents(bankrollCents: bankrollBeforeRound)
-        let stageNumber = state.runManager.currentStage.id
         var heatDelta = 0
         var reasons: [String] = []
-
-        if betAmountCents >= maximumBet {
-            let maxBetHeat = stageNumber <= 1 ? 1 : 2
-            heatDelta += maxBetHeat
-            reasons.append("max bet")
-        } else if betAmountCents >= max(minimumBet, maximumBet * 2 / 3) {
-            heatDelta += 1
-            reasons.append("large bet")
-        } else if stageNumber >= 2, betAmountCents > minimumBet {
-            heatDelta += 1
-            reasons.append("medium bet")
-        }
-
-        if result.didWin, betAmountCents >= maximumBet {
-            heatDelta += 1
-            reasons.append("max-bet win")
-        }
-
-        if result.didWin, result.winner == .tie {
-            heatDelta += 2
-            reasons.append("Tie payout")
-        }
 
         let tableHeat = state.runManager.currentStage.effectiveTableRules.compactMap { rule -> Int? in
             if case .heatGainOnSuspiciousWin(let amount) = rule, result.didWin {
@@ -2655,11 +2647,6 @@ final class GameViewModel: ObservableObject {
         if tableHeat > 0 {
             heatDelta += tableHeat
             reasons.append(state.runManager.currentStage.tableEvent.name)
-        }
-
-        if !result.didWin, !result.isPush, state.runManager.heat >= state.runManager.maxHeat / 2 {
-            heatDelta -= 1
-            reasons.append("loss cooled the table")
         }
 
         guard heatDelta != 0 else {
@@ -2682,7 +2669,35 @@ final class GameViewModel: ObservableObject {
         ]
     }
 
-    private func applyHeatExposurePenaltyIfNeeded() -> (messages: [String], ledgerLines: [PayoutLedgerLine]) {
+    private func applyHeatResponseIfNeeded(bankrollBeforeRoundCents: Int) -> (messages: [String], ledgerLines: [PayoutLedgerLine]) {
+        if state.runManager.heat >= VerticalSliceBalance.pitBossHeatThreshold,
+           state.bankrollCents > bankrollBeforeRoundCents {
+            let heatBeforeResponse = state.runManager.heat
+            let positiveProfitCents = state.bankrollCents - bankrollBeforeRoundCents
+            let skimCents = min(
+                state.bankrollCents,
+                max(1, positiveProfitCents * VerticalSliceBalance.pitBossSkimPercent / 100)
+            )
+            state.bankrollCents = max(0, state.bankrollCents - skimCents)
+            state.runManager.heat = max(0, state.runManager.heat - VerticalSliceBalance.pitBossHeatReduction)
+            state.runManager.updateHighs(bankrollCents: state.bankrollCents)
+            appendDebugBattleEvent("[Heat] Pit Boss Skim: heat \(heatBeforeResponse)->\(state.runManager.heat) skim=\(MoneyFormatter.format(skimCents))")
+
+            return (
+                [
+                    "Pit Boss Skim: Heat \(heatBeforeResponse) attracted attention",
+                    "Pit Boss Skim: lost \(MoneyFormatter.format(skimCents)), Heat cooled to \(state.runManager.heat)"
+                ],
+                [
+                    PayoutLedgerLine(
+                        title: "Pit Boss Skim",
+                        detail: "Heat 7+ after a profitable hand",
+                        amountCents: -skimCents
+                    )
+                ]
+            )
+        }
+
         guard state.runManager.heat >= state.runManager.maxHeat else {
             return ([], [])
         }
@@ -2690,22 +2705,25 @@ final class GameViewModel: ObservableObject {
         let heatBeforePenalty = state.runManager.heat
         let penaltyCents = min(
             state.bankrollCents,
-            max(state.runManager.currentStage.minimumBetCents, state.bankrollCents / 10)
+            max(
+                state.runManager.currentStage.minimumBetCents,
+                state.bankrollCents / VerticalSliceBalance.crackdownBankrollPenaltyDivisor
+            )
         )
         state.bankrollCents = max(0, state.bankrollCents - penaltyCents)
-        state.runManager.heat = max(0, state.runManager.maxHeat / 2)
+        state.runManager.heat = max(0, state.runManager.heat - VerticalSliceBalance.crackdownHeatReduction)
         state.runManager.updateHighs(bankrollCents: state.bankrollCents)
-        appendDebugBattleEvent("[Heat] Pit Boss Warning: heat \(heatBeforePenalty)->\(state.runManager.heat) bankrollPenalty=\(MoneyFormatter.format(penaltyCents))")
+        appendDebugBattleEvent("[Heat] Crackdown: heat \(heatBeforePenalty)->\(state.runManager.heat) bankrollPenalty=\(MoneyFormatter.format(penaltyCents))")
 
         return (
             [
-                "Pit Boss Warning: Heat maxed",
-                "Pit Boss Warning: lost \(MoneyFormatter.format(penaltyCents)), Heat cooled to \(state.runManager.heat)"
+                "Crackdown: Heat maxed",
+                "Crackdown: lost \(MoneyFormatter.format(penaltyCents)), Heat cooled to \(state.runManager.heat)"
             ],
             [
                 PayoutLedgerLine(
-                    title: "Pit Boss Warning",
-                    detail: "Heat maxed; casino took a bankroll penalty",
+                    title: "Crackdown",
+                    detail: "Heat maxed; casino took a visible penalty",
                     amountCents: -penaltyCents
                 )
             ]

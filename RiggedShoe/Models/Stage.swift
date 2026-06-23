@@ -164,26 +164,33 @@ struct Stage: Identifiable, Equatable {
         Stage(
             id: 1,
             targetProfitCents: 0,
-            roundLimit: 5,
+            roundLimit: VerticalSliceBalance.stage1Hands,
             teachingObjective: StageObjective(
                 kind: .surviveHands(minBankrollCents: 1),
-                target: 5,
+                target: VerticalSliceBalance.stage1Hands,
                 title: "Opening Table",
                 description: "Survive 5 baccarat hands."
             ),
-            betLimit: BetLimit(allowedBetAmountsCents: [2_500, 5_000, 7_500, 10_000])
+            betLimit: BetLimit(allowedBetAmountsCents: [
+                VerticalSliceBalance.stage1MinimumBetCents,
+                5_000,
+                VerticalSliceBalance.stage1MaximumBetCents
+            ])
         ),
         Stage(
             id: 2,
             targetProfitCents: 0,
-            roundLimit: 6,
+            roundLimit: VerticalSliceBalance.stage2Hands,
             teachingObjective: StageObjective(
                 kind: .surviveHands(minBankrollCents: 1),
-                target: 6,
+                target: VerticalSliceBalance.stage2Hands,
                 title: "Controlled Risk",
-                description: "Survive 6 hands with the $50 ante and tighter bet caps."
+                description: "Survive 6 hands at the featured table."
             ),
-            betLimit: BetLimit(allowedBetAmountsCents: [5_000, 10_000, 15_000])
+            betLimit: BetLimit(allowedBetAmountsCents: [
+                VerticalSliceBalance.stage2MinimumBetCents,
+                VerticalSliceBalance.stage2MaximumBetCents
+            ])
         ),
         Stage(
             id: 3,
@@ -227,6 +234,8 @@ struct Stage: Identifiable, Equatable {
         Stage(id: 9, targetProfitCents: 0, roundLimit: 10, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 10, title: "Final Prep", description: "Survive 10 hands and tune your bankroll before The House."), betLimit: BetLimit(allowedBetAmountsCents: [60_000, 120_000, 180_000, 240_000, 250_000])),
         Stage(id: 10, targetProfitCents: 0, roundLimit: 12, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 12, title: "Final Boss", description: "Survive 12 hands against The House."), betLimit: BetLimit(allowedBetAmountsCents: [80_000, 160_000, 240_000, 320_000, 400_000]))
     ]
+
+    static let verticalSliceStages: [Stage] = Array(allStages.prefix(2))
 }
 
 extension Stage {
@@ -248,8 +257,8 @@ extension Stage {
 
     var anteCents: Int {
         switch id {
-        case 1: return 2_500
-        case 2: return 5_000
+        case 1: return VerticalSliceBalance.stage1MinimumBetCents
+        case 2: return VerticalSliceBalance.stage2MinimumBetCents
         case 3: return 7_500
         case 4: return 10_000
         case 5: return 15_000
@@ -280,8 +289,8 @@ extension Stage {
 
     var stageMaxBetCents: Int {
         switch id {
-        case 1: return 10_000
-        case 2: return 15_000
+        case 1: return VerticalSliceBalance.stage1MaximumBetCents
+        case 2: return VerticalSliceBalance.stage2MaximumBetCents
         case 3: return 25_000
         case 4: return 40_000
         case 5: return 60_000
@@ -415,7 +424,9 @@ struct EconomyRewardCalculation: Equatable {
 
     private static func normalStageChips(for stageID: Int) -> Int {
         switch stageID {
-        case 1...3: return 2
+        case 1: return VerticalSliceBalance.stage1ClearChips
+        case 2: return 0
+        case 3: return 2
         case 4...7: return 3
         default: return 4
         }
@@ -442,7 +453,7 @@ enum StageFailureReason: String, Codable, Equatable {
         case .bankrollBusted:
             return "Bankroll cannot cover the table minimum."
         case .heatMaxed:
-            return "Heat reached the limit."
+            return "Crackdown applied a visible bankroll penalty."
         case .bossDefeat:
             return "The boss table shut down the run."
         case .stageCondition:
@@ -469,6 +480,7 @@ struct StagePreviewData: Equatable {
     let secondaryObjectiveSummary: String
     let secondaryObjectiveReward: String
     let rewardTier: String
+    let maxBetCents: Int
     let isBossStage: Bool
     let bossWarning: String?
 
@@ -484,7 +496,7 @@ struct StagePreviewData: Equatable {
         self.opponentFlavorText = opponent.flavorText
         self.opponentDifficulty = opponent.difficultyRating
         self.primaryObjectiveTitle = stage.teachingObjective?.title ?? "Beat the Table"
-        self.primaryObjectiveSummary = stage.teachingObjective?.description ?? "End the stage ahead of the table."
+        self.primaryObjectiveSummary = stage.teachingObjective?.description ?? "Stay solvent through the table."
         self.ante = stage.ante
         self.handCount = handCount
         self.tableRule = stage.tableRuleSummary
@@ -493,6 +505,7 @@ struct StagePreviewData: Equatable {
         self.secondaryObjectiveSummary = secondary.summary
         self.secondaryObjectiveReward = secondary.rewardSummary
         self.rewardTier = opponent.rewardTier
+        self.maxBetCents = stage.stageMaxBetCents
         self.isBossStage = stage.isBossStage
         self.bossWarning = stage.isBossStage ? "\(opponent.name) adds a boss rule on top of \(event.name)." : nil
     }
@@ -522,15 +535,29 @@ struct StageResultData: Codable, Equatable {
     let triggeredModifierSummaries: [String]
 
     var title: String {
-        didWin ? "Stage Cleared" : "Stage Failed"
+        didWin ? "Table Cleared" : "Run Over"
     }
 
     var reasonText: String {
         if didWin {
-            return "Opponent defeated: \(opponentName). Score margin \(scoreMarginText)."
+            let handCount: Int
+            switch stageNumber {
+            case 1:
+                handCount = VerticalSliceBalance.stage1Hands
+            case 2:
+                handCount = VerticalSliceBalance.stage2Hands
+            default:
+                handCount = 0
+            }
+
+            if handCount > 0 {
+                return "Cleared by staying solvent after \(handCount) hands."
+            }
+
+            return "Cleared by staying solvent through the table."
         }
 
-        return lossExplanation.isEmpty ? (failureReason?.displayText ?? "Opponent outscored your table profit.") : lossExplanation
+        return lossExplanation.isEmpty ? (failureReason?.displayText ?? "Bankroll could not cover the next legal wager.") : lossExplanation
     }
 
     var scoreMarginText: String {

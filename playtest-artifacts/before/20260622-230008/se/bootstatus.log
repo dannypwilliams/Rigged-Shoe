@@ -1,0 +1,15 @@
+Monitoring boot status for RiggedShoe-SE-Fresh-Playtest (1962409B-F201-4EDD-AA8B-9D8ADBDBEA15).
+[2026-06-23 06:07:54 +0000] Status=1, isTerminal=NO, Elapsed=00:02.
+	Waiting on BackBoard
+
+[2026-06-23 06:07:55 +0000] Status=2, isTerminal=NO, Elapsed=00:03.
+	Waiting on Data Migration
+		Reason:(null)
+		Migration Elapsed:00:00 seconds
+
+[2026-06-23 06:08:00 +0000] Status=4, isTerminal=NO, Elapsed=00:08.
+	Waiting on System App
+
+[2026-06-23 06:08:08 +0000] Status=4294967295, isTerminal=YES, Elapsed=00:16.
+	Finished
+

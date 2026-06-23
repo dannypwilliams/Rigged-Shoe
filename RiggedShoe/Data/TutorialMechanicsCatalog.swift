@@ -218,7 +218,7 @@ enum TutorialMechanicsCatalog {
             category: .betting,
             decisionWeight: .critical,
             beginnerExplanation: "The table and your bankroll both limit which bet sizes are legal.",
-            advancedExplanation: "A legal bet must match the stage denomination list, meet the minimum, fit under the stage cap, fit under 25% of bankroll, and be affordable.",
+            advancedExplanation: "A legal bet must match the stage denomination list, meet the table minimum, fit under the fixed stage maximum, and be affordable.",
             exampleScenario: "Stage 3 allows larger chips, but a thin bankroll can still cap your maximum bet.",
             decisionPrompt: "Is this bet legal, affordable, and survivable?",
             recommendedAction: "Use the largest legal bet only when the risk is backed by information or payout strength.",

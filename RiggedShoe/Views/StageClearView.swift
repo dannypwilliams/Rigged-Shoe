@@ -51,7 +51,7 @@ struct StageClearView: View {
                         .frame(height: isCompact ? 18 : 24)
 
                     VStack(spacing: isCompact ? 4 : 7) {
-                        Text("Reward Draft")
+                        Text("Take 1 Reward")
                             .font(.system(size: isCompact ? 29 : 34, weight: .black, design: .rounded))
                             .foregroundStyle(CasinoTheme.gold)
                             .multilineTextAlignment(.center)
@@ -176,7 +176,6 @@ struct StageClearView: View {
                 .foregroundStyle(CrookedCasinoTheme.ink.opacity(0.70))
                 .fixedSize(horizontal: false, vertical: true)
 
-            rewardLine(title: "Trigger", value: "Stage reward draft")
             rewardLine(title: "Effect", value: reward.description)
             rewardLine(title: "Heat", value: rewardHeatImpact(reward))
         }
@@ -257,7 +256,7 @@ struct StageClearView: View {
                 return "Next goal: Stage \(stage.id) - \(objective.title), or earn +\(MoneyFormatter.format(stage.targetProfitCents)) from stage start."
             }
 
-            return "Next table: Stage \(stage.id) - \(objective.description)"
+            return "Next table: Stage \(stage.id), \(stage.roundLimit) hands. \(objective.description)"
         }
 
         return "Next table: Stage \(stage.id), \(stage.roundLimit) hands against \(stage.opponentName)."

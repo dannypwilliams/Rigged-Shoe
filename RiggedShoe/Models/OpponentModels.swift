@@ -380,7 +380,7 @@ struct SecondaryObjective: Identifiable, Codable, Equatable {
 }
 
 extension SecondaryObjective {
-    static let noHeat = SecondaryObjective(id: "no-heat", title: "Clean Run", summary: "Clear without gaining Heat.", kind: .winWithoutHeat)
+    static let noHeat = SecondaryObjective(id: "no-heat", title: "Keep It Cool", summary: "Clear with Heat 3 or less.", kind: .winWithoutHeat)
     static let endProfit = SecondaryObjective(id: "end-profit", title: "Ahead of Schedule", summary: "End the table with positive stage profit.", kind: .endWithProfit)
     static let triggerThree = SecondaryObjective(id: "trigger-three", title: "Engine Online", summary: "Trigger 3 modifier or upgrade effects.", kind: .triggerModifiers, target: 3)
     static let winTie = SecondaryObjective(id: "win-tie", title: "Longshot Hit", summary: "Win at least one Tie bet.", kind: .winTie)

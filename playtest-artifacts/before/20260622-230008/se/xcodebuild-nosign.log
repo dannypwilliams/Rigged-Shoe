@@ -1,0 +1,702 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project RiggedShoe.xcodeproj -scheme RiggedShoe -configuration Debug -destination id=1962409B-F201-4EDD-AA8B-9D8ADBDBEA15 -derivedDataPath /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008 CODE_SIGNING_ALLOWED=NO build
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'RiggedShoe' in project 'RiggedShoe' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 4198572f827b050f9ab149339bec82f4
+Build description path: /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/XCBuildData/4198572f827b050f9ab149339bec82f4.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+CreateBuildDirectory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe.xcodeproj
+    builtin-create-build-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex
+
+CreateBuildDirectory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe.xcodeproj
+    builtin-create-build-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products
+
+CreateBuildDirectory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe.xcodeproj
+    builtin-create-build-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe.xcodeproj
+    builtin-create-build-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe.xcodeproj
+    builtin-create-build-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator
+
+CreateBuildDirectory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe.xcodeproj
+    builtin-create-build-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe-07ed02a8e39ab8300b3b65618dab1701-VFS-iphonesimulator/all-product-headers.yaml
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe.xcodeproj
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe-07ed02a8e39ab8300b3b65618dab1701-VFS-iphonesimulator/all-product-headers.yaml
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.hmap (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.hmap
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-own-target-headers.hmap (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-project-headers.hmap (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-project-headers.hmap
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-generated-files.hmap (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-generated-files.hmap
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-all-target-headers.hmap (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.DependencyMetadataFileList (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.DependencyStaticMetadataFileList (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-all-non-framework-target-headers.hmap (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-DebugDylibPath-normal-arm64.txt (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-DebugDylibPath-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-DebugDylibInstallName-normal-arm64.txt (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-DebugDylibInstallName-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_const_extract_protocols.json (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftFileList (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftFileList
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftConstValuesFileList (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.LinkFileList (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.LinkFileList
+
+WriteAuxiliaryFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-OutputFileMap.json (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    write-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-OutputFileMap.json
+
+MkDir /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /bin/mkdir -p /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app
+
+Ld /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/__preview.dylib normal (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -F/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -install_name @rpath/RiggedShoe.debug.dylib -Xlinker -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_dependency_info.dat -o /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/__preview.dylib
+
+MkDir /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/thinned (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /bin/mkdir -p /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/thinned
+
+MkDir /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/unthinned (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /bin/mkdir -p /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/unthinned
+
+GenerateAssetSymbols /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Assets.xcassets (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Assets.xcassets --compile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_dependencies --output-partial-info-plist /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --minimum-deployment-target 17.0 --platform iphonesimulator --bundle-identifier com.danielwilliams.RiggedShoe --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CompileAssetCatalogVariant thinned /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Assets.xcassets (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Assets.xcassets --compile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration iPhone14,6 --filter-for-device-os-version 26.5 --development-region en --target-device iphone --minimum-deployment-target 17.0 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_generated_info.plist_thinned
+/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver RiggedShoe normal arm64 com.apple.xcode.tools.swift.compiler (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name RiggedShoe -Onone @/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -F /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -sdk-module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_const_extract_protocols.json -Xcc -iquote -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-generated-files.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-own-target-headers.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-all-target-headers.hmap -Xcc -iquote -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-project-headers.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources-normal/arm64 -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/arm64 -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-Swift.h -working-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202 -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_stdbool-7SEA02L30KTXW38WGB2VYJCUR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_float-BQ4EAFOBYYK1WI9718NHMMNAB.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_stddef-4MCIJRDMVSC46VDQP1N3Y5GSV.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_stdarg-4J2FFLPBTI6I3G5WKDIA9SR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/SwiftShims-3DOT1V7DIDJFPLLXOM2VQEQDM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/DeveloperToolsSupport-ETVYEAVAIO76IDJI1LVSD89HF.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_SwiftConcurrencyShims-7NRA22WKKPXGI19IDX20IYYVX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/ptrauth-8JL1TR49KJ1C6EPTWOR7DIVKJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/ptrcheck-3RA2X8Y7P57AWF7KUDPTRFW8I.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_AvailabilityInternal-4P1W1RJ4NCRM39HF7XABS2SFR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_DarwinFoundation1-ENDVIFFSRFKEKM5VLRPZPOPBO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_limits-BZUPWZKOEOEI801PM6JCGJKXS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_DarwinFoundation2-DLNL6QBXKPSQE10MA4X38ZX9B.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_tgmath-1A62JG48QOSDOKMQQ0AOFTPK6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/sys_types-6ID2X8GNSEJZRGEAL0D1UQPJA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_stdint-B6BOE6ZVRL4HOAFNTNYDDJK8T.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_stdatomic-EQ3YW105HCT17RP967387U7GM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_DarwinFoundation3-583ANR4K71RJ59IFJRC6AIMYT.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_intrinsics-1JMM0AAL1ZR9WBTRZLAP8SMB5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/_Builtin_inttypes-2XQ1CENN9QOVTN53WROIKTPAJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Darwin-6VSBVWUOGAS6WWOFDH5ZZ635V.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/simd-O7239FKBQVZ2KZI3XPDMEOVX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/MachO-5ZPZ3ZKGE98WASBZV0H8ZXLDA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/ObjectiveC-8OKN272BJRUCXHY2UNIAI382T.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/os_object-6J8SM8NZZJF46I5EF9GGYSUE2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/os_workgroup-9HNSH5Y37PZ6WGTFZQD3ONVEL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Spatial-COU6A9C6Q30U4NPZABITA5FIW.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Dispatch-89VYM1NU0H6H5FVKMGAO1P2D5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreFoundation-1JF6Q62TBSUR240INLSIXVBN3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/dnssd-9AVERKVBFSRNMJ5PIFL0X9Q6U.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/XPC-2T1ROBMGHNZKGN7ZPXN4XU62O.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/os-BYZVY048QARRN4U9GZHUQ3GCD.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreGraphics-35S6LMZ1GAUFXPIWIE3DCCR72.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CFNetwork-1BMOBGEH27Q4HHBH35RHSWMQ2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreAudioTypes-4ZC6WZR6REKWARF41YLU33Q5P.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Security-8VF64U8XZX9Z1U26125O216Q6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreAudio-V6I3YLYLQWV320JRQFOK5F74.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Foundation-3FU42O3GGNIE34QZ60L68PZFO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/ImageIO-76FIS1CK7DCV0OTWSPZPDTIF2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreText-DEHRZM7OKHYEK8RQAYQVEYZFH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreTransferable-ED3OHN51L5OS3OSURNN7IFRQ3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/FileProvider-CSQJGMCSVWVOKJMXC06SZF1TT.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/UIUtilities-CFVHKZ71C8EE2UK6JT6TUDKEO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Network-98UK9Y8QH7MP5S112NRWW2VD1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/OpenGLES-EC4GHIQJW3CHL242VRSU6CX2F.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/DataDetection-B0AB3VK5DJMNN0XZ9MI9QLM6H.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Accessibility-55SRYTF3OUO8ZDB0OTRD1TKRK.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Symbols-80YH374ZFAR4TFHBAO05WFX9I.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreData-3RTPHVPZN132JGCX74KCPIP4W.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/UniformTypeIdentifiers-49AV36ZFQR09Z7CQKQULIII46.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreMIDI-13UIOCJCGFI0XIM7BEO832RT6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/OSLog-2B22ROZO0DQ3FQD0QAUV2TAGY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/IOSurface-1IYSJCFID1BB9YMARJ9BUI7W2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/AVRouting-5D688BLWHNF2Q7Q6O4IX2Y3GF.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/UserNotifications-ARPKQYQTRFN7W9ZB2X31LSCRJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/AudioToolbox-ANZEFDFMRW17KVX9VZU645LRW.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Metal-AE62Y4QAAJ8V4DV76NZ98DB19.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreVideo-A6ZJ5HVIDHQM3IHSFFJTC28KH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/QuartzCore-DAI3KZP6SAJVC8JUQM4CXNR22.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreMedia-1UW1O2KLMK79HIEPBQSH3JGYP.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/CoreImage-3RQ7Y7FQKUTYO7ZALYJ9R90PA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/SwiftUICore-2BY1TZ4EMPK5S049BF44TPHTV.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/AVFAudio-DUO1HUTKONS7WEETEBBHFMYBM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/MediaToolbox-2SKON15SF3KFT60JPV4T63IRY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/UIKit-2QPTPQO3SDXE9U0FWYJWJ37E2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/AVFoundation-CQFS8AZWP17E2NRBIW53S24NL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/SwiftUI-38OUNQE2FY5L2N2HYSUCOPMTC.pcm
+
+SwiftCompile normal arm64 Compiling\ ParticleBurstView.swift,\ ScreenShakeEffect.swift,\ SettingsView.swift,\ BuildVarietyModels.swift,\ SynergyView.swift,\ TutorialModels.swift,\ AnalyticsManager.swift,\ RunPersistenceManager.swift,\ OnboardingView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/ParticleBurstView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/ScreenShakeEffect.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/SettingsView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BuildVarietyModels.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/SynergyView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/TutorialModels.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/AnalyticsManager.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/RunPersistenceManager.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/OnboardingView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/ParticleBurstView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/ScreenShakeEffect.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/SettingsView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BuildVarietyModels.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/SynergyView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/TutorialModels.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/AnalyticsManager.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/RunPersistenceManager.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/OnboardingView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ RiggedShoe (in target 'RiggedShoe' from project 'RiggedShoe')
+
+EmitSwiftModule normal arm64 (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 Compiling\ GlossaryView.swift,\ TestFlightSupportView.swift,\ DebugMenuView.swift,\ CasinoLobbyView.swift,\ CasinoFloorPagerView.swift,\ ShoeView.swift,\ AnimatedCardView.swift,\ RunState.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/GlossaryView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/TestFlightSupportView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/DebugMenuView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CasinoLobbyView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CasinoFloorPagerView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/ShoeView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/AnimatedCardView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/RunState.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/GlossaryView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/TestFlightSupportView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/DebugMenuView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CasinoLobbyView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CasinoFloorPagerView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/ShoeView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/AnimatedCardView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/RunState.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 Compiling\ UpgradeSelectionView.swift,\ AcquiredUpgradesView.swift,\ Stage.swift,\ StageReward.swift,\ RunManager.swift,\ RunHUDView.swift,\ StageClearView.swift,\ RunOverView.swift,\ Boss.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/UpgradeSelectionView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/AcquiredUpgradesView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Stage.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/StageReward.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/RunManager.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/RunHUDView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/StageClearView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/RunOverView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Boss.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/UpgradeSelectionView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/AcquiredUpgradesView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Stage.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/StageReward.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/RunManager.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/RunHUDView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/StageClearView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/RunOverView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Boss.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 Compiling\ GameState.swift,\ GameViewModel.swift,\ MoneyFormatter.swift,\ CardView.swift,\ ShoePreviewView.swift,\ BetSelectionView.swift,\ RoundResultView.swift,\ HistoryView.swift,\ UpgradeCard.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/GameState.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/ViewModels/GameViewModel.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/MoneyFormatter.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CardView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/ShoePreviewView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/BetSelectionView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/RoundResultView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/HistoryView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/UpgradeCard.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/GameState.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/ViewModels/GameViewModel.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/MoneyFormatter.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CardView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/ShoePreviewView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/BetSelectionView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/RoundResultView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/HistoryView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/UpgradeCard.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 Compiling\ BossReward.swift,\ BossManager.swift,\ BossAnnouncementView.swift,\ BossHUDView.swift,\ BossDefeatedView.swift,\ PlayerProfile.swift,\ Achievement.swift,\ Unlockable.swift,\ CollectionEntry.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BossReward.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BossManager.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/BossAnnouncementView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/BossHUDView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/BossDefeatedView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/PlayerProfile.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Achievement.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Unlockable.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/CollectionEntry.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BossReward.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BossManager.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/BossAnnouncementView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/BossHUDView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/BossDefeatedView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/PlayerProfile.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Achievement.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Unlockable.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/CollectionEntry.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 Compiling\ MetaProgressionManager.swift,\ MetaProgressionView.swift,\ JuiceModels.swift,\ SettingsManager.swift,\ AudioManager.swift,\ HapticsManager.swift,\ CasinoTheme.swift,\ CrookedCasinoTheme.swift,\ AnimatedMoneyText.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/MetaProgressionManager.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/MetaProgressionView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/JuiceModels.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/SettingsManager.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/AudioManager.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/HapticsManager.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CasinoTheme.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CrookedCasinoTheme.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/AnimatedMoneyText.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/MetaProgressionManager.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/MetaProgressionView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/JuiceModels.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/SettingsManager.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/AudioManager.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/HapticsManager.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CasinoTheme.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/CrookedCasinoTheme.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/AnimatedMoneyText.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 Compiling\ RiggedShoeApp.swift,\ ContentView.swift,\ Suit.swift,\ Rank.swift,\ Card.swift,\ BaccaratHand.swift,\ Shoe.swift,\ BetType.swift,\ RoundResult.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/App/RiggedShoeApp.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/App/ContentView.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Suit.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Rank.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Card.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BaccaratHand.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Shoe.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BetType.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/RoundResult.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/App/RiggedShoeApp.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/App/ContentView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Suit.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Rank.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Card.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BaccaratHand.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/Shoe.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BetType.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/RoundResult.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+LinkAssetCatalog /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Assets.xcassets (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-linkAssetCatalog --thinned /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/thinned --thinned-dependencies /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_generated_info.plist_unthinned --output /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app --plist-output /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Assets.car (in target 'RiggedShoe' from project 'RiggedShoe')
+note: Emplaced /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/AppIcon60x60@2x.png (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for RiggedShoe (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriver\ Compilation\ Requirements RiggedShoe normal arm64 com.apple.xcode.tools.swift.compiler (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name RiggedShoe -Onone @/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -F /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -sdk-module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_const_extract_protocols.json -Xcc -iquote -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-generated-files.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-own-target-headers.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-all-target-headers.hmap -Xcc -iquote -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-project-headers.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources-normal/arm64 -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/arm64 -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-Swift.h -working-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202 -experimental-emit-module-separately -disable-cmo
+
+ProcessInfoPlistFile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Info.plist /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Info.plist (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-infoPlistUtility /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/assetcatalog_generated_info.plist -o /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Info.plist
+
+SwiftMergeGeneratedHeaders /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/RiggedShoe-Swift.h /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-Swift.h (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-swiftHeaderTool -arch arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-Swift.h -o /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/RiggedShoe-Swift.h
+
+Copy /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftmodule (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftmodule /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftdoc (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftdoc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.abi.json (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.abi.json /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftsourceinfo (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftsourceinfo /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftCompile normal arm64 Compiling\ OpponentModels.swift,\ ModifierModels.swift,\ BalanceRules.swift,\ ShopModels.swift,\ RunFlowViews.swift,\ TutorialMechanic.swift,\ TutorialMechanicsCatalog.swift,\ GeneratedAssetSymbols.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/OpponentModels.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/ModifierModels.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BalanceRules.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/ShopModels.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/RunFlowViews.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/TutorialMechanic.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Data/TutorialMechanicsCatalog.swift /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/OpponentModels.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/ModifierModels.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/BalanceRules.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/ShopModels.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Views/RunFlowViews.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Models/TutorialMechanic.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/RiggedShoe/Data/TutorialMechanicsCatalog.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftCompile normal arm64 /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling ParticleBurstView.swift, ScreenShakeEffect.swift, SettingsView.swift, BuildVarietyModels.swift, SynergyView.swift, TutorialModels.swift, AnalyticsManager.swift, RunPersistenceManager.swift, OnboardingView.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriverJobDiscovery normal arm64 Compiling BossReward.swift, BossManager.swift, BossAnnouncementView.swift, BossHUDView.swift, BossDefeatedView.swift, PlayerProfile.swift, Achievement.swift, Unlockable.swift, CollectionEntry.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriverJobDiscovery normal arm64 Compiling UpgradeSelectionView.swift, AcquiredUpgradesView.swift, Stage.swift, StageReward.swift, RunManager.swift, RunHUDView.swift, StageClearView.swift, RunOverView.swift, Boss.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriverJobDiscovery normal arm64 Compiling MetaProgressionManager.swift, MetaProgressionView.swift, JuiceModels.swift, SettingsManager.swift, AudioManager.swift, HapticsManager.swift, CasinoTheme.swift, CrookedCasinoTheme.swift, AnimatedMoneyText.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriverJobDiscovery normal arm64 Compiling GameState.swift, GameViewModel.swift, MoneyFormatter.swift, CardView.swift, ShoePreviewView.swift, BetSelectionView.swift, RoundResultView.swift, HistoryView.swift, UpgradeCard.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriverJobDiscovery normal arm64 Compiling RiggedShoeApp.swift, ContentView.swift, Suit.swift, Rank.swift, Card.swift, BaccaratHand.swift, Shoe.swift, BetType.swift, RoundResult.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriverJobDiscovery normal arm64 Compiling OpponentModels.swift, ModifierModels.swift, BalanceRules.swift, ShopModels.swift, RunFlowViews.swift, TutorialMechanic.swift, TutorialMechanicsCatalog.swift, GeneratedAssetSymbols.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriverJobDiscovery normal arm64 Compiling GlossaryView.swift, TestFlightSupportView.swift, DebugMenuView.swift, CasinoLobbyView.swift, CasinoFloorPagerView.swift, ShoeView.swift, AnimatedCardView.swift, RunState.swift (in target 'RiggedShoe' from project 'RiggedShoe')
+
+SwiftDriver\ Compilation RiggedShoe normal arm64 com.apple.xcode.tools.swift.compiler (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name RiggedShoe -Onone @/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -F /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/SDKStatCaches.noindex/iphonesimulator26.5-23F73-6cfe768891a92b912361537c460fe42b.sdkstatcache -output-file-map /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -sdk-module-cache-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_const_extract_protocols.json -Xcc -iquote -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-generated-files.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-own-target-headers.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-all-target-headers.hmap -Xcc -iquote -Xcc /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-project-headers.hmap -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources-normal/arm64 -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources/arm64 -Xcc -I/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-Swift.h -working-directory /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202 -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/RiggedShoe.debug.dylib normal (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -F/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -filelist /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.LinkFileList -install_name @rpath/RiggedShoe.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.swiftmodule @/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe-linker-args.resp -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/RiggedShoe.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-ExecutorLinkFileList-normal-arm64.txt (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    construct-stub-executor-link-file-list /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/RiggedShoe.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'RiggedShoe' from project 'RiggedShoe')
+
+Ld /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/RiggedShoe normal (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -F/Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe-ExecutorLinkFileList-normal-arm64.txt /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/RiggedShoe.debug.dylib -o /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/RiggedShoe
+
+CopySwiftLibs /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/RiggedShoe.debug.dylib --scan-folder /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Frameworks --scan-folder /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/PlugIns --scan-folder /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/SystemExtensions --scan-folder /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ExtractAppIntentsMetadata (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name RiggedShoe --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F42 --platform-family iOS --deployment-target 17.0 --bundle-identifier com.danielwilliams.RiggedShoe --output /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/RiggedShoe --dependency-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe_dependency_info.dat --stringsdata-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftFileList --metadata-file-list /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.DependencyMetadataFileList --static-metadata-file-list /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.DependencyStaticMetadataFileList --swift-const-vals-list /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/Objects-normal/arm64/RiggedShoe.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-06-22 23:07:51.095 appintentsmetadataprocessor[65525:1180895] Starting appintentsmetadataprocessor export
+2026-06-22 23:07:51.100 appintentsmetadataprocessor[65525:1180895] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+AppIntentsSSUTraining (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Info.plist --temp-dir-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/ssu --bundle-id com.danielwilliams.RiggedShoe --product-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app --extracted-metadata-path /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Metadata.appintents --metadata-file-list /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Intermediates.noindex/RiggedShoe.build/Debug-iphonesimulator/RiggedShoe.build/RiggedShoe.DependencyMetadataFileList --source-file /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app/Info.plist --archive-ssu-assets
+2026-06-22 23:07:51.125 appintentsnltrainingprocessor[65526:1180896] Parsing options for appintentsnltrainingprocessor
+2026-06-22 23:07:51.125 appintentsnltrainingprocessor[65526:1180896] Starting AppIntents SSU YAML Generation
+2026-06-22 23:07:51.127 appintentsnltrainingprocessor[65526:1180896] No AppShortcuts found - Skipping.
+
+RegisterExecutionPolicyException /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-RegisterExecutionPolicyException /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app
+
+Validate /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    builtin-validationUtility /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app (in target 'RiggedShoe' from project 'RiggedShoe')
+    cd /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202
+    /usr/bin/touch -c /Users/danielwilliams/Documents/RiggedShoe_FullProject_ShoeDashboard_2026-06-21_1202/DerivedData-Baseline-NoSign-20260622-230008/Build/Products/Debug-iphonesimulator/RiggedShoe.app
+
+** BUILD SUCCEEDED **
+

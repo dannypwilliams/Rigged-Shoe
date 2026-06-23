@@ -541,15 +541,11 @@ struct ContentView: View {
                 return "\(viewModel.activeShoeReveal?.title ?? "Reveal") active: bet capped at \(MoneyFormatter.format(cap))."
             }
 
-            if viewModel.state.selectedBetAmountCents * 4 > max(1, viewModel.state.bankrollCents) {
-                return "High risk: this bet is more than 25% of your bankroll."
-            }
-
             switch viewModel.state.runManager.stageReached {
             case 1:
-                return "Compact battle: survive 5 hands. Start small and learn the shoe rhythm."
+                return "Stage 1: survive 5 hands. Legal bets are $25, $50, or $75 if your bankroll can cover them."
             case 2:
-                return "Six hands. $50 ante, $150 top option. Controlled bets keep Heat and bankroll stable."
+                return "Stage 2: survive 6 hands. Legal bets are $50 or $100 if your bankroll can cover them."
             case 3:
                 return "Seven hands. Use upgrades or reads before pressing the larger bet."
             case 4:

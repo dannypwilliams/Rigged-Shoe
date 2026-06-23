@@ -176,14 +176,14 @@ struct RunOverView: View {
         }
 
         if runManager.heat >= runManager.maxHeat {
-            return "Heat reached the limit. Add Heat control, cleaner reveals, or lower-risk lines next run."
+            return "Crackdown applies a visible bankroll penalty and cools Heat; the run only ends if bankroll cannot cover the next table."
         }
 
         if bankrollCents < runManager.currentStage.minimumBetCents {
             return "Bankroll fell below the table minimum. The next build needs steadier income or safer bet sizing."
         }
 
-        return "The opponent outscored your table profit. Add payout scaling, pivot options, or stronger information before the next boss."
+        return "Bankroll could not cover the next legal wager. Add steadier income, cleaner Heat control, or safer bet sizing next run."
     }
 
     private func formatNumber(_ value: Int) -> String {

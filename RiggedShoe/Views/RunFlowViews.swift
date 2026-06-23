@@ -29,32 +29,27 @@ struct RunStartView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                StartingContactDetailCard(contact: selectedContact)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(contacts) { contact in
-                            Button {
-                                onSelectContact(contact)
-                            } label: {
-                                StartingContactChip(
-                                    contact: contact,
-                                    isSelected: contact.id == selectedContact.id
-                                )
-                            }
-                            .buttonStyle(JuicyPressButtonStyle())
-                        }
-                    }
-                    .padding(.horizontal, 2)
-                    .padding(.vertical, 2)
-                }
-                .frame(height: 86)
-
                 HStack(spacing: 8) {
                     RunFlowStat(title: "Base Bankroll", value: MoneyFormatter.format(bankrollCents + selectedContact.bankrollAdjustmentCents))
                     RunFlowStat(title: "Chips", value: "\(max(0, chips + selectedContact.chipsAdjustment))")
                     RunFlowStat(title: "Heat", value: contactHeatText)
                 }
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    ForEach(contacts) { contact in
+                        Button {
+                            onSelectContact(contact)
+                        } label: {
+                            StartingContactChip(
+                                contact: contact,
+                                isSelected: contact.id == selectedContact.id
+                            )
+                        }
+                        .buttonStyle(JuicyPressButtonStyle())
+                    }
+                }
+
+                StartingContactDetailCard(contact: selectedContact)
 
                 PrimaryRunFlowButton(title: "Preview Stage 1", action: onContinue)
             }
@@ -137,7 +132,7 @@ private struct StartingContactChip: View {
                 .foregroundStyle(.white.opacity(0.62))
                 .lineLimit(2)
         }
-        .frame(width: 154, height: 74, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: 64, alignment: .topLeading)
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -174,7 +169,7 @@ struct StagePreviewView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Stage \(preview.stageNumber) - \(preview.handCount) hands")
+                            Text("Stage \(preview.stageNumber): \(preview.handCount) hands")
                                 .font(.title2.weight(.black))
                                 .foregroundStyle(.white)
                                 .lineLimit(nil)
@@ -193,7 +188,7 @@ struct StagePreviewView: View {
 
                         Spacer()
 
-                        Text("ANTE $\(preview.ante)")
+                        Text("ANTE \(MoneyFormatter.format(preview.ante * 100))")
                             .font(.caption.weight(.black))
                             .foregroundStyle(CasinoTheme.ink)
                             .padding(.horizontal, 10)
@@ -201,20 +196,14 @@ struct StagePreviewView: View {
                             .background(Capsule().fill(CasinoTheme.gold))
                     }
 
-                    RunFlowDetailRow(title: "Objective", value: preview.primaryObjectiveTitle)
-                    Text(preview.primaryObjectiveSummary)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white.opacity(0.62))
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    RunFlowDetailRow(title: "Opponent Lean", value: preview.opponentStyle)
-                    RunFlowDetailRow(title: "Pressure Point", value: preview.opponentWeakness)
-                    RunFlowDetailRow(title: "Table Event", value: preview.tableRule)
+                    RunFlowDetailRow(title: "Clear", value: preview.primaryObjectiveSummary)
+                    RunFlowDetailRow(title: "Wagers", value: "Min \(MoneyFormatter.format(preview.ante * 100)) / Max \(MoneyFormatter.format(preview.maxBetCents))")
+                    RunFlowDetailRow(title: "Table Rule", value: preview.tableRule)
                     Text(preview.tableRuleDetail)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white.opacity(0.62))
                         .fixedSize(horizontal: false, vertical: true)
-                    RunFlowDetailRow(title: "Clear Reward", value: "\(preview.rewardTier) draft")
+                    RunFlowDetailRow(title: "Reward", value: preview.stageNumber == 1 ? "+2 Chips, then Take 1 Reward" : "Run result")
                     RunFlowDetailRow(title: "Optional Bonus", value: "\(preview.secondaryObjectiveTitle) - \(preview.secondaryObjectiveReward)")
                     Text(preview.secondaryObjectiveSummary)
                         .font(.caption.weight(.bold))
@@ -246,7 +235,7 @@ struct StagePreviewView: View {
                     RunFlowStat(title: "Heat", value: heatText)
                 }
 
-                PrimaryRunFlowButton(title: preview.isBossStage ? "Face the Boss" : "Enter Battle", action: onEnterBattle)
+                PrimaryRunFlowButton(title: "Start Stage \(preview.stageNumber)", action: onEnterBattle)
             }
         }
     }
@@ -282,11 +271,12 @@ struct StageResultView: View {
                     RunFlowDetailRow(title: "Started", value: MoneyFormatter.format(result.startingBankrollCents))
                     RunFlowDetailRow(title: "Ended", value: MoneyFormatter.format(result.endingBankrollCents))
                     RunFlowDetailRow(title: "Bankroll Change", value: MoneyFormatter.signed(result.bankrollChangeCents))
-                    RunFlowDetailRow(title: "Objective", value: result.objectiveDescription)
+                    RunFlowDetailRow(title: "Clear Rule", value: result.objectiveDescription)
                     RunFlowDetailRow(title: "Progress", value: result.objectiveProgressText)
-                    RunFlowDetailRow(title: "Score Margin", value: result.scoreMarginText)
                     RunFlowDetailRow(title: "Heat Change", value: signedNumber(result.heatChange))
-                    RunFlowDetailRow(title: "Chips Earned", value: "+\(result.chipsEarned)")
+                    if result.chipsEarned > 0 {
+                        RunFlowDetailRow(title: "Chips Earned", value: "+\(result.chipsEarned)")
+                    }
                     RunFlowDetailRow(title: "Table Event", value: result.tableEventName)
                     RunFlowDetailRow(
                         title: "Optional",
@@ -346,7 +336,7 @@ struct ShopPhaseView: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.72)
 
-                        Text("Buy, freeze, level, or sell before the next table.")
+                        Text("Buy one of three offers, reroll for 1 Chip, then continue.")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(.white.opacity(0.62))
                             .lineLimit(2)
@@ -368,8 +358,7 @@ struct ShopPhaseView: View {
                             canBuy: viewModel.canBuyShopOffer(offer),
                             attachmentTargetName: attachmentTargetName(for: offer),
                             blockedReason: viewModel.shopOfferBlockedReason(offer),
-                            onBuy: { viewModel.buyShopOffer(offer) },
-                            onFreeze: { viewModel.toggleFreezeShopOffer(offer) }
+                            onBuy: { viewModel.buyShopOffer(offer) }
                         )
                     }
                 }
@@ -384,27 +373,11 @@ struct ShopPhaseView: View {
                     PrimaryRunFlowButton(title: nextStageButtonTitle, action: onContinue)
                 }
 
-                VStack(spacing: 8) {
-                    ShopInventorySection(
-                        title: "Current Build \(viewModel.state.activeModifiers.count)/\(viewModel.state.activeModifierSlotLimit)",
-                        instances: viewModel.state.activeModifiers,
-                        emptyText: "Buy modifiers to build your engine.",
-                        actionTitle: "Bench",
-                        onAction: viewModel.moveModifierToBench,
-                        onSell: viewModel.sellModifier
-                    )
-
-                    if !viewModel.state.benchModifiers.isEmpty {
-                        ShopInventorySection(
-                            title: "Bench \(viewModel.state.benchModifiers.count)/\(viewModel.state.benchModifierSlotLimit)",
-                            instances: viewModel.state.benchModifiers,
-                            emptyText: "",
-                            actionTitle: "Equip",
-                            onAction: viewModel.moveModifierToActive,
-                            onSell: viewModel.sellModifier
-                        )
-                    }
-                }
+                ShopInventorySection(
+                    title: "Current Build \(viewModel.state.activeModifiers.count)/\(viewModel.state.activeModifierSlotLimit)",
+                    instances: viewModel.state.activeModifiers,
+                    emptyText: "Buy modifiers to build your engine."
+                )
 
                 if !viewModel.state.consumables.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
@@ -437,7 +410,7 @@ struct ShopPhaseView: View {
     }
 
     private var nextStageButtonTitle: String {
-        viewModel.state.runManager.currentStageIndex + 1 >= viewModel.state.runManager.stages.count ? "Finish Run" : "Next Stage"
+        viewModel.state.runManager.currentStageIndex + 1 >= viewModel.state.runManager.stages.count ? "Finish Run" : "Continue to Stage 2"
     }
 
     private var rerollButtonTitle: String {
@@ -472,7 +445,6 @@ private struct ShopOfferCard: View {
     let attachmentTargetName: String?
     let blockedReason: String?
     let onBuy: () -> Void
-    let onFreeze: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -489,18 +461,14 @@ private struct ShopOfferCard: View {
             )
 
             HStack(spacing: 6) {
-                Button(offer.isFrozen ? "Frozen" : "Freeze", action: onFreeze)
-                    .buttonStyle(CompactShopButtonStyle(isPrimary: false))
-
-                Button(offer.isSoldOut ? "Bought" : "Buy", action: onBuy)
+                Button(buyButtonTitle, action: onBuy)
                     .buttonStyle(CompactShopButtonStyle(isPrimary: true))
                     .disabled(!canBuy || offer.isSoldOut)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 132, alignment: .topLeading)
         .padding(5)
-        .crookedPanel(kind: .felt, strokeColor: offer.isFrozen ? CrookedCasinoTheme.dirtyGold : CrookedCasinoTheme.paper.opacity(0.46), cornerRadius: 14)
-        .opacity(offer.isSoldOut ? 0.45 : 1)
+        .crookedPanel(kind: .felt, strokeColor: offer.isSoldOut ? CrookedCasinoTheme.dirtyGold : CrookedCasinoTheme.paper.opacity(0.46), cornerRadius: 14)
     }
 
     private var title: String {
@@ -551,7 +519,7 @@ private struct ShopOfferCard: View {
         }
 
         if let ownedLevel {
-            result.append("Owned L\(ownedLevel)")
+            result.append(ownedLevel >= 2 ? "Level \(ownedLevel)" : "Owned")
         }
 
         return result
@@ -559,6 +527,10 @@ private struct ShopOfferCard: View {
 
     private var footerText: String? {
         if offer.isSoldOut {
+            if let ownedLevel {
+                return ownedLevel >= 2 ? "Owned - Level \(ownedLevel)" : "Owned"
+            }
+
             return "Bought"
         }
 
@@ -570,11 +542,19 @@ private struct ShopOfferCard: View {
             return blockedReason
         }
 
-        if offer.isFrozen {
-            return "Frozen"
+        return nil
+    }
+
+    private var buyButtonTitle: String {
+        if offer.isSoldOut {
+            if let ownedLevel, ownedLevel >= 2 {
+                return "Level \(ownedLevel)"
+            }
+
+            return "Owned"
         }
 
-        return nil
+        return "Buy"
     }
 
     private var cardKind: CrookedCardFrameKind {
@@ -667,9 +647,6 @@ private struct ShopInventorySection: View {
     let title: String
     let instances: [ModifierInstance]
     let emptyText: String
-    let actionTitle: String
-    let onAction: (UUID) -> Void
-    let onSell: (UUID) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -715,16 +692,6 @@ private struct ShopInventorySection: View {
                             }
 
                             Spacer()
-
-                            Button(actionTitle) {
-                                onAction(instance.id)
-                            }
-                            .buttonStyle(CompactShopButtonStyle(isPrimary: false))
-
-                            Button("Sell") {
-                                onSell(instance.id)
-                            }
-                            .buttonStyle(CompactShopButtonStyle(isPrimary: false))
                         }
                         .padding(8)
                         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.06)))

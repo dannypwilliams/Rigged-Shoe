@@ -599,7 +599,11 @@ struct Shoe: Equatable {
     }
 
     mutating func placeCardsOnTop(_ newCards: [Card]) {
-        cards = newCards + cards
+        guard !newCards.isEmpty else {
+            return
+        }
+
+        cards.replaceSubrange(0..<min(newCards.count, cards.count), with: newCards.prefix(cards.count))
     }
 
     mutating func placeCardsOnBottom(_ newCards: [Card]) {

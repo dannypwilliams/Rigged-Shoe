@@ -2,6 +2,14 @@
 
 Target style: Crooked Casino Doodle Cartoon. Drop PNGs into `RiggedShoe/Assets.xcassets` using the asset names below without the `.png` suffix.
 
+## 2026-06-23 RC Status
+
+- Current vertical-slice build is safe to ship with SwiftUI fallback art for code QA.
+- First real art pass should prioritize gameplay readability over decoration.
+- Highest-impact missing assets: `card_frame_common_crooked`, `card_frame_rare_crooked`, `card_back_red_crooked`, `dealer_shoe_idle`, `chip_5`, `panel_felt_dark`, contact portraits, table-rule stamps, and heat pressure icons.
+- Add Pit Boss Skim and Crackdown icon/stamp assets before a wider TestFlight pass so visible heat responses read instantly.
+- Keep all functional labels in SwiftUI text; art should support the crooked casino tone without replacing essential rules copy.
+
 ## Required First Pack
 
 ## card_frame_common_crooked.png

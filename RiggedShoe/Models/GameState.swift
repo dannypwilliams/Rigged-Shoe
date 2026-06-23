@@ -3,7 +3,7 @@ import Foundation
 struct GameState: Equatable {
     var bankrollCents: Int
     var selectedBetType: BetType = .player
-    var selectedBetAmountCents: Int = 1_000
+    var selectedBetAmountCents: Int = VerticalSliceBalance.stage1MinimumBetCents
     var shoe = Shoe(deckCount: 6)
     var latestRound: RoundResult?
     var history: [RoundResult] = []
@@ -27,7 +27,7 @@ struct GameState: Equatable {
     var consumables: [Consumable] = []
     var attachments: [Attachment] = []
     var bossRelics: [BossRelic] = []
-    var activeModifierSlotLimit = 5
+    var activeModifierSlotLimit = VerticalSliceBalance.activeModifierSlots
     var benchModifierSlotLimit = 2
     var consumableSlotLimit = 1
     var bossRelicSlotLimit = 1

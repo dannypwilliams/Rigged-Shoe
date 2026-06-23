@@ -19,7 +19,7 @@ enum StageFlowState: String, Codable, Equatable {
 }
 
 struct RunManager: Equatable {
-    static let defaultStartingBankrollCents = 25_000
+    static let defaultStartingBankrollCents = VerticalSliceBalance.startingBankrollCents
 
     let stages: [Stage]
     let startingBankrollCents: Int
@@ -62,13 +62,13 @@ struct RunManager: Equatable {
     var lastStageResult: StageResultData?
     var status: RunStatus
 
-    init(stages: [Stage] = Stage.allStages, startingBankrollCents: Int = Self.defaultStartingBankrollCents) {
+    init(stages: [Stage] = Stage.verticalSliceStages, startingBankrollCents: Int = Self.defaultStartingBankrollCents) {
         self.stages = stages
         self.startingBankrollCents = startingBankrollCents
         self.flowState = .runStart
         self.stageStartingBankrollCents = startingBankrollCents
         self.currentStageStartingHeat = 0
-        self.currentStageStartingChips = 3
+        self.currentStageStartingChips = VerticalSliceBalance.startingChips
         self.currentStageIndex = 0
         self.currentStageRoundsPlayed = 0
         self.currentStageWinningBets = 0
@@ -98,8 +98,8 @@ struct RunManager: Equatable {
         self.playerBonusMultiplier = 1
         self.bankerBonusMultiplier = 1
         self.futureStageRoundBonus = 0
-        self.chips = 3
-        self.heat = 0
+        self.chips = VerticalSliceBalance.startingChips
+        self.heat = VerticalSliceBalance.startingHeat
         self.maxHeat = 10
         self.lastStageResult = nil
         self.status = .active
@@ -158,12 +158,13 @@ struct RunManager: Equatable {
             return nil
         }
         let stageCap = ([currentStage.stageMaxBetCents] + eventCaps).min() ?? currentStage.stageMaxBetCents
-        let bankrollCap = min(stageCap, max(0, bankrollCents / 4))
-        guard bankrollCents >= minimumBetCents() else {
-            return bankrollCap
-        }
+        return max(minimumBetCents(), stageCap)
+    }
 
-        return max(minimumBetCents(), bankrollCap)
+    func legalBetAmounts(bankrollCents: Int) -> [Int] {
+        currentStage.betLimit.allowedBetAmountsCents
+            .filter { isBetAmountAllowed($0, bankrollCents: bankrollCents) }
+            .sorted()
     }
 
     func isBetAmountAllowed(_ amountCents: Int, bankrollCents: Int) -> Bool {
@@ -214,16 +215,11 @@ struct RunManager: Equatable {
     }
 
     func isStageClear(bankrollCents: Int) -> Bool {
-        guard bankrollCents > 0, heat < maxHeat else {
+        guard bankrollCents > 0 else {
             return false
         }
 
         if currentStageRoundsPlayed >= currentRoundLimit {
-            return didBeatOpponent(bankrollCents: bankrollCents)
-        }
-
-        if currentStage.targetProfitCents > 0,
-           stageProfitCents(bankrollCents: bankrollCents) >= currentStage.targetProfitCents {
             return true
         }
 
@@ -232,7 +228,6 @@ struct RunManager: Equatable {
 
     func isStageFailed(bankrollCents: Int) -> Bool {
         bankrollCents < currentStage.minimumBetCents
-            || heat >= maxHeat
             || currentStage.teachingObjective?.isFailed(in: self, bankrollCents: bankrollCents) == true
     }
 
@@ -322,23 +317,6 @@ struct RunManager: Equatable {
             )
         } else if isStageClear(bankrollCents: bankrollCents) {
             let heatBeforeResult = heat
-            let stageProfit = stageProfitCents(bankrollCents: bankrollCents)
-            let heatDelta = stageProfit < 0 ? (currentStage.isBossStage ? 2 : 1) : 0
-            heat = min(maxHeat, heat + heatDelta)
-
-            if heat >= maxHeat {
-                status = .failed
-                flowState = .stageResult
-                lastStageResult = makeStageResult(
-                    didWin: false,
-                    bankrollCents: bankrollCents,
-                    heatBeforeResult: heatBeforeResult,
-                    chipsEarned: 0,
-                    failureReason: .heatMaxed
-                )
-                return
-            }
-
             let earnedChips = EconomyRewardCalculation
                 .stageClear(stage: currentStage, bankrollCents: bankrollCents)
                 .chipsReward
@@ -453,10 +431,6 @@ struct RunManager: Equatable {
             return .bankrollBusted
         }
 
-        if heat >= maxHeat {
-            return .heatMaxed
-        }
-
         if currentStage.teachingObjective?.isFailed(in: self, bankrollCents: bankrollCents) == true {
             return currentStage.isBossStage ? .bossDefeat : .stageCondition
         }
@@ -482,7 +456,7 @@ struct RunManager: Equatable {
             opponentName: currentStage.opponent.name,
             opponentProfitCents: currentStageOpponentProfitCents,
             bankrollChangeCents: bankrollCents - stageStartingBankrollCents,
-            objectiveDescription: objective?.description ?? "End the stage ahead of the table.",
+            objectiveDescription: objective?.description ?? "Stay solvent through the table.",
             objectiveProgressText: objective?.progressText(in: self, bankrollCents: bankrollCents) ?? MoneyFormatter.signed(stageProfitCents(bankrollCents: bankrollCents)),
             scoreMarginCents: stageProfitCents(bankrollCents: bankrollCents) - currentStageOpponentProfitCents,
             heatChange: heat - heatBeforeResult,
@@ -509,6 +483,9 @@ struct RunManager: Equatable {
     func secondaryObjectiveComplete(bankrollCents: Int) -> Bool {
         switch currentStage.secondaryObjective.kind {
         case .winWithoutHeat:
+            if currentStage.id == 1 {
+                return heat <= VerticalSliceBalance.stage1OptionalChallengeMaxHeat
+            }
             return heat <= currentStageStartingHeat
         case .endWithProfit:
             return stageProfitCents(bankrollCents: bankrollCents) > 0

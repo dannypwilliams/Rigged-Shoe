@@ -134,11 +134,23 @@ final class ShopBackboneTests: XCTestCase {
             XCTAssertFalse(preview.opponentStyle.isEmpty)
             XCTAssertFalse(preview.opponentWeakness.isEmpty)
             XCTAssertEqual(preview.primaryObjectiveTitle, stage.teachingObjective?.title ?? "Beat the Table")
-            XCTAssertEqual(preview.primaryObjectiveSummary, stage.teachingObjective?.description ?? "End the stage ahead of the table.")
+            XCTAssertEqual(preview.primaryObjectiveSummary, stage.teachingObjective?.description ?? "Stay solvent through the table.")
+            XCTAssertEqual(preview.maxBetCents, stage.stageMaxBetCents)
             XCTAssertEqual(preview.tableRuleDetail, stage.tableEvent.summary)
             XCTAssertEqual(preview.secondaryObjectiveTitle, stage.secondaryObjective.title)
             XCTAssertFalse(preview.secondaryObjectiveReward.isEmpty)
         }
+    }
+
+    func testVerticalSliceStartsWithTwoFixedCapStages() {
+        let manager = RunManager()
+
+        XCTAssertEqual(manager.stages.map(\.id), [1, 2])
+        XCTAssertEqual(manager.startingBankrollCents, VerticalSliceBalance.startingBankrollCents)
+        XCTAssertEqual(manager.chips, VerticalSliceBalance.startingChips)
+        XCTAssertEqual(manager.heat, VerticalSliceBalance.startingHeat)
+        XCTAssertEqual(manager.currentStage.betLimit.allowedBetAmountsCents, [2_500, 5_000, 7_500])
+        XCTAssertEqual(manager.currentStage.stageMaxBetCents, 7_500)
     }
 
     func testStagePayoutRulesReflectNoCommissionNight() {
@@ -151,6 +163,23 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertEqual(noCommissionStage.tablePayoutRules.payoutLabel(for: .banker), "Pays 1:1")
         XCTAssertEqual(noCommissionStage.tablePayoutRules.profitCents(for: .banker, betAmountCents: 5_000), 5_000)
         XCTAssertTrue(noCommissionStage.tablePayoutRules.preDealText(for: .banker, betAmountCents: 5_000).contains("Pays 1:1"))
+    }
+
+    func testGuidedShoeSetupReplacesTopCardsWithoutChangingShoeSize() {
+        var shoe = Shoe(deckCount: 6)
+        let startingCount = shoe.cardsRemaining
+        let scriptedCards = [
+            Card(suit: .hearts, rank: .ace),
+            Card(suit: .clubs, rank: .two),
+            Card(suit: .diamonds, rank: .eight),
+            Card(suit: .spades, rank: .three)
+        ]
+
+        shoe.placeCardsOnTop(scriptedCards)
+
+        XCTAssertEqual(startingCount, 312)
+        XCTAssertEqual(shoe.cardsRemaining, startingCount)
+        XCTAssertEqual(shoe.previewCards(limit: 4).map(\.displayText), scriptedCards.map(\.displayText))
     }
 
     func testSurvivalObjectiveCopyAvoidsPennyThreshold() {
@@ -236,24 +265,27 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertEqual(Set(rewards.map(\.name)).count, rewards.count)
     }
 
-    func testRunManagerStageClearComparesPlayerAgainstOpponent() {
+    func testRunManagerStageClearsBySolvencyAfterFixedHands() {
         var manager = RunManager()
         manager.currentStageRoundsPlayed = manager.currentRoundLimit
         manager.currentStageOpponentProfitCents = manager.currentStage.anteCents * 10
 
-        XCTAssertFalse(
-            manager.isStageClear(bankrollCents: manager.stageStartingBankrollCents),
-            "A player who only survives should not clear when the opponent score is far ahead."
-        )
-
-        let winningBankroll = manager.stageStartingBankrollCents + manager.currentStageOpponentProfitCents
-        XCTAssertTrue(
-            manager.isStageClear(bankrollCents: winningBankroll),
-            "Player should clear after surviving and matching or beating opponent profit."
-        )
+        XCTAssertTrue(manager.isStageClear(bankrollCents: manager.currentStage.minimumBetCents))
+        XCTAssertFalse(manager.isStageClear(bankrollCents: 0))
     }
 
-    func testStageResultSummarySeparatesBankrollAndScoreMargin() {
+    func testLegalBetCapsDoNotUseQuarterBankrollLimit() {
+        var manager = RunManager()
+
+        XCTAssertEqual(manager.legalBetAmounts(bankrollCents: 25_000), [2_500, 5_000, 7_500])
+        XCTAssertEqual(manager.maximumBetCents(bankrollCents: 25_000), 7_500)
+
+        manager.advanceAfterStageClear(bankrollCents: 25_000)
+        XCTAssertEqual(manager.legalBetAmounts(bankrollCents: 25_000), [5_000, 10_000])
+        XCTAssertEqual(manager.maximumBetCents(bankrollCents: 25_000), 10_000)
+    }
+
+    func testStageResultSummaryUsesSolvencyClearText() {
         var manager = RunManager()
         manager.startRunPreview()
         manager.startStageBattle()
@@ -269,7 +301,8 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertEqual(result?.bankrollChangeCents, 10_000)
         XCTAssertEqual(result?.scoreMarginCents, 2_500)
         XCTAssertEqual(result?.scoreMarginText, "+25.00 pts")
-        XCTAssertFalse(result?.reasonText.contains("$25.00") ?? true)
+        XCTAssertEqual(result?.title, "Table Cleared")
+        XCTAssertEqual(result?.reasonText, "Cleared by staying solvent after 5 hands.")
     }
 
     @MainActor
@@ -304,26 +337,109 @@ final class ShopBackboneTests: XCTestCase {
     }
 
     @MainActor
-    func testLargeBetCreatesVisibleHeatPressure() {
+    func testHeatCapCreatesRecoverableStageStateInsteadOfFailure() {
+        var manager = RunManager()
+        manager.startRunPreview()
+        manager.startStageBattle()
+        manager.heat = manager.maxHeat
+        manager.currentStageRoundsPlayed = manager.currentRoundLimit
+
+        manager.evaluateStage(bankrollCents: manager.stageStartingBankrollCents)
+
+        XCTAssertEqual(manager.status, .stageCleared)
+        XCTAssertEqual(manager.flowState, .stageResult)
+        XCTAssertNotEqual(manager.lastStageResult?.failureReason, .heatMaxed)
+    }
+
+    @MainActor
+    func testGuidedFirstHandConsumesScriptedCardsFromSixDeckShoe() {
         RunPersistenceManager.clear()
-        var metaProgression = isolatedMetaProgression()
-        metaProgression.markGuidedFirstRunCompleted()
-        let viewModel = GameViewModel(metaProgression: metaProgression)
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
 
         viewModel.selectStartingContact(.defaultFloorHost)
         viewModel.continueFromRunStart()
         viewModel.startStageBattle()
-        let maxBet = viewModel.unlockedBetAmountsCents
-            .filter(viewModel.isBetAmountPlayable)
-            .max() ?? viewModel.state.runManager.minimumBetCents()
-        viewModel.selectBetAmount(maxBet)
+        XCTAssertEqual(viewModel.state.shoe.cardsRemaining, 312)
+
         viewModel.dealRound(allowPresentationLockBypass: true)
 
-        XCTAssertTrue(
-            viewModel.state.battleLog.contains { entry in
-                entry.heatDelta != 0 || entry.modifierEffects.contains { $0.title == "Table Heat" }
+        XCTAssertEqual(viewModel.state.runManager.currentStageRoundsPlayed, 1)
+        XCTAssertEqual(viewModel.state.shoe.cardsRemaining, 308)
+        XCTAssertEqual(viewModel.state.latestRound?.playerHand.cards.count, 2)
+        XCTAssertEqual(viewModel.state.latestRound?.bankerHand.cards.count, 2)
+    }
+
+    @MainActor
+    func testDuplicateDealCallsAreIgnoredUntilPresentationCompletes() {
+        RunPersistenceManager.clear()
+        let viewModel = GameViewModel(metaProgression: isolatedMetaProgression())
+
+        viewModel.selectStartingContact(.defaultFloorHost)
+        viewModel.continueFromRunStart()
+        viewModel.startStageBattle()
+
+        viewModel.dealRound()
+        let firstRoundID = viewModel.state.latestRound?.id
+        let roundsAfterFirstDeal = viewModel.state.runManager.currentStageRoundsPlayed
+        let shoeCountAfterFirstDeal = viewModel.state.shoe.cardsRemaining
+
+        viewModel.dealRound()
+
+        XCTAssertTrue(viewModel.isDealResolutionLocked)
+        XCTAssertEqual(viewModel.state.latestRound?.id, firstRoundID)
+        XCTAssertEqual(viewModel.state.runManager.currentStageRoundsPlayed, roundsAfterFirstDeal)
+        XCTAssertEqual(viewModel.state.shoe.cardsRemaining, shoeCountAfterFirstDeal)
+
+        viewModel.completeDealPresentation(for: UUID())
+        XCTAssertTrue(viewModel.isDealResolutionLocked)
+
+        viewModel.completeDealPresentation(for: firstRoundID)
+        XCTAssertFalse(viewModel.isDealResolutionLocked)
+    }
+
+    @MainActor
+    func testTwoStageRouteCompletesForRepresentativeArchetypeContacts() {
+        let contacts: [StartingContact] = [
+            .bankerBias,
+            .playerSurge,
+            .openingTell
+        ]
+
+        for contact in contacts {
+            RunPersistenceManager.clear()
+            var metaProgression = isolatedMetaProgression()
+            metaProgression.markGuidedFirstRunCompleted()
+            let viewModel = GameViewModel(metaProgression: metaProgression)
+
+            viewModel.selectStartingContact(contact)
+            viewModel.continueFromRunStart()
+            viewModel.startStageBattle()
+            viewModel.debugInstantStageClear()
+            XCTAssertEqual(viewModel.state.runManager.status, .stageCleared, contact.name)
+
+            viewModel.continueFromStageResult()
+            guard let reward = viewModel.state.pendingStageRewardChoices.first else {
+                XCTFail("Expected Stage 1 reward for \(contact.name)")
+                continue
             }
-        )
+            viewModel.selectStageReward(reward)
+
+            if let offer = viewModel.state.shopState.offers.first,
+               viewModel.canBuyShopOffer(offer) {
+                viewModel.buyShopOffer(offer)
+            }
+
+            viewModel.continueFromShop()
+            XCTAssertEqual(viewModel.state.runManager.currentStage.id, 2, contact.name)
+            XCTAssertEqual(viewModel.state.runManager.flowState, .stagePreview, contact.name)
+
+            viewModel.startStageBattle()
+            viewModel.debugInstantStageClear()
+            viewModel.continueFromStageResult()
+
+            XCTAssertEqual(viewModel.state.runManager.status, .completed, contact.name)
+            XCTAssertEqual(viewModel.state.runManager.flowState, .runComplete, contact.name)
+        }
     }
 
     func testStageRewardShopAndBossLoopCanAdvanceEndToEnd() {
