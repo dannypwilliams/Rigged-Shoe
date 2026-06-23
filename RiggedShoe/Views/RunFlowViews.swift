@@ -300,6 +300,13 @@ struct StageResultView: View {
                     .font(.headline.weight(.black))
                     .foregroundStyle(.white.opacity(0.72))
 
+                HStack(spacing: 8) {
+                    RunFlowStat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents))
+                    RunFlowStat(title: "Heat", value: heatText)
+                }
+
+                PrimaryRunFlowButton(title: primaryActionTitle, accessibilityID: "stage-result-primary-button", action: onContinue)
+
                 VStack(spacing: 9) {
                     RunFlowDetailRow(title: "Result", value: result.reasonText)
                     RunFlowDetailRow(title: "Opponent", value: result.opponentName)
@@ -340,13 +347,6 @@ struct StageResultView: View {
                 }
                 .padding(16)
                 .crookedPanel(kind: result.didWin ? .felt : .warning, strokeColor: accent, cornerRadius: 14)
-
-                HStack(spacing: 8) {
-                    RunFlowStat(title: "Bankroll", value: MoneyFormatter.format(bankrollCents))
-                    RunFlowStat(title: "Heat", value: heatText)
-                }
-
-                PrimaryRunFlowButton(title: primaryActionTitle, accessibilityID: "stage-result-primary-button", action: onContinue)
             }
             .accessibilityIdentifier("stage-result")
         }

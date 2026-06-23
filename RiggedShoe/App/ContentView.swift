@@ -684,11 +684,14 @@ struct ContentView: View {
 #if DEBUG
     private func prepareUITestingLaunchStateIfNeeded() {
         let arguments = ProcessInfo.processInfo.arguments
-        guard arguments.contains("--ui-testing-stage-one-battle") else {
+        if arguments.contains("--ui-testing-stage-one-result") {
+            viewModel.debugPrepareStageOneResultForUITesting()
             return
         }
 
-        viewModel.debugPrepareStageOneBattleForUITesting()
+        if arguments.contains("--ui-testing-stage-one-battle") {
+            viewModel.debugPrepareStageOneBattleForUITesting()
+        }
     }
 #endif
 

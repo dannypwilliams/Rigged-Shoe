@@ -59,6 +59,41 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
         XCTAssertFalse(app.buttons["deal-button"].exists)
     }
 
+    func testGameInfoSheetShowsRouteRulesAndPayouts() {
+        launch(extraArguments: ["--ui-testing-stage-one-battle"])
+
+        let info = app.buttons["game-info-button"]
+        XCTAssertTrue(info.waitForExistence(timeout: 8))
+        XCTAssertTrue(info.isHittable)
+        info.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["game-info-sheet"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.staticTexts["Game Info"].exists)
+        XCTAssertTrue(staticText(containing: "Stage 1 wagers are $25, $50, and $75").exists)
+        XCTAssertTrue(staticText(containing: "Stage 2 wagers are $50 and $100").exists)
+        XCTAssertTrue(staticText(containing: "guided first hand locks Player $25").exists)
+        XCTAssertTrue(staticText(containing: "Banker normally pays 0.95:1").exists)
+        XCTAssertTrue(app.buttons["game-info-close-button"].isHittable)
+    }
+
+    func testStageOneResultRowsAndRewardCTAStayReachable() {
+        launch(extraArguments: ["--ui-testing-stage-one-result"])
+
+        XCTAssertTrue(app.descendants(matching: .any)["stage-result"].waitForExistence(timeout: 8))
+        XCTAssertTrue(staticText(containing: "Result").exists)
+        XCTAssertTrue(staticText(containing: "Clear Rule").exists)
+        XCTAssertTrue(staticText(containing: "Progress").exists)
+
+        let continueButton = button(identifier: "stage-result-primary-button", labelPrefix: "Take 1 Reward")
+        XCTAssertTrue(continueButton.exists)
+        scrollUntilHittable(continueButton)
+        XCTAssertTrue(continueButton.isHittable)
+        continueButton.tap()
+
+        XCTAssertTrue(app.buttons["reward-choice-1"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.buttons["reward-choice-1"].isHittable)
+    }
+
     private func contactButton(_ index: Int) -> XCUIElement {
         let identified = app.buttons["contact-card-\(index)"]
         if identified.exists {
@@ -67,6 +102,12 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
 
         return app.buttons.matching(
             NSPredicate(format: "label CONTAINS %@", "position \(index) of 6")
+        ).firstMatch
+    }
+
+    private func staticText(containing text: String) -> XCUIElement {
+        app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS[c] %@", text)
         ).firstMatch
     }
 
@@ -79,6 +120,14 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
         return app.buttons.matching(
             NSPredicate(format: "label BEGINSWITH %@", labelPrefix)
         ).firstMatch
+    }
+
+    private func scrollUntilHittable(_ element: XCUIElement, maxSwipes: Int = 3) {
+        var remainingSwipes = maxSwipes
+        while element.exists && !element.isHittable && remainingSwipes > 0 {
+            app.swipeUp()
+            remainingSwipes -= 1
+        }
     }
 
     private func launch(extraArguments: [String] = []) {

@@ -514,8 +514,10 @@ struct GameRoomView: View {
                         .frame(width: 25, height: 25)
                         .background(Circle().fill(Color.white.opacity(0.08)))
                         .overlay(Circle().stroke(CasinoTheme.gold.opacity(0.20), lineWidth: 1))
+                        .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("game-info-button")
                 .accessibilityLabel("Game Info")
                 .accessibilityHint("Shows rules, payouts, commission, and shoe help")
 
@@ -528,6 +530,7 @@ struct GameRoomView: View {
                         .frame(width: 25, height: 25)
                         .background(Circle().fill(Color.white.opacity(0.08)))
                         .overlay(Circle().stroke(CasinoTheme.emerald.opacity(0.24), lineWidth: 1))
+                        .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Battle Log")
@@ -841,54 +844,58 @@ private struct ContextHelpSheet: View {
             CasinoTheme.background
                 .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(topic.title)
-                            .font(.title2.weight(.black))
-                            .foregroundStyle(.white)
+            ScrollView(showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 18) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(topic.title)
+                                .font(.title2.weight(.black))
+                                .foregroundStyle(.white)
 
-                        Text(topic.summary)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.66))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    Spacer()
-
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.headline.weight(.black))
-                            .foregroundStyle(.white)
-                            .frame(width: 38, height: 38)
-                            .background(Circle().fill(Color.white.opacity(0.10)))
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(topic.bullets, id: \.self) { bullet in
-                        HStack(alignment: .top, spacing: 9) {
-                            Circle()
-                                .fill(CasinoTheme.gold)
-                                .frame(width: 6, height: 6)
-                                .padding(.top, 6)
-
-                            Text(bullet)
+                            Text(topic.summary)
                                 .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.white.opacity(0.72))
+                                .foregroundStyle(.white.opacity(0.66))
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                    }
-                }
-                .padding(14)
-                .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.18, cornerRadius: 14)
 
-                Spacer()
+                        Spacer()
+
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.headline.weight(.black))
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(Circle().fill(Color.white.opacity(0.10)))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("game-info-close-button")
+                    }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(topic.bullets, id: \.self) { bullet in
+                            HStack(alignment: .top, spacing: 9) {
+                                Circle()
+                                    .fill(CasinoTheme.gold)
+                                    .frame(width: 6, height: 6)
+                                    .padding(.top, 6)
+
+                                Text(bullet)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.white.opacity(0.72))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                    .padding(14)
+                    .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.18, cornerRadius: 14)
+
+                    Spacer(minLength: 12)
+                }
+                .padding(20)
             }
-            .padding(20)
+            .accessibilityIdentifier("game-info-sheet")
         }
         .presentationDetents([.medium, .large])
     }
