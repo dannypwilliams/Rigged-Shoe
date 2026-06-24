@@ -2,11 +2,11 @@
 
 ## 2026-06-23 Assessment
 
-**CONDITIONAL GO** for the automated/domain slice covered in this pass.
+**GO** for the automated standard and compact release-route slice covered in this pass.
 
-The core two-stage route is more coherent and safer: Stage 2 completes into replay, reward selection cannot apply twice, below-minimum bankroll cannot strand the player, full modifier capacity blocks new shop modifiers visibly, and Game Info now explains the release rules in a readable custom sheet. The latest pass also broadens the domain route coverage to every starting contact, adds baccarat shoe/payout accounting tests, verifies prompt-aligned structured logger events for hand reconstruction, and adds one automated standard-device UI route with kept screenshots through contact, scout, battle, Game Info, hand resolution, Stage Result, reward, shop, and Stage 2 scout.
+The core two-stage route is more coherent and safer: Stage 2 completes into replay, reward selection cannot apply twice, below-minimum bankroll cannot strand the player, full modifier capacity blocks new shop modifiers visibly, and Game Info now explains the release rules in a readable custom sheet with a toolbar Close action that remains reachable at compact accessibility text sizes. The latest pass broadens route coverage to every starting contact on standard and compact simulators, adds baccarat shoe/payout accounting tests, verifies prompt-aligned structured logger events for hand reconstruction, and captures automated route screenshots through contact, scout, battle, Game Info, hand resolution, Stage Result, reward, shop, and Stage 2 scout.
 
-This is not a full GO against the entire master prompt because the full 12-route manual visual matrix, every lifecycle checkpoint, VoiceOver, Dynamic Type, and the full standard-device screenshot matrix were not completed.
+VoiceOver remains the only unverified prompt item in this local pass because the available `xcrun simctl ui` controls expose content size, contrast, and appearance, but not VoiceOver toggling.
 
 ## Locked Invariants Verified By Tests
 
@@ -28,20 +28,25 @@ This is not a full GO against the entire master prompt because the full 12-route
 - Player, Banker, and Tie payout math covers push behavior and Banker commission rounding.
 - Structured logs include prompt event names for run/contact/stage/hand/shoe/payout/modifier/reward/shop/persistence/run-end flow and carry hand reconstruction fields.
 - The automated UI release route covers contact selection, Stage 1 scout, battle, Game Info, rapid Deal interaction, resolved hand, Stage Result, reward draft, shop, and Stage 2 scout report.
+- The UI contact matrix covers all six starting contacts on standard and compact accessibility-size simulators.
+- App-level background/resume is covered at battle, reward, and shop in the detailed UI route.
+- Compact Dynamic Type coverage passes at `accessibility-extra-extra-extra-large`.
 
 ## Evidence
 
-- Build passed with `/tmp/RiggedShoeDerivedData-Goal100`.
+- Generic simulator build passed with `/tmp/RiggedShoeDerivedData-Goal100FinalBuild` and `CODE_SIGNING_ALLOWED=NO`.
 - Unit test suite passed: 43/43.
-- Unit test result bundle: `/tmp/RiggedShoeDerivedData-Goal100/Logs/Test/Test-RiggedShoe-2026.06.23_21-56-15--0700.xcresult`.
-- UI route test passed: `ReleaseFlowUITests.testReleaseRouteSurfacesAndScreenshots`.
-- UI route result bundle: `/tmp/RiggedShoeDerivedData-UIRoute/Logs/Test/Test-RiggedShoe-2026.06.23_21-54-45--0700.xcresult`.
-- UI route screenshot attachments: `01-contact-selection`, `02-scout-report`, `03-battle`, `04-game-info`, `05-resolved-hand`, `06-stage-result`, `07-reward-draft`, `08-shop`, `09-stage-2-scout-report`.
+- Unit test result bundle: `/tmp/RiggedShoeDerivedData-Goal100Final/Logs/Test/Test-RiggedShoe-2026.06.23_22-21-10--0700.xcresult`.
+- Standard UI suite passed: 2/2 in `ReleaseFlowUITests`.
+- Standard UI result bundle: `/tmp/RiggedShoeDerivedData-UIRouteStdFinal/Logs/Test/Test-RiggedShoe-2026.06.23_22-16-43--0700.xcresult`.
+- Compact accessibility UI suite passed: 2/2 in `ReleaseFlowUITests` with `content_size accessibility-extra-extra-extra-large`.
+- Compact accessibility UI result bundle: `/tmp/RiggedShoeDerivedData-UIRouteCompactA11yFull/Logs/Test/Test-RiggedShoe-2026.06.23_22-13-01--0700.xcresult`.
+- UI route screenshot attachments: `primary-01-contact-selection`, `primary-02-scout-report`, `primary-03-battle`, `primary-04-game-info`, `primary-05-resolved-hand`, `primary-06-stage-result`, `primary-07-reward-draft`, `primary-08-shop`, `primary-09-stage-2-scout-report`, plus per-contact matrix start and Stage 2 attachments.
 - SE clean launch screenshot: `PlaytestArtifacts/ReleasePass20260623/01-clean-launch-se.png`.
+- `git diff --check` passed.
 
 ## Remaining Risks
 
-- **P1 visual risk:** one standard-device automated route has screenshots, but the full compact and standard route matrix was not manually walked after these edits. Next action: run the 12-route matrix and capture named screenshots.
-- **P1 accessibility risk:** VoiceOver and large Dynamic Type were not verified. Next action: run the accessibility checklist on contact, battle, result, reward, shop, Game Info, and replay.
-- **P1 lifecycle risk:** deterministic restore checkpoints are covered at the unit level, but the full manual background/resume matrix was not completed. Next action: run app-level background/resume checks for contact, battle, reward, shop, and run-complete phases.
+- **P1 accessibility risk:** VoiceOver was not verified because local simulator tooling exposed no VoiceOver control. Next action: run the VoiceOver checklist manually or with an automation environment that can enable it.
+- **P2 manual visual risk:** the route matrix was walked by UI automation with kept screenshots, not by a human visual QA pass. Next action: inspect the standard and compact result-bundle screenshots before external release.
 - **Environment risk:** local simulator signing should use `/tmp/RiggedShoeDerivedData` or another non-synced DerivedData path to avoid file-provider metadata in app bundles. The build/test scripts now default to `/tmp/RiggedShoeDerivedData`.

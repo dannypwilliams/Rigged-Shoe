@@ -838,58 +838,54 @@ private struct ContextHelpSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ZStack {
-            CasinoTheme.background
-                .ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                CasinoTheme.background
+                    .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 5) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
                         Text(topic.title)
                             .font(.title2.weight(.black))
                             .foregroundStyle(.white)
+                            .fixedSize(horizontal: false, vertical: true)
 
                         Text(topic.summary)
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.white.opacity(0.66))
                             .fixedSize(horizontal: false, vertical: true)
-                    }
 
-                    Spacer()
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(topic.bullets, id: \.self) { bullet in
+                                HStack(alignment: .top, spacing: 9) {
+                                    Circle()
+                                        .fill(CasinoTheme.gold)
+                                        .frame(width: 6, height: 6)
+                                        .padding(.top, 6)
 
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.headline.weight(.black))
-                            .foregroundStyle(.white)
-                            .frame(width: 38, height: 38)
-                            .background(Circle().fill(Color.white.opacity(0.10)))
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(topic.bullets, id: \.self) { bullet in
-                        HStack(alignment: .top, spacing: 9) {
-                            Circle()
-                                .fill(CasinoTheme.gold)
-                                .frame(width: 6, height: 6)
-                                .padding(.top, 6)
-
-                            Text(bullet)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.white.opacity(0.72))
-                                .fixedSize(horizontal: false, vertical: true)
+                                    Text(bullet)
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(.white.opacity(0.72))
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
                         }
+                        .padding(14)
+                        .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.18, cornerRadius: 14)
                     }
+                    .padding(20)
                 }
-                .padding(14)
-                .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.18, cornerRadius: 14)
-
-                Spacer()
             }
-            .padding(20)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("gameInfo.closeButton")
+                }
+            }
+            .toolbarBackground(CasinoTheme.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .presentationDetents([.medium, .large])
     }
