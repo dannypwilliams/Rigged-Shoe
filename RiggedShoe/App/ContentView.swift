@@ -2,10 +2,10 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var viewModel = GameViewModel()
-    @StateObject private var settings = SettingsManager()
-    @StateObject private var audioManager = AudioManager()
-    @StateObject private var hapticsManager = HapticsManager()
+    @StateObject private var viewModel: GameViewModel
+    @StateObject private var settings: SettingsManager
+    @StateObject private var audioManager: AudioManager
+    @StateObject private var hapticsManager: HapticsManager
     @State private var selectedPage: CasinoFloorPage = .game
     @State private var isShowingTutorial = false
     @State private var isShowingGlossary = false
@@ -16,81 +16,45 @@ struct ContentView: View {
     @State private var isResolvingRoundPresentation = false
     @State private var shakeTrigger: CGFloat = 0
 
+    init() {
+#if DEBUG
+        let launchOptions = Self.prepareUITestLaunchStateIfNeeded()
+        let settingsManager = SettingsManager()
+        if launchOptions.reduceMotion {
+            settingsManager.isReduceMotionEnabled = true
+        }
+        if launchOptions.muteAudio {
+            settingsManager.isMusicMuted = true
+            settingsManager.isSFXMuted = true
+        }
+#else
+        let settingsManager = SettingsManager()
+#endif
+        let gameViewModel = GameViewModel()
+#if DEBUG
+        if launchOptions.seedReleaseRoute {
+            gameViewModel.debugPlaceCardsOnTopForTesting(Self.releaseRouteCardsForTesting())
+        }
+#endif
+        _viewModel = StateObject(wrappedValue: gameViewModel)
+        _settings = StateObject(wrappedValue: settingsManager)
+        _audioManager = StateObject(wrappedValue: AudioManager())
+        _hapticsManager = StateObject(wrappedValue: HapticsManager())
+    }
+
     var body: some View {
         ZStack {
             CasinoTheme.background(for: viewModel.metaProgression.profile.selectedThemeID)
                 .ignoresSafeArea()
 
-            CasinoFloorPagerView(
-                selectedPage: $selectedPage,
-                viewModel: viewModel,
-                settings: settings,
-                audioManager: audioManager,
-                dealButtonTitle: dealButtonTitle,
-                dealGuidanceText: dealGuidanceText,
-                onDealRound: dealRound,
-                onPurchaseUnlockable: purchaseUnlockable,
-                onToggleRunModifier: toggleRunModifier,
-                onSelectChallenge: selectChallenge,
-                onToggleDailyRun: toggleDailyRun,
-                onSelectTheme: selectTheme,
-                onReplayTutorial: replayTutorial,
-                onShowGlossary: showGlossary,
-                onShowSupport: showSupport,
-                onResetProfile: resetProfile,
-                onShowDebug: debugAction
-            )
-            .tint(CasinoTheme.gold)
-            .modifier(ScreenShakeEffect(animatableData: shakeTrigger))
-            .allowsHitTesting(!isMainContentCovered)
-            .accessibilityHidden(isMainContentCovered)
+            mainContent
 
             runFlowOverlay
 
-            if isShowingTutorial {
-                OnboardingView(
-                    onDealGuidedHand: dealRound,
-                    onComplete: { skipped in completeTutorial(skipped: skipped) }
-                )
-                .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                .zIndex(11)
-            }
-
-            if isShowingGlossary {
-                GlossaryView {
-                    isShowingGlossary = false
-                }
-                .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                .zIndex(12)
-            }
-
-            if isShowingSupport {
-                TestFlightSupportView(
-                    analyticsLog: viewModel.analytics.debugLogText,
-                    onMarkPatchNotesSeen: viewModel.markPatchNotesSeen,
-                    onClose: { isShowingSupport = false }
-                )
-                .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                .zIndex(13)
-            }
+            modalOverlays
 
 #if DEBUG
-            if isShowingDebugMenu {
-                DebugMenuView(
-                    analyticsSummary: viewModel.analytics.retentionSummary,
-                    onFastForward: viewModel.debugFastForwardThreeRounds,
-                    onInstantStageClear: viewModel.debugInstantStageClear,
-                    onGrantUpgrade: { name in viewModel.debugGrantUpgrade(named: name) },
-                    onGrantLegendary: viewModel.debugGrantLegendary,
-                    onSpawnBoss: { boss in viewModel.debugSpawnBoss(boss) },
-                    onForceDailySeed: { seed in viewModel.debugForceDailySeed(seed) },
-                    onRunPhase3Checks: viewModel.debugRunPhase3Checks,
-                    onStressGameRoomLayout: viewModel.debugStressGameRoomLayout,
-                    onClose: { isShowingDebugMenu = false }
-                )
-                .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                .zIndex(14)
-            }
+            debugOverlay
 #endif
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.state.pendingUpgradeChoices)
@@ -161,6 +125,84 @@ struct ContentView: View {
             }
         }
     }
+
+    private var mainContent: some View {
+        CasinoFloorPagerView(
+            selectedPage: $selectedPage,
+            viewModel: viewModel,
+            settings: settings,
+            audioManager: audioManager,
+            dealButtonTitle: dealButtonTitle,
+            dealGuidanceText: dealGuidanceText,
+            onDealRound: dealRound,
+            onPurchaseUnlockable: purchaseUnlockable,
+            onToggleRunModifier: toggleRunModifier,
+            onSelectChallenge: selectChallenge,
+            onToggleDailyRun: toggleDailyRun,
+            onSelectTheme: selectTheme,
+            onReplayTutorial: replayTutorial,
+            onShowGlossary: showGlossary,
+            onShowSupport: showSupport,
+            onResetProfile: resetProfile,
+            onShowDebug: debugAction
+        )
+        .tint(CasinoTheme.gold)
+        .modifier(ScreenShakeEffect(animatableData: shakeTrigger))
+        .allowsHitTesting(!isMainContentCovered)
+        .accessibilityHidden(isMainContentCovered)
+    }
+
+    @ViewBuilder
+    private var modalOverlays: some View {
+        if isShowingTutorial {
+            OnboardingView(
+                onDealGuidedHand: dealRound,
+                onComplete: { skipped in completeTutorial(skipped: skipped) }
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(11)
+        }
+
+        if isShowingGlossary {
+            GlossaryView {
+                isShowingGlossary = false
+            }
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(12)
+        }
+
+        if isShowingSupport {
+            TestFlightSupportView(
+                analyticsLog: viewModel.analytics.debugLogText,
+                onMarkPatchNotesSeen: viewModel.markPatchNotesSeen,
+                onClose: { isShowingSupport = false }
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(13)
+        }
+    }
+
+#if DEBUG
+    @ViewBuilder
+    private var debugOverlay: some View {
+        if isShowingDebugMenu {
+            DebugMenuView(
+                analyticsSummary: viewModel.analytics.retentionSummary,
+                onFastForward: viewModel.debugFastForwardThreeRounds,
+                onInstantStageClear: viewModel.debugInstantStageClear,
+                onGrantUpgrade: { name in viewModel.debugGrantUpgrade(named: name) },
+                onGrantLegendary: viewModel.debugGrantLegendary,
+                onSpawnBoss: { boss in viewModel.debugSpawnBoss(boss) },
+                onForceDailySeed: { seed in viewModel.debugForceDailySeed(seed) },
+                onRunPhase3Checks: viewModel.debugRunPhase3Checks,
+                onStressGameRoomLayout: viewModel.debugStressGameRoomLayout,
+                onClose: { isShowingDebugMenu = false }
+            )
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            .zIndex(14)
+        }
+    }
+#endif
 
     @ViewBuilder
     private var runFlowOverlay: some View {
@@ -314,6 +356,7 @@ struct ContentView: View {
                 selectedPage: $selectedPage,
                 dealButtonTitle: dealButtonTitle,
                 dealGuidanceText: dealGuidanceText,
+                reduceMotionEnabled: settings.isReduceMotionEnabled,
                 onDealRound: dealRound,
                 onBack: leaveRoom
             )
@@ -613,8 +656,16 @@ struct ContentView: View {
             return
         }
 
+        let previousRoundID = viewModel.state.latestRound?.id
         hapticsManager.play(.light, settings: settings)
         viewModel.dealRound()
+
+        if settings.isReduceMotionEnabled,
+           let latestRoundID = viewModel.state.latestRound?.id,
+           latestRoundID != previousRoundID {
+            isResolvingRoundPresentation = false
+            viewModel.completeDealPresentation(for: latestRoundID)
+        }
     }
 
     private func selectUpgrade(_ upgrade: UpgradeCard) {
@@ -796,6 +847,49 @@ struct ContentView: View {
         }
     }
 }
+
+#if DEBUG
+private extension ContentView {
+    struct UITestLaunchOptions {
+        var reduceMotion = false
+        var muteAudio = false
+        var seedReleaseRoute = false
+    }
+
+    static func prepareUITestLaunchStateIfNeeded() -> UITestLaunchOptions {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("-riggedShoeUITest") else {
+            return UITestLaunchOptions()
+        }
+
+        RunPersistenceManager.clear()
+
+        var manager = MetaProgressionManager()
+        manager.resetProfile()
+        manager.markOnboardingCompleted(skipped: true)
+        if arguments.contains("-riggedShoeUITestSkipGuided") {
+            manager.markGuidedFirstRunCompleted()
+        }
+
+        return UITestLaunchOptions(
+            reduceMotion: arguments.contains("-riggedShoeUITestReduceMotion"),
+            muteAudio: arguments.contains("-riggedShoeUITestMuteAudio"),
+            seedReleaseRoute: arguments.contains("-riggedShoeUITestSeedRoute")
+        )
+    }
+
+    static func releaseRouteCardsForTesting() -> [Card] {
+        (0..<5).flatMap { index in
+            [
+                Card(suit: index.isMultiple(of: 2) ? .hearts : .diamonds, rank: .nine),
+                Card(suit: .clubs, rank: .ace),
+                Card(suit: index.isMultiple(of: 2) ? .spades : .hearts, rank: .king),
+                Card(suit: .diamonds, rank: .two)
+            ]
+        }
+    }
+}
+#endif
 
 #Preview {
     ContentView()

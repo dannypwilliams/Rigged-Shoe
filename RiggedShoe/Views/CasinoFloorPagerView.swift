@@ -101,6 +101,7 @@ struct CasinoFloorPagerView: View {
                 selectedPage: $selectedPage,
                 dealButtonTitle: dealButtonTitle,
                 dealGuidanceText: dealGuidanceText,
+                reduceMotionEnabled: settings.isReduceMotionEnabled,
                 onDealRound: onDealRound,
                 onBack: {}
             )

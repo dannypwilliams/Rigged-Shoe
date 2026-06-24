@@ -51,6 +51,7 @@ struct StageClearView: View {
                             .foregroundStyle(CasinoTheme.gold)
                             .multilineTextAlignment(.center)
                             .shadow(color: CasinoTheme.gold.opacity(0.40), radius: 12)
+                            .accessibilityIdentifier("reward.screen")
 
                         Text("Stage \(runManager.currentStage.id)")
                             .font((isCompact ? Font.headline : Font.title3).weight(.black))
@@ -108,6 +109,7 @@ struct StageClearView: View {
                                 rewardCard(reward, isCompact: isCompact)
                             }
                             .buttonStyle(JuicyPressButtonStyle())
+                            .accessibilityIdentifier("reward.option.\(reward.id.uuidString)")
                         }
                     }
                     .layoutPriority(1)

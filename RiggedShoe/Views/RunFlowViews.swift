@@ -46,14 +46,16 @@ struct RunStartView: View {
                             )
                         }
                         .buttonStyle(JuicyPressButtonStyle())
+                        .accessibilityIdentifier("runStart.contact.\(contact.id)")
                     }
                 }
 
                 StartingContactDetailCard(contact: selectedContact)
 
-                PrimaryRunFlowButton(title: "Preview Stage 1", action: onContinue)
+                PrimaryRunFlowButton(title: "Preview Stage 1", accessibilityID: "runStart.previewStageButton", action: onContinue)
             }
         }
+        .accessibilityIdentifier("runStart.screen")
     }
 }
 
@@ -235,9 +237,10 @@ struct StagePreviewView: View {
                     RunFlowStat(title: "Heat", value: heatText)
                 }
 
-                PrimaryRunFlowButton(title: "Enter Stage \(preview.stageNumber)", action: onEnterBattle)
+                PrimaryRunFlowButton(title: "Enter Stage \(preview.stageNumber)", accessibilityID: "stagePreview.enterButton", action: onEnterBattle)
             }
         }
+        .accessibilityIdentifier("stagePreview.screen")
     }
 }
 
@@ -311,9 +314,10 @@ struct StageResultView: View {
                     RunFlowStat(title: "Heat", value: heatText)
                 }
 
-                PrimaryRunFlowButton(title: primaryActionTitle, action: onContinue)
+                PrimaryRunFlowButton(title: primaryActionTitle, accessibilityID: "stageResult.primaryButton", action: onContinue)
             }
         }
+        .accessibilityIdentifier("stageResult.screen")
     }
 
     private var primaryActionTitle: String {
@@ -378,7 +382,7 @@ struct ShopPhaseView: View {
                     .buttonStyle(CompactShopButtonStyle(isPrimary: false))
                     .disabled(viewModel.state.runManager.chips < viewModel.state.shopState.rerollCostChips)
 
-                    PrimaryRunFlowButton(title: nextStageButtonTitle, action: onContinue)
+                    PrimaryRunFlowButton(title: nextStageButtonTitle, accessibilityID: "shop.continueButton", action: onContinue)
                 }
 
                 ShopInventorySection(
@@ -415,6 +419,7 @@ struct ShopPhaseView: View {
                 }
             }
         }
+        .accessibilityIdentifier("shop.screen")
     }
 
     private var nextStageButtonTitle: String {
@@ -838,6 +843,7 @@ private struct RunFlowDetailRow: View {
 
 private struct PrimaryRunFlowButton: View {
     let title: String
+    var accessibilityID: String? = nil
     let action: () -> Void
 
     var body: some View {
@@ -848,5 +854,6 @@ private struct PrimaryRunFlowButton: View {
                 .padding(.vertical, 4)
         }
         .buttonStyle(CrookedCasinoButtonStyle(tone: .gold))
+        .accessibilityIdentifier(accessibilityID ?? "runFlow.primaryButton")
     }
 }

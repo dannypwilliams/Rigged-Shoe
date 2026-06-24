@@ -297,6 +297,7 @@ struct GameRoomView: View {
     @Binding var selectedPage: CasinoFloorPage
     let dealButtonTitle: String
     let dealGuidanceText: String
+    let reduceMotionEnabled: Bool
     let onDealRound: () -> Void
     let onBack: () -> Void
 
@@ -308,7 +309,7 @@ struct GameRoomView: View {
     @State private var lastPresentedRoundID: UUID?
     @State private var helpTopic: UXHelpTopic?
     @State private var isShowingBattleLog = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
 
     var body: some View {
         ZStack {
@@ -414,6 +415,7 @@ struct GameRoomView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $helpTopic) { topic in
             ContextHelpSheet(topic: topic)
+                .accessibilityIdentifier(topic == .gameInfo ? "gameInfo.sheet" : "help.sheet.\(topic.rawValue)")
         }
         .sheet(isPresented: $isShowingBattleLog) {
             BattleLogSheet(
@@ -516,6 +518,7 @@ struct GameRoomView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Game Info")
                 .accessibilityHint("Shows rules, payouts, commission, and shoe help")
+                .accessibilityIdentifier("battle.gameInfoButton")
 
                 Button {
                     isShowingBattleLog = true
@@ -570,7 +573,7 @@ struct GameRoomView: View {
         lastPresentedRoundID = result.id
         displayedBankrollDeltaCents = 0
 
-        if reduceMotion {
+        if reduceMotionEnabled || systemReduceMotion {
             visibleDealStepCount = steps.count
             isResultRevealed = true
             displayedBankrollCents = viewModel.state.bankrollCents
@@ -3565,6 +3568,7 @@ private struct DealButton: View {
         }
         .buttonStyle(CrookedCasinoButtonStyle(tone: canDeal ? .gold : .black))
         .disabled(!canDeal)
+        .accessibilityIdentifier("battle.dealButton")
     }
 }
 

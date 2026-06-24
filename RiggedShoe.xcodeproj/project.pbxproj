@@ -78,10 +78,18 @@
 		AB1000000000000000000002 /* TutorialMechanicsCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000000000000000000012 /* TutorialMechanicsCatalog.swift */; };
 		AC1000000000000000000001 /* BalanceRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC1000000000000000000011 /* BalanceRules.swift */; };
 		T1000000000000000000000B /* ShopBackboneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000000A /* ShopBackboneTests.swift */; };
+		U1000000000000000000000B /* ReleaseFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = U1000000000000000000000A /* ReleaseFlowUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		T1000000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000002;
+			remoteInfo = RiggedShoe;
+		};
+		U1000000000000000000000D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A10000000000000000000000 /* Project object */;
 			proxyType = 1;
@@ -165,6 +173,8 @@
 		AC1000000000000000000011 /* BalanceRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceRules.swift; sourceTree = "<group>"; };
 		T10000000000000000000003 /* RiggedShoeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RiggedShoeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		T1000000000000000000000A /* ShopBackboneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopBackboneTests.swift; sourceTree = "<group>"; };
+		U10000000000000000000003 /* RiggedShoeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RiggedShoeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		U1000000000000000000000A /* ReleaseFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseFlowUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,6 +192,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		U10000000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -190,6 +207,7 @@
 			children = (
 				A10000000000000000000008 /* RiggedShoe */,
 				T10000000000000000000001 /* RiggedShoeTests */,
+				U10000000000000000000001 /* RiggedShoeUITests */,
 				A10000000000000000000004 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -199,6 +217,7 @@
 			children = (
 				A10000000000000000000003 /* RiggedShoe.app */,
 				T10000000000000000000003 /* RiggedShoeTests.xctest */,
+				U10000000000000000000003 /* RiggedShoeUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -209,6 +228,14 @@
 				T1000000000000000000000A /* ShopBackboneTests.swift */,
 			);
 			path = RiggedShoeTests;
+			sourceTree = "<group>";
+		};
+		U10000000000000000000001 /* RiggedShoeUITests */ = {
+			isa = PBXGroup;
+			children = (
+				U1000000000000000000000A /* ReleaseFlowUITests.swift */,
+			);
+			path = RiggedShoeUITests;
 			sourceTree = "<group>";
 		};
 		A10000000000000000000008 /* RiggedShoe */ = {
@@ -367,6 +394,24 @@
 			productReference = T10000000000000000000003 /* RiggedShoeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		U10000000000000000000002 /* RiggedShoeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = U10000000000000000000007 /* Build configuration list for PBXNativeTarget "RiggedShoeUITests" */;
+			buildPhases = (
+				U10000000000000000000004 /* Sources */,
+				U10000000000000000000005 /* Frameworks */,
+				U10000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				U1000000000000000000000C /* PBXTargetDependency */,
+			);
+			name = RiggedShoeUITests;
+			productName = RiggedShoeUITests;
+			productReference = U10000000000000000000003 /* RiggedShoeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -381,6 +426,10 @@
 						CreatedOnToolsVersion = 26.5;
 					};
 					T10000000000000000000002 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = A10000000000000000000002;
+					};
+					U10000000000000000000002 = {
 						CreatedOnToolsVersion = 26.5;
 						TestTargetID = A10000000000000000000002;
 					};
@@ -401,6 +450,7 @@
 			targets = (
 				A10000000000000000000002 /* RiggedShoe */,
 				T10000000000000000000002 /* RiggedShoeTests */,
+				U10000000000000000000002 /* RiggedShoeUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -415,6 +465,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		T10000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		U10000000000000000000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -508,6 +565,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		U10000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				U1000000000000000000000B /* ReleaseFlowUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -515,6 +580,11 @@
 			isa = PBXTargetDependency;
 			target = A10000000000000000000002 /* RiggedShoe */;
 			targetProxy = T1000000000000000000000D /* PBXContainerItemProxy */;
+		};
+		U1000000000000000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000002 /* RiggedShoe */;
+			targetProxy = U1000000000000000000000D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -727,6 +797,50 @@
 			};
 			name = Release;
 		};
+		U10000000000000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ZESFN7D6AD;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.danielwilliams.RiggedShoeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = RiggedShoe;
+			};
+			name = Debug;
+		};
+		U10000000000000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ZESFN7D6AD;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.danielwilliams.RiggedShoeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = RiggedShoe;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -753,6 +867,15 @@
 			buildConfigurations = (
 				T10000000000000000000008 /* Debug */,
 				T10000000000000000000009 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		U10000000000000000000007 /* Build configuration list for PBXNativeTarget "RiggedShoeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				U10000000000000000000008 /* Debug */,
+				U10000000000000000000009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
