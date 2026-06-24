@@ -76,6 +76,17 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
         XCTAssertTrue(app.buttons["game-info-close-button"].isHittable)
     }
 
+    func testGameInfoSheetPassesCoreAccessibilityAudit() throws {
+        launch(extraArguments: ["--ui-testing-stage-one-battle"])
+
+        let info = app.buttons["game-info-button"]
+        XCTAssertTrue(info.waitForExistence(timeout: 8))
+        info.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["game-info-sheet"].waitForExistence(timeout: 4))
+        try performCoreAccessibilityAudit()
+    }
+
     func testStageOneResultRowsAndRewardCTAStayReachable() {
         launch(extraArguments: ["--ui-testing-stage-one-result"])
 
@@ -120,6 +131,14 @@ final class RiggedShoeUIHardeningTests: XCTestCase {
         launch(extraArguments: ["--ui-testing-stage-one-reward"])
 
         XCTAssertTrue(app.buttons["reward-choice-1"].waitForExistence(timeout: 8))
+        try performCoreAccessibilityAudit()
+    }
+
+    func testStageOneShopPassesCoreAccessibilityAudit() throws {
+        launch(extraArguments: ["--ui-testing-stage-one-shop"])
+
+        XCTAssertTrue(app.descendants(matching: .any)["shop-phase"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["shop-continue-button"].exists)
         try performCoreAccessibilityAudit()
     }
 

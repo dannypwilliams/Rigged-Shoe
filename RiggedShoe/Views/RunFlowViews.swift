@@ -383,10 +383,11 @@ struct ShopPhaseView: View {
                             .minimumScaleFactor(0.72)
 
                         Text("Buy one of three offers, reroll for 1 Chip, then continue.")
-                            .font(.caption.weight(.bold))
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
                             .foregroundStyle(.white.opacity(0.62))
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.82)
+                            .lineLimit(3)
+                            .minimumScaleFactor(0.74)
+                            .frame(minHeight: 32, alignment: .leading)
                     }
                     .layoutPriority(1)
 
@@ -453,10 +454,12 @@ struct ShopPhaseView: View {
                 }
             }
         }
+        .accessibilityIdentifier("shop-phase")
     }
 
     private var nextStageButtonTitle: String {
-        viewModel.state.runManager.currentStageIndex + 1 >= viewModel.state.runManager.stages.count ? "Finish Run" : "Continue to Stage 2"
+        let nextStageNumber = viewModel.state.runManager.currentStageIndex + 2
+        return viewModel.state.runManager.currentStageIndex + 1 >= viewModel.state.runManager.stages.count ? "Finish Run" : "Start Stage \(nextStageNumber)"
     }
 
     private var rerollButtonTitle: String {
@@ -756,11 +759,13 @@ private struct CompactShopButtonStyle: ButtonStyle {
         configuration.label
             .font(.system(size: 10, weight: .black, design: .rounded))
             .foregroundStyle(foregroundColor)
-            .lineLimit(1)
-            .minimumScaleFactor(0.72)
+            .multilineTextAlignment(.center)
+            .lineLimit(2)
+            .minimumScaleFactor(0.66)
             .padding(.horizontal, 9)
             .padding(.vertical, 7)
             .frame(maxWidth: .infinity)
+            .frame(minHeight: 44)
             .background(
                 CrookedStickerShape(cornerRadius: 9)
                     .fill(backgroundColor)

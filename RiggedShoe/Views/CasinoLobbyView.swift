@@ -717,7 +717,7 @@ private enum UXHelpTopic: String, Identifiable {
     var summary: String {
         switch self {
         case .gameInfo:
-            return "Quick reference for the release route, table rules, payouts, Chips, Heat, and the guided first hand."
+            return "Release route, table rules, payouts, Chips, Heat, and the opening lock."
         case .baccarat:
             return "Player and Banker are the two baccarat hands. You bet which hand wins, or bet Tie."
         case .shoe:
@@ -743,12 +743,19 @@ private enum UXHelpTopic: String, Identifiable {
         switch self {
         case .gameInfo:
             return [
-                "Clear a stage by staying solvent through its fixed hand count: 5 hands in Stage 1, then 6 hands in Stage 2.",
-                "Stage 1 wagers are $25, $50, and $75. Stage 2 wagers are $50 and $100.",
-                "The guided first hand locks Player $25, then all legal sides and amounts unlock.",
-                "Player and Banker bets push for $0 on Tie. Tie bets pay 8:1.",
-                "Banker normally pays 0.95:1. No Commission Night in Stage 2 makes Banker pay 1:1.",
-                "Chips buy shop offers or rerolls. Heat only changes from visible rules, contacts, modifiers, Pit Boss Skim, or Crackdown."
+                "Stay solvent until the hand count ends.",
+                "Stage 1 lasts 5 hands.",
+                "Stage 2 lasts 6 hands.",
+                "Stage 1 wagers are $25, $50, and $75.",
+                "Stage 2 wagers are $50 and $100.",
+                "The guided first hand locks Player $25.",
+                "All legal bets unlock after it.",
+                "Tie results push Player/Banker for $0.",
+                "Tie bets pay 8:1.",
+                "Banker normally pays 0.95:1.",
+                "Stage 2 No Commission Night pays 1:1.",
+                "Chips buy shop offers or rerolls.",
+                "Heat changes only from visible rules."
             ]
         case .baccarat:
             return [
@@ -849,13 +856,18 @@ private struct ContextHelpSheet: View {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 5) {
                             Text(topic.title)
-                                .font(.title2.weight(.black))
+                                .font(.system(size: 24, weight: .black, design: .rounded))
                                 .foregroundStyle(.white)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.76)
+                                .frame(minHeight: 31, alignment: .center)
 
                             Text(topic.summary)
-                                .font(.subheadline.weight(.semibold))
+                                .font(.system(size: 12, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.white.opacity(0.66))
-                                .fixedSize(horizontal: false, vertical: true)
+                                .lineLimit(4)
+                                .minimumScaleFactor(0.82)
+                                .frame(maxWidth: .infinity, minHeight: 48, alignment: .topLeading)
                         }
 
                         Spacer()
@@ -882,10 +894,13 @@ private struct ContextHelpSheet: View {
                                     .padding(.top, 6)
 
                                 Text(bullet)
-                                    .font(.subheadline.weight(.semibold))
+                                    .font(.system(size: 11, weight: .semibold, design: .rounded))
                                     .foregroundStyle(.white.opacity(0.72))
-                                    .fixedSize(horizontal: false, vertical: true)
+                                    .lineLimit(3)
+                                    .minimumScaleFactor(0.82)
+                                    .frame(maxWidth: .infinity, minHeight: 34, alignment: .topLeading)
                             }
+                            .frame(maxWidth: .infinity, minHeight: 34, alignment: .topLeading)
                         }
                     }
                     .padding(14)

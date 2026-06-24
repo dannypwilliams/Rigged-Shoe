@@ -746,12 +746,12 @@ struct CrookedCasinoButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline.weight(.black))
+            .font(.system(size: 15, weight: .black, design: .rounded))
             .foregroundStyle(isEnabled ? tone.foreground : CrookedCasinoTheme.paperLight.opacity(0.48))
             .lineLimit(2)
             .minimumScaleFactor(0.62)
             .padding(.horizontal, 14)
-            .padding(.vertical, 11)
+            .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
             .background(buttonBackground)
             .overlay(DoodleAccentView(accent: tone.foreground.opacity(0.60), density: .low))

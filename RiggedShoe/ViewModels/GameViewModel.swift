@@ -757,6 +757,14 @@ final class GameViewModel: ObservableObject {
             continueFromStageResult()
         }
     }
+
+    func debugPrepareStageOneShopForUITesting() {
+        debugPrepareStageOneRewardForUITesting()
+
+        if let reward = state.pendingStageRewardChoices.first {
+            selectStageReward(reward)
+        }
+    }
 #endif
 
     func continueFromStageResult() {

@@ -689,6 +689,11 @@ struct ContentView: View {
             return
         }
 
+        if arguments.contains("--ui-testing-stage-one-shop") {
+            viewModel.debugPrepareStageOneShopForUITesting()
+            return
+        }
+
         if arguments.contains("--ui-testing-stage-one-result") {
             viewModel.debugPrepareStageOneResultForUITesting()
             return
