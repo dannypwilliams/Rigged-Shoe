@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 PROJECT="RiggedShoe.xcodeproj"
 SCHEME="RiggedShoe"
-DERIVED_DATA="${PWD}/DerivedData"
+DERIVED_DATA="${DERIVED_DATA_PATH:-/tmp/RiggedShoeDerivedData}"
 DESTINATION="${1:-platform=iOS Simulator,name=RiggedShoe-SE-Layout-Test}"
 
 echo "Testing Rigged Shoe on iOS Simulator"

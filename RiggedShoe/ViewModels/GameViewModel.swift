@@ -305,6 +305,7 @@ final class GameViewModel: ObservableObject {
         state.seededGenerator = generator
         appendDebugBattleEvent("Shop entered: tier \(ShopState.tier(for: state.runManager.currentStage.id, defeatedBosses: state.bossManager.defeatedBosses.count))")
         logState(.shopEntered, fields: ["offers": "\(state.shopState.offers.count)", "reroll": "\(forceReroll)"])
+        logState(.shopOffered, fields: ["offerIDs": state.shopState.offers.map(\.contentID).joined(separator: ","), "reroll": "\(forceReroll)"])
         if emitShopEnteredEvent {
             emitOutOfHandModifierEvent(.shopEntered)
         }
@@ -334,6 +335,7 @@ final class GameViewModel: ObservableObject {
         state.shopState.rerollsThisStage = nextRerollCount
         appendDebugBattleEvent("GameEvent.shopRerolled cost=\(rerollCost)")
         logState(.shopRerolled, fields: ["costChips": "\(rerollCost)", "rerollCount": "\(nextRerollCount)"])
+        logState(.reroll, fields: ["costChips": "\(rerollCost)", "rerollCount": "\(nextRerollCount)"])
         emitOutOfHandModifierEvent(.shopRerolled)
         persistRunState()
     }
@@ -400,6 +402,15 @@ final class GameViewModel: ObservableObject {
                 "offerID": offer.contentID,
                 "kind": offer.kind.rawValue,
                 "chipsDelta": "\(state.runManager.chips - chipsBeforePurchase)"
+            ]
+        )
+        logState(
+            .purchaseMade,
+            fields: [
+                "offerID": offer.contentID,
+                "kind": offer.kind.rawValue,
+                "chipsBefore": "\(chipsBeforePurchase)",
+                "chipsAfter": "\(state.runManager.chips)"
             ]
         )
         persistRunState()
@@ -805,6 +816,7 @@ final class GameViewModel: ObservableObject {
         resetVisibleBattleStateForStage(reason: "run start contact confirmed")
         resolveStageStartedModifiersIfNeeded()
         state.runManager.startRunPreview()
+        logState(.stagePreview, fields: ["flow": state.runManager.flowState.rawValue])
         logState(.stageEntered, fields: ["flow": state.runManager.flowState.rawValue])
         persistRunState()
     }
@@ -874,6 +886,7 @@ final class GameViewModel: ObservableObject {
         appendDebugBattleEvent(
             "RewardDraft.stage stage=\(state.runManager.currentStage.id) choices=\(rewards.map(\.name).joined(separator: ","))"
         )
+        logState(.rewardOffered, fields: ["rewardIDs": rewards.map { $0.id.uuidString }.joined(separator: ","), "count": "\(rewards.count)"])
     }
 
     private func refreshBossRewardDraftState() {
@@ -890,6 +903,7 @@ final class GameViewModel: ObservableObject {
         appendDebugBattleEvent(
             "RewardDraft.boss stage=\(state.runManager.currentStage.id) choices=\(state.bossManager.pendingBossRewardChoices.map(\.name).joined(separator: ","))"
         )
+        logState(.rewardOffered, fields: ["rewardIDs": state.bossManager.pendingBossRewardChoices.map { $0.id.uuidString }.joined(separator: ","), "count": "\(state.bossManager.pendingBossRewardChoices.count)"])
     }
 
     func continueFromShop() {
@@ -906,6 +920,7 @@ final class GameViewModel: ObservableObject {
             queueShoeUpgradeRewardIfNeeded()
         }
         state.shopState = ShopState()
+        logState(.stagePreview, fields: ["flow": state.runManager.flowState.rawValue])
         logState(.stageEntered, fields: ["flow": state.runManager.flowState.rawValue])
         persistRunState()
     }
@@ -1143,6 +1158,7 @@ final class GameViewModel: ObservableObject {
 
         state.selectedBetType = betType
         logState(.wagerAccepted, fields: ["betType": betType.rawValue, "amountCents": "\(state.selectedBetAmountCents)"])
+        logState(.betSelected, fields: ["betType": betType.rawValue, "amountCents": "\(state.selectedBetAmountCents)"])
         persistRunState()
     }
 
@@ -1173,6 +1189,7 @@ final class GameViewModel: ObservableObject {
 
         state.selectedBetAmountCents = amountCents
         logState(.wagerAccepted, fields: ["betType": state.selectedBetType.rawValue, "amountCents": "\(amountCents)"])
+        logState(.betSelected, fields: ["betType": state.selectedBetType.rawValue, "amountCents": "\(amountCents)"])
         persistRunState()
     }
 
@@ -1320,6 +1337,11 @@ final class GameViewModel: ObservableObject {
 
     func debugSetShopStateForTesting(_ shopState: ShopState) {
         state.shopState = shopState
+        persistRunState()
+    }
+
+    func debugPlaceCardsOnTopForTesting(_ cards: [Card]) {
+        state.shoe.placeCardsOnTop(cards)
         persistRunState()
     }
 
@@ -1734,6 +1756,19 @@ final class GameViewModel: ObservableObject {
             : []
         logXRayPreviewIfNeeded(xRayPreviewBeforeRound)
         let cardsBeforeRound = state.shoe.cardsRemaining
+        logState(
+            .shoeBefore,
+            hand: battleLogHandNumber,
+            fields: [
+                "cardsBefore": "\(cardsBeforeRound)",
+                "bankrollBefore": "\(bankrollBeforeRound)",
+                "chipsBefore": "\(chipsBeforeRound)",
+                "heatBefore": "\(heatBeforeRound)",
+                "betType": state.selectedBetType.rawValue,
+                "amountCents": "\(state.selectedBetAmountCents)",
+                "seed": state.dailySeed.map { "\($0)" } ?? ""
+            ]
+        )
         var bossPreDealResolutions = bossPreDealResolutions(
             betType: betType,
             revealedCardCount: revealCountBeforeRound,
@@ -1844,6 +1879,24 @@ final class GameViewModel: ObservableObject {
             payoutLedgerLines: payoutLedgerLines,
             modifierResolutions: allModifierResolutions
         )
+        if !allModifierResolutions.isEmpty {
+            logState(
+                .modifierTrigger,
+                hand: battleLogHandNumber,
+                fields: ["modifierIDs": allModifierResolutions.map(\.modifierID).joined(separator: ","), "count": "\(allModifierResolutions.count)"]
+            )
+        }
+        for (index, line) in payoutLedgerLines.enumerated() {
+            logState(
+                .payoutComponent,
+                hand: battleLogHandNumber,
+                fields: [
+                    "order": "\(index + 1)",
+                    "title": line.title,
+                    "amountCents": "\(line.amountCents)"
+                ]
+            )
+        }
         logUpgradeActivations(activationMessages)
         state.roundPresentation = RoundPresentationState(
             bankrollDeltaCents: state.bankrollCents - bankrollBeforeRound,
@@ -1896,6 +1949,26 @@ final class GameViewModel: ObservableObject {
         state.runManager.evaluateStage(bankrollCents: state.bankrollCents)
         enrichLastStageResultWithBuildArchetype()
         logState(
+            .roundCards,
+            hand: battleLogHandNumber,
+            fields: [
+                "playerCards": "\(result.playerHand.cards.count)",
+                "bankerCards": "\(result.bankerHand.cards.count)",
+                "cardsDealt": "\(cardsBeforeRound - state.shoe.cardsRemaining)"
+            ]
+        )
+        logState(
+            .roundResult,
+            hand: battleLogHandNumber,
+            fields: [
+                "winner": result.winner.rawValue,
+                "betType": result.betType.rawValue,
+                "amountCents": "\(result.betAmountCents)",
+                "payoutCents": "\(result.payoutCents)",
+                "isPush": "\(result.isPush)"
+            ]
+        )
+        logState(
             .handResolved,
             hand: battleLogHandNumber,
             fields: [
@@ -1909,6 +1982,16 @@ final class GameViewModel: ObservableObject {
         logState(.chipsChanged, hand: battleLogHandNumber, fields: ["delta": "\(state.runManager.chips - chipsBeforeRound)"])
         logState(.heatChanged, hand: battleLogHandNumber, fields: ["delta": "\(state.runManager.heat - heatBeforeRound)"])
         logState(.shoeChanged, hand: battleLogHandNumber, fields: ["deltaCards": "\(state.shoe.cardsRemaining - cardsBeforeRound)"])
+        logState(
+            .handEnd,
+            hand: battleLogHandNumber,
+            fields: [
+                "cardsAfter": "\(state.shoe.cardsRemaining)",
+                "bankrollAfter": "\(state.bankrollCents)",
+                "chipsAfter": "\(state.runManager.chips)",
+                "heatAfter": "\(state.runManager.heat)"
+            ]
+        )
         appendBattleLogEntry(
             handNumber: battleLogHandNumber,
             result: result,
@@ -4723,6 +4806,16 @@ final class GameViewModel: ObservableObject {
                 ]
             )
         }
+
+        logState(
+            .runEnd,
+            fields: [
+                "didWin": "\(didWin)",
+                "stage": "\(state.runManager.stageReached)",
+                "roundsPlayed": "\(state.runManager.totalRoundsPlayed)",
+                "profitCents": "\(state.runManager.currentProfitCents(bankrollCents: state.bankrollCents))"
+            ]
+        )
     }
 
     private func mutateMetaProgression(_ mutation: (inout MetaProgressionManager) -> ProgressionAward) -> ProgressionAward {

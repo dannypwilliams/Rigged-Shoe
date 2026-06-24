@@ -165,6 +165,103 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertTrue(noCommissionStage.tablePayoutRules.preDealText(for: .banker, betAmountCents: 5_000).contains("Pays 1:1"))
     }
 
+    @MainActor
+    func testStandardFourCardAndThirdCardRoundsDecrementShoeAccurately() {
+        let fourCardRound = makeStageOneBattle().viewModel
+        fourCardRound.debugSetActiveModifiersForTesting([])
+        fourCardRound.debugPlaceCardsOnTopForTesting([
+            testCard(.three, .hearts),   // Player first: total 3
+            testCard(.two, .clubs),      // Banker first: total 2
+            testCard(.four, .diamonds),  // Player second: total 7, stands
+            testCard(.four, .spades)     // Banker second: total 6, stands
+        ])
+        fourCardRound.selectBetType(.player)
+        fourCardRound.selectBetAmount(2_500)
+
+        let fourCardStartingCount = fourCardRound.state.shoe.cardsRemaining
+        fourCardRound.dealRound(allowPresentationLockBypass: true)
+
+        XCTAssertEqual(fourCardStartingCount, 312)
+        XCTAssertEqual(fourCardRound.state.shoe.cardsRemaining, fourCardStartingCount - 4)
+        XCTAssertEqual(fourCardRound.state.latestRound?.playerHand.cards.count, 2)
+        XCTAssertEqual(fourCardRound.state.latestRound?.bankerHand.cards.count, 2)
+        XCTAssertEqual(fourCardRound.state.latestRound?.winner, .player)
+        XCTAssertEqual(fourCardRound.state.latestRound?.payoutCents, 5_000)
+
+        let thirdCardRound = makeStageOneBattle().viewModel
+        thirdCardRound.debugSetActiveModifiersForTesting([])
+        thirdCardRound.debugPlaceCardsOnTopForTesting([
+            testCard(.ten, .hearts),     // Player first: total 0
+            testCard(.ace, .clubs),      // Banker first: total 1
+            testCard(.queen, .diamonds), // Player second: total 0, draws
+            testCard(.two, .spades),     // Banker second: total 3
+            testCard(.six, .hearts),     // Player third: total 6
+            testCard(.four, .clubs)      // Banker draws on 3 versus 6, total 7
+        ])
+        thirdCardRound.selectBetType(.banker)
+        thirdCardRound.selectBetAmount(2_500)
+
+        let thirdCardStartingCount = thirdCardRound.state.shoe.cardsRemaining
+        thirdCardRound.dealRound(allowPresentationLockBypass: true)
+
+        XCTAssertEqual(thirdCardStartingCount, 312)
+        XCTAssertEqual(thirdCardRound.state.shoe.cardsRemaining, thirdCardStartingCount - 6)
+        XCTAssertEqual(thirdCardRound.state.latestRound?.playerHand.cards.count, 3)
+        XCTAssertEqual(thirdCardRound.state.latestRound?.bankerHand.cards.count, 3)
+        XCTAssertEqual(thirdCardRound.state.latestRound?.winner, .banker)
+        XCTAssertEqual(thirdCardRound.state.latestRound?.payoutCents, 4_875)
+    }
+
+    @MainActor
+    func testPlayerBankerTiePayoutsPushAndCommissionRoundingAreAuditable() {
+        let rules = TablePayoutRules.standard
+        XCTAssertEqual(rules.totalReturnCents(for: .player, betAmountCents: 2_500), 5_000)
+        XCTAssertEqual(rules.totalReturnCents(for: .banker, betAmountCents: 2_500), 4_875)
+        XCTAssertEqual(rules.totalReturnCents(for: .tie, betAmountCents: 2_500), 22_500)
+        XCTAssertEqual(rules.profitCents(for: .banker, betAmountCents: 999), 949)
+        XCTAssertEqual(rules.totalReturnCents(for: .banker, betAmountCents: 999), 1_948)
+
+        let playerPush = makeStageOneBattle().viewModel
+        playerPush.debugSetActiveModifiersForTesting([])
+        playerPush.debugPlaceCardsOnTopForTesting([
+            testCard(.three, .hearts),
+            testCard(.two, .clubs),
+            testCard(.four, .diamonds),
+            testCard(.five, .spades)
+        ])
+        playerPush.selectBetType(.player)
+        playerPush.selectBetAmount(2_500)
+
+        let bankrollBeforePush = playerPush.state.bankrollCents
+        playerPush.dealRound(allowPresentationLockBypass: true)
+
+        XCTAssertEqual(playerPush.state.latestRound?.winner, .tie)
+        XCTAssertEqual(playerPush.state.latestRound?.isPush, true)
+        XCTAssertEqual(playerPush.state.latestRound?.payoutCents, 2_500)
+        XCTAssertEqual(playerPush.state.latestRound?.netCents, 0)
+        XCTAssertEqual(playerPush.state.bankrollCents, bankrollBeforePush)
+
+        let bankerPush = makeStageOneBattle().viewModel
+        bankerPush.debugSetActiveModifiersForTesting([])
+        bankerPush.debugPlaceCardsOnTopForTesting([
+            testCard(.three, .hearts),
+            testCard(.two, .clubs),
+            testCard(.four, .diamonds),
+            testCard(.five, .spades)
+        ])
+        bankerPush.selectBetType(.banker)
+        bankerPush.selectBetAmount(2_500)
+
+        let bankerBankrollBeforePush = bankerPush.state.bankrollCents
+        bankerPush.dealRound(allowPresentationLockBypass: true)
+
+        XCTAssertEqual(bankerPush.state.latestRound?.winner, .tie)
+        XCTAssertEqual(bankerPush.state.latestRound?.isPush, true)
+        XCTAssertEqual(bankerPush.state.latestRound?.payoutCents, 2_500)
+        XCTAssertEqual(bankerPush.state.latestRound?.netCents, 0)
+        XCTAssertEqual(bankerPush.state.bankrollCents, bankerBankrollBeforePush)
+    }
+
     func testGuidedShoeSetupReplacesTopCardsWithoutChangingShoeSize() {
         var shoe = Shoe(deckCount: 6)
         let startingCount = shoe.cardsRemaining
@@ -398,14 +495,8 @@ final class ShopBackboneTests: XCTestCase {
     }
 
     @MainActor
-    func testTwoStageRouteCompletesForRepresentativeArchetypeContacts() {
-        let contacts: [StartingContact] = [
-            .bankerBias,
-            .playerSurge,
-            .openingTell
-        ]
-
-        for contact in contacts {
+    func testTwoStageRouteCompletesForEveryStartingContact() {
+        for contact in StartingContact.allContacts {
             RunPersistenceManager.clear()
             var metaProgression = isolatedMetaProgression()
             metaProgression.markGuidedFirstRunCompleted()
@@ -877,6 +968,13 @@ final class ShopBackboneTests: XCTestCase {
         viewModel.selectStartingContact(.defaultFloorHost)
         viewModel.continueFromRunStart()
         viewModel.startStageBattle()
+        viewModel.debugSetActiveModifiersForTesting(["core.banker-bias"])
+        viewModel.debugPlaceCardsOnTopForTesting([
+            testCard(.three, .hearts),
+            testCard(.four, .clubs),
+            testCard(.four, .diamonds),
+            testCard(.four, .spades)
+        ])
         viewModel.selectBetType(.banker)
         viewModel.selectBetAmount(5_000)
         viewModel.selectBetAmount(4_999)
@@ -951,6 +1049,40 @@ final class ShopBackboneTests: XCTestCase {
             .replayStarted
         ]
         XCTAssertTrue(requiredEvents.isSubset(of: events), "Missing logger events: \(requiredEvents.subtracting(events).map(\.rawValue).sorted())")
+        let eventNames = Set(logger.records.map { $0.event.rawValue })
+        let requiredPromptEventNames: Set<String> = [
+            "run_start",
+            "contact_selected",
+            "stage_preview",
+            "stage_start",
+            "hand_start",
+            "bet_selected",
+            "shoe_before",
+            "round_cards",
+            "round_result",
+            "modifier_trigger",
+            "payout_component",
+            "bankroll_change",
+            "chip_change",
+            "heat_change",
+            "shoe_after",
+            "hand_end",
+            "reward_offered",
+            "reward_chosen",
+            "shop_offered",
+            "purchase_made",
+            "reroll",
+            "stage_end",
+            "run_end",
+            "persistence_save",
+            "persistence_restore"
+        ]
+        XCTAssertTrue(requiredPromptEventNames.isSubset(of: eventNames), "Missing prompt logger events: \(requiredPromptEventNames.subtracting(eventNames).sorted())")
+        let handEnd = logger.records.last { $0.event == .handEnd }
+        XCTAssertEqual(handEnd?.fields["cardsAfter"], "308")
+        XCTAssertNotNil(handEnd?.fields["bankrollAfter"])
+        XCTAssertNotNil(handEnd?.fields["chipsAfter"])
+        XCTAssertNotNil(handEnd?.fields["heatAfter"])
         XCTAssertTrue(logger.records.allSatisfy { !$0.fields.keys.contains("deck") && !$0.fields.keys.contains("shoeCards") })
     }
 
@@ -1146,6 +1278,10 @@ final class ShopBackboneTests: XCTestCase {
         }
 
         viewModel.selectStageReward(reward)
+    }
+
+    private func testCard(_ rank: Rank, _ suit: Suit = .hearts) -> Card {
+        Card(suit: suit, rank: rank)
     }
 
     private enum DeterministicRunCheckpoint: CaseIterable {

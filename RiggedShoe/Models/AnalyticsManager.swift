@@ -2,29 +2,42 @@ import Foundation
 import OSLog
 
 enum RiggedShoeLogEvent: String, Equatable {
-    case runStarted
-    case runRestored
-    case runSaved
-    case contactSelected
-    case stageEntered
-    case stageResolved
-    case wagerAccepted
-    case wagerRejected
-    case handStarted
-    case handResolved
-    case presentationChanged
-    case shoeChanged
-    case bankrollChanged
-    case chipsChanged
-    case heatChanged
-    case rewardSelected
-    case shopEntered
-    case shopPurchaseAccepted
-    case shopPurchaseRejected
-    case shopRerolled
-    case modifierChanged
-    case noLegalWager
-    case replayStarted
+    case runStarted = "run_start"
+    case runRestored = "persistence_restore"
+    case runSaved = "persistence_save"
+    case contactSelected = "contact_selected"
+    case stagePreview = "stage_preview"
+    case stageEntered = "stage_start"
+    case stageResolved = "stage_end"
+    case wagerAccepted = "wager_accepted"
+    case wagerRejected = "wager_rejected"
+    case betSelected = "bet_selected"
+    case handStarted = "hand_start"
+    case shoeBefore = "shoe_before"
+    case roundCards = "round_cards"
+    case roundResult = "round_result"
+    case handResolved = "hand_resolved"
+    case handEnd = "hand_end"
+    case presentationChanged = "presentation_changed"
+    case shoeChanged = "shoe_after"
+    case bankrollChanged = "bankroll_change"
+    case chipsChanged = "chip_change"
+    case heatChanged = "heat_change"
+    case modifierTrigger = "modifier_trigger"
+    case payoutComponent = "payout_component"
+    case rewardOffered = "reward_offered"
+    case rewardSelected = "reward_chosen"
+    case shopEntered = "shop_entered"
+    case shopOffered = "shop_offered"
+    case shopPurchaseAccepted = "shop_purchase_accepted"
+    case shopPurchaseRejected = "shop_purchase_rejected"
+    case purchaseMade = "purchase_made"
+    case shopRerolled = "shop_rerolled"
+    case reroll = "reroll"
+    case modifierChanged = "modifier_changed"
+    case noLegalWager = "no_legal_wager"
+    case replayStarted = "replay_started"
+    case runEnd = "run_end"
 }
 
 struct RiggedShoeLogRecord: Equatable {

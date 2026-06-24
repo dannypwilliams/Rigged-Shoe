@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 PROJECT="RiggedShoe.xcodeproj"
 SCHEME="RiggedShoe"
-DERIVED_DATA="${PWD}/DerivedData"
+DERIVED_DATA="${DERIVED_DATA_PATH:-/tmp/RiggedShoeDerivedData}"
 DESTINATION="${1:-generic/platform=iOS Simulator}"
 
 echo "Building Rigged Shoe for iOS Simulator"
