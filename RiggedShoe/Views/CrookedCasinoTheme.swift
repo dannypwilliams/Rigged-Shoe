@@ -756,7 +756,6 @@ struct CrookedCasinoButtonStyle: ButtonStyle {
             .background(buttonBackground)
             .overlay(DoodleAccentView(accent: tone.foreground.opacity(0.60), density: .low))
             .scaleEffect(x: configuration.isPressed ? 0.97 : 1, y: configuration.isPressed ? 0.92 : 1)
-            .rotationEffect(.degrees(configuration.isPressed ? -0.8 : 0))
             .brightness(configuration.isPressed ? 0.04 : 0)
             .animation(.spring(response: 0.20, dampingFraction: 0.66), value: configuration.isPressed)
     }
@@ -770,10 +769,10 @@ struct CrookedCasinoButtonStyle: ButtonStyle {
             Image(CrookedCasinoAsset.buttonDisabled.rawValue)
                 .resizable(capInsets: EdgeInsets(top: 28, leading: 34, bottom: 28, trailing: 34), resizingMode: .stretch)
         } else {
-            CrookedStickerShape(cornerRadius: 13)
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
                 .fill(isEnabled ? tone.fill : Color.white.opacity(0.08))
                 .overlay(
-                    CrookedStickerShape(cornerRadius: 13)
+                    RoundedRectangle(cornerRadius: 13, style: .continuous)
                         .stroke(CrookedCasinoTheme.ink, lineWidth: 2.4)
                 )
                 .shadow(color: Color.black.opacity(0.22), radius: 7, y: 4)
@@ -790,15 +789,14 @@ struct CrookedPanelModifier: ViewModifier {
         content
             .background(CrookedPanelBackground(kind: kind, cornerRadius: cornerRadius))
             .overlay(
-                CrookedStickerShape(cornerRadius: cornerRadius)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .stroke(CrookedCasinoTheme.ink.opacity(0.82), lineWidth: 2)
             )
             .overlay(
-                CrookedStickerShape(cornerRadius: max(4, cornerRadius - 5))
+                RoundedRectangle(cornerRadius: max(4, cornerRadius - 5), style: .continuous)
                     .stroke(strokeColor.opacity(0.36), lineWidth: 1)
                     .padding(4)
             )
-            .overlay(DoodleAccentView(accent: strokeColor, density: .low).allowsHitTesting(false))
             .shadow(color: Color.black.opacity(0.24), radius: 10, y: 6)
     }
 }
@@ -987,31 +985,8 @@ struct CrookedStickerShape: Shape {
 
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        let wobble = min(rect.width, rect.height) * 0.035
         let radius = min(cornerRadius, min(rect.width, rect.height) * 0.35)
-
-        path.move(to: CGPoint(x: rect.minX + radius + wobble, y: rect.minY + wobble))
-        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY + wobble * 0.25))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.maxX - wobble * 0.3, y: rect.minY + radius),
-            control: CGPoint(x: rect.maxX + wobble, y: rect.minY + wobble)
-        )
-        path.addLine(to: CGPoint(x: rect.maxX - wobble, y: rect.maxY - radius - wobble))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.maxX - radius, y: rect.maxY - wobble * 0.4),
-            control: CGPoint(x: rect.maxX - wobble, y: rect.maxY + wobble)
-        )
-        path.addLine(to: CGPoint(x: rect.minX + radius - wobble, y: rect.maxY - wobble))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.minX + wobble * 0.4, y: rect.maxY - radius),
-            control: CGPoint(x: rect.minX - wobble, y: rect.maxY - wobble)
-        )
-        path.addLine(to: CGPoint(x: rect.minX + wobble, y: rect.minY + radius + wobble))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.minX + radius + wobble, y: rect.minY + wobble),
-            control: CGPoint(x: rect.minX + wobble, y: rect.minY - wobble)
-        )
-
+        path.addRoundedRect(in: rect, cornerSize: CGSize(width: radius, height: radius))
         return path
     }
 }

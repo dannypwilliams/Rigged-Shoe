@@ -40,7 +40,7 @@ struct Achievement: Identifiable, Equatable {
         Achievement(
             id: "casino_legend",
             name: "Casino Legend",
-            description: "Beat Stage 10.",
+            description: "Beat Stage 30.",
             chipReward: 5_000
         )
     ]

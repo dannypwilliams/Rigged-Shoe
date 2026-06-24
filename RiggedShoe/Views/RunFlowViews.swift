@@ -46,6 +46,8 @@ struct RunStartView: View {
                             )
                         }
                         .buttonStyle(JuicyPressButtonStyle())
+                        .accessibilityLabel(contactAccessibilityLabel(contact, isSelected: contact.id == selectedContact.id))
+                        .accessibilityHint("Selects this Contact for the run")
                     }
                 }
 
@@ -54,6 +56,19 @@ struct RunStartView: View {
                 PrimaryRunFlowButton(title: "Preview Stage 1", action: onContinue)
             }
         }
+    }
+
+    private func contactAccessibilityLabel(_ contact: StartingContact, isSelected: Bool) -> String {
+        let selected = isSelected ? "Selected" : "Not selected"
+        return [
+            contact.name,
+            contact.recommendedArchetype,
+            "Difficulty \(contact.difficultyRating)",
+            "Bankroll \(MoneyFormatter.signed(contact.bankrollAdjustmentCents))",
+            "Chips \(contact.chipsAdjustment >= 0 ? "+" : "")\(contact.chipsAdjustment)",
+            "Heat \(contact.heatAdjustment >= 0 ? "+" : "")\(contact.heatAdjustment)",
+            selected
+        ].joined(separator: ", ")
     }
 }
 
@@ -90,6 +105,16 @@ private struct StartingContactDetailCard: View {
                 .foregroundStyle(.white.opacity(0.72))
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 5) {
+                detailLine("Bankroll", MoneyFormatter.signed(contact.bankrollAdjustmentCents))
+                detailLine("Chips", signedInteger(contact.chipsAdjustment))
+                detailLine("Heat", signedInteger(contact.heatAdjustment))
+                detailLine("Starting item", startingItemSummary)
+                detailLine("Exact trigger", startingTriggerSummary)
+                detailLine("Risk", riskSummary)
+                detailLine("Play style", contact.recommendedArchetype)
+            }
         }
         .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
         .padding(12)
@@ -102,6 +127,65 @@ private struct StartingContactDetailCard: View {
                 .stroke(CasinoTheme.gold.opacity(0.52), lineWidth: 1)
         )
     }
+
+    private var startingItemSummary: String {
+        let modifiers = contact.startingModifiers.compactMap { Modifier.definition(id: $0) }
+        let consumables = contact.startingConsumables.compactMap { Consumable.definition(id: $0) }
+        let modifierNames = modifiers.map(\.name)
+        let consumableNames = consumables.map(\.name)
+        let names = modifierNames + consumableNames
+        return names.isEmpty ? "No starting item" : names.joined(separator: ", ")
+    }
+
+    private var startingTriggerSummary: String {
+        if let modifier = contact.startingModifiers.compactMap({ Modifier.definition(id: $0) }).first {
+            let trigger = modifier.triggerLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            let mechanic = modifier.shopMechanicText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if mechanic.localizedCaseInsensitiveContains(trigger) {
+                return mechanic
+            }
+            return "\(trigger): \(mechanic)"
+        }
+
+        if let consumable = contact.startingConsumables.compactMap({ Consumable.definition(id: $0) }).first {
+            return "\(consumable.triggerWindow.shopLabel): \(consumable.summary)"
+        }
+
+        return "No starting trigger"
+    }
+
+    private var riskSummary: String {
+        var parts: [String] = []
+        if contact.heatAdjustment > 0 {
+            parts.append("Starts hotter")
+        }
+        if contact.bankrollAdjustmentCents < 0 {
+            parts.append("Lower bankroll")
+        }
+        if contact.earlyMaxBetMultiplierPercent < 100 {
+            parts.append("Early max bet reduced")
+        }
+        return parts.isEmpty ? "No direct drawback" : parts.joined(separator: ", ")
+    }
+
+    private func detailLine(_ title: String, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title)
+                .font(.system(size: 9, weight: .black, design: .rounded))
+                .foregroundStyle(.white.opacity(0.52))
+                .textCase(.uppercase)
+            Spacer(minLength: 8)
+            Text(value)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.82))
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func signedInteger(_ value: Int) -> String {
+        value > 0 ? "+\(value)" : "\(value)"
+    }
 }
 
 private struct StartingContactChip: View {
@@ -110,11 +194,19 @@ private struct StartingContactChip: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(contact.name)
-                    .font(.system(size: 11, weight: .black, design: .rounded))
-                    .foregroundStyle(isSelected ? CasinoTheme.gold : .white)
+            Text(contact.name)
+                .font(.system(size: 11, weight: .black, design: .rounded))
+                .foregroundStyle(isSelected ? CasinoTheme.gold : .white)
+                .lineLimit(2)
+                .minimumScaleFactor(0.86)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(alignment: .center, spacing: 6) {
+                Text(contact.recommendedArchetype)
+                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.62))
                     .lineLimit(2)
+                    .minimumScaleFactor(0.9)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Spacer(minLength: 4)
@@ -126,11 +218,6 @@ private struct StartingContactChip: View {
                     .padding(.vertical, 3)
                     .background(Capsule().fill(isSelected ? CasinoTheme.gold : .white.opacity(0.10)))
             }
-
-            Text(contact.recommendedArchetype)
-                .font(.system(size: 9, weight: .bold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.62))
-                .lineLimit(2)
         }
         .frame(maxWidth: .infinity, minHeight: 64, alignment: .topLeading)
         .padding(8)
@@ -175,7 +262,7 @@ struct StagePreviewView: View {
                                 .lineLimit(nil)
                                 .fixedSize(horizontal: false, vertical: true)
 
-                            Text(preview.opponentName)
+                            Text("House Profile: \(preview.opponentName)")
                                 .font(.headline.weight(.bold))
                                 .foregroundStyle(.white.opacity(0.72))
                                 .lineLimit(nil)
@@ -198,13 +285,14 @@ struct StagePreviewView: View {
 
                     RunFlowDetailRow(title: "Clear", value: preview.primaryObjectiveSummary)
                     RunFlowDetailRow(title: "Wagers", value: "Min \(MoneyFormatter.format(preview.ante * 100)) / Max \(MoneyFormatter.format(preview.maxBetCents))")
+                    RunFlowDetailRow(title: "House Profile", value: preview.opponentName)
                     RunFlowDetailRow(title: "Table Rule", value: preview.tableRule)
                     Text(preview.tableRuleDetail)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white.opacity(0.62))
                         .fixedSize(horizontal: false, vertical: true)
-                    RunFlowDetailRow(title: "Reward", value: preview.stageNumber == 1 ? "+2 Chips, then Take 1 Reward" : "Final result")
-                    RunFlowDetailRow(title: "Optional Bonus", value: "\(preview.secondaryObjectiveTitle) - \(preview.secondaryObjectiveReward)")
+                    RunFlowDetailRow(title: "Reward", value: preview.isBossStage ? "Boss Chips, then boss reward and shop" : "Chips, reward draft, then shop")
+                    RunFlowDetailRow(title: "Optional Objective", value: "\(preview.secondaryObjectiveTitle) - \(preview.secondaryObjectiveReward)")
                     Text(preview.secondaryObjectiveSummary)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white.opacity(0.62))
@@ -257,7 +345,7 @@ struct StageResultView: View {
 
         RunFlowOverlay(accentColor: accent) {
             VStack(spacing: 16) {
-                Text(result.title)
+                Text(result.didWin ? "Stage \(result.stageNumber) Cleared" : "Run Over")
                     .font(.system(size: 36, weight: .black, design: .rounded))
                     .foregroundStyle(result.didWin ? CasinoTheme.gold : CasinoTheme.red)
 
@@ -267,7 +355,7 @@ struct StageResultView: View {
 
                 VStack(spacing: 9) {
                     RunFlowDetailRow(title: "Result", value: result.reasonText)
-                    RunFlowDetailRow(title: "Opponent", value: result.opponentName)
+                    RunFlowDetailRow(title: "Table Profile", value: result.opponentName)
                     RunFlowDetailRow(title: "Started", value: MoneyFormatter.format(result.startingBankrollCents))
                     RunFlowDetailRow(title: "Ended", value: MoneyFormatter.format(result.endingBankrollCents))
                     RunFlowDetailRow(title: "Bankroll Change", value: MoneyFormatter.signed(result.bankrollChangeCents))
@@ -284,7 +372,7 @@ struct StageResultView: View {
                             ? "\(result.secondaryObjectiveTitle) complete"
                             : "\(result.secondaryObjectiveTitle) missed"
                     )
-                    RunFlowDetailRow(title: "Main Build", value: result.buildArchetype)
+                    RunFlowDetailRow(title: "Build", value: result.buildArchetype)
 
                     if !result.triggeredModifierSummaries.isEmpty {
                         VStack(alignment: .leading, spacing: 5) {
@@ -318,7 +406,7 @@ struct StageResultView: View {
 
     private var primaryActionTitle: String {
         if result.didWin {
-            return result.stageNumber == 1 ? "Take 1 Reward" : "Replay"
+            return "Continue"
         }
 
         return "Replay"
@@ -418,7 +506,10 @@ struct ShopPhaseView: View {
     }
 
     private var nextStageButtonTitle: String {
-        viewModel.state.runManager.currentStageIndex + 1 >= viewModel.state.runManager.stages.count ? "Finish Run" : "Continue to Stage 2"
+        let nextStage = viewModel.state.runManager.currentStageIndex + 2
+        return viewModel.state.runManager.currentStageIndex + 1 >= viewModel.state.runManager.stages.count
+            ? "Finish Run"
+            : "Continue to Stage \(nextStage)"
     }
 
     private var rerollButtonTitle: String {

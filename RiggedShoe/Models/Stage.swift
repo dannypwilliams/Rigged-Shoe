@@ -160,7 +160,8 @@ struct Stage: Identifiable, Equatable {
         self.betLimit = betLimit
     }
 
-    static let allStages: [Stage] = [
+    static let allStages: [Stage] = {
+        let authoredOpening: [Stage] = [
         Stage(
             id: 1,
             targetProfitCents: 0,
@@ -230,12 +231,89 @@ struct Stage: Identifiable, Equatable {
         ),
         Stage(id: 6, targetProfitCents: 0, roundLimit: 8, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 8, title: "Deeper Table", description: "Survive 8 hands with a stronger shop-built engine."), betLimit: BetLimit(allowedBetAmountsCents: [20_000, 40_000, 60_000, 80_000])),
         Stage(id: 7, targetProfitCents: 0, roundLimit: 9, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 9, title: "Pressure Run", description: "Survive 9 hands before the second boss."), betLimit: BetLimit(allowedBetAmountsCents: [30_000, 60_000, 90_000, 120_000])),
-        Stage(id: 8, targetProfitCents: 0, roundLimit: 10, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 10, title: "Boss Table II", description: "Survive 10 hands against a major casino countermeasure."), betLimit: BetLimit(allowedBetAmountsCents: [40_000, 80_000, 120_000, 160_000, 175_000])),
-        Stage(id: 9, targetProfitCents: 0, roundLimit: 10, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 10, title: "Final Prep", description: "Survive 10 hands and tune your bankroll before The House."), betLimit: BetLimit(allowedBetAmountsCents: [60_000, 120_000, 180_000, 240_000, 250_000])),
-        Stage(id: 10, targetProfitCents: 0, roundLimit: 12, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 12, title: "Final Boss", description: "Survive 12 hands against The House."), betLimit: BetLimit(allowedBetAmountsCents: [80_000, 160_000, 240_000, 320_000, 400_000]))
-    ]
+        Stage(id: 8, targetProfitCents: 0, roundLimit: 10, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 10, title: "Composition Check", description: "Survive 10 hands while shoe information gets more valuable."), betLimit: BetLimit(allowedBetAmountsCents: [40_000, 80_000, 120_000, 160_000, 175_000])),
+        Stage(id: 9, targetProfitCents: 0, roundLimit: 10, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 10, title: "Major Prep", description: "Survive 10 hands and tune your bankroll before the next boss table."), betLimit: BetLimit(allowedBetAmountsCents: [60_000, 120_000, 180_000, 240_000, 250_000])),
+        Stage(id: 10, targetProfitCents: 0, roundLimit: 12, teachingObjective: StageObjective(kind: .surviveHands(minBankrollCents: 1), target: 12, title: "Major Boss", description: "Survive 12 hands against a full casino countermeasure."), betLimit: BetLimit(allowedBetAmountsCents: [80_000, 160_000, 240_000, 320_000, 400_000]))
+        ]
 
-    static let verticalSliceStages: [Stage] = Array(allStages.prefix(2))
+        let productionStretch = (11...30).map { productionStage(id: $0) }
+        return authoredOpening + productionStretch
+    }()
+
+    static let verticalSliceStages: [Stage] = allStages
+
+    private static func productionStage(id: Int) -> Stage {
+        let ante = anteCents(for: id)
+        let maxBet = stageMaxBetCents(for: id)
+        let roundLimit = id == 30 ? 16 : (id.isMultiple(of: 5) ? 14 : min(13, 8 + id / 4))
+        let title: String
+        let description: String
+
+        if id == 30 {
+            title = "Final Boss"
+            description = "Survive \(roundLimit) hands against The House."
+        } else if id.isMultiple(of: 5) {
+            title = "Boss Table"
+            description = "Survive \(roundLimit) hands against a casino boss."
+        } else {
+            title = "Stage \(id) Table"
+            description = "Survive \(roundLimit) hands while the ante and table pressure climb."
+        }
+
+        let step = max(ante, (maxBet - ante) / 4)
+        let amounts = stride(from: ante, through: maxBet, by: step).map { $0 }
+        let allowedAmounts = Array(Set((amounts + [maxBet]).filter { $0 >= ante && $0 <= maxBet })).sorted()
+
+        return Stage(
+            id: id,
+            targetProfitCents: 0,
+            roundLimit: roundLimit,
+            teachingObjective: StageObjective(
+                kind: .surviveHands(minBankrollCents: 1),
+                target: roundLimit,
+                title: title,
+                description: description
+            ),
+            betLimit: BetLimit(allowedBetAmountsCents: allowedAmounts)
+        )
+    }
+
+    static func anteCents(for stageID: Int) -> Int {
+        switch stageID {
+        case 1: return VerticalSliceBalance.stage1MinimumBetCents
+        case 2: return VerticalSliceBalance.stage2MinimumBetCents
+        case 3: return 7_500
+        case 4: return 10_000
+        case 5: return 15_000
+        case 6: return 20_000
+        case 7: return 30_000
+        case 8: return 40_000
+        case 9: return 60_000
+        case 10: return 80_000
+        case 11...15: return 100_000 + (stageID - 11) * 25_000
+        case 16...20: return 225_000 + (stageID - 16) * 50_000
+        case 21...25: return 500_000 + (stageID - 21) * 100_000
+        case 26...30: return 1_100_000 + (stageID - 26) * 180_000
+        default: return 2_500
+        }
+    }
+
+    static func stageMaxBetCents(for stageID: Int) -> Int {
+        switch stageID {
+        case 1: return VerticalSliceBalance.stage1MaximumBetCents
+        case 2: return VerticalSliceBalance.stage2MaximumBetCents
+        case 3: return 25_000
+        case 4: return 40_000
+        case 5: return 60_000
+        case 6: return 80_000
+        case 7: return 120_000
+        case 8: return 175_000
+        case 9: return 250_000
+        case 10: return 400_000
+        default:
+            return max(anteCents(for: stageID) * (stageID.isMultiple(of: 5) ? 6 : 5), anteCents(for: stageID))
+        }
+    }
 }
 
 extension Stage {
@@ -256,19 +334,7 @@ extension Stage {
     }
 
     var anteCents: Int {
-        switch id {
-        case 1: return VerticalSliceBalance.stage1MinimumBetCents
-        case 2: return VerticalSliceBalance.stage2MinimumBetCents
-        case 3: return 7_500
-        case 4: return 10_000
-        case 5: return 15_000
-        case 6: return 20_000
-        case 7: return 30_000
-        case 8: return 40_000
-        case 9: return 60_000
-        case 10: return 80_000
-        default: return 2_500
-        }
+        Stage.anteCents(for: id)
     }
 
     var ante: Int {
@@ -288,23 +354,11 @@ extension Stage {
     }
 
     var stageMaxBetCents: Int {
-        switch id {
-        case 1: return VerticalSliceBalance.stage1MaximumBetCents
-        case 2: return VerticalSliceBalance.stage2MaximumBetCents
-        case 3: return 25_000
-        case 4: return 40_000
-        case 5: return 60_000
-        case 6: return 80_000
-        case 7: return 120_000
-        case 8: return 175_000
-        case 9: return 250_000
-        case 10: return 400_000
-        default: return 10_000
-        }
+        Stage.stageMaxBetCents(for: id)
     }
 
     var isBossStage: Bool {
-        [5, 8, 10].contains(id)
+        [5, 10, 15, 20, 25, 30].contains(id)
     }
 
     var opponentName: String {
@@ -320,7 +374,7 @@ extension Stage {
     }
 
     var rewardTier: String {
-        if id == 10 {
+        if id == 30 {
             return "Victory"
         }
 
@@ -417,7 +471,8 @@ struct EconomyRewardCalculation: Equatable {
         switch stageID {
         case 5: return 300
         case 8: return 400
-        case 10: return 500
+        case 10, 15, 20, 25: return 500
+        case 30: return 700
         default: return 300
         }
     }
@@ -425,10 +480,12 @@ struct EconomyRewardCalculation: Equatable {
     private static func normalStageChips(for stageID: Int) -> Int {
         switch stageID {
         case 1: return VerticalSliceBalance.stage1ClearChips
-        case 2: return 0
+        case 2: return 2
         case 3: return 2
         case 4...7: return 3
-        default: return 4
+        case 8...14: return 4
+        case 15...24: return 5
+        default: return 6
         }
     }
 
@@ -436,7 +493,9 @@ struct EconomyRewardCalculation: Equatable {
         switch stageID {
         case 5: return 5
         case 8: return 6
-        case 10: return 8
+        case 10, 15: return 8
+        case 20, 25: return 10
+        case 30: return 14
         default: return 5
         }
     }
@@ -507,7 +566,7 @@ struct StagePreviewData: Equatable {
         self.rewardTier = opponent.rewardTier
         self.maxBetCents = stage.stageMaxBetCents
         self.isBossStage = stage.isBossStage
-        self.bossWarning = stage.isBossStage ? "\(opponent.name) adds a boss rule on top of \(event.name)." : nil
+        self.bossWarning = stage.isBossStage ? "\(opponent.name) adds a boss-table rule on top of \(event.name)." : nil
     }
 }
 
@@ -540,17 +599,7 @@ struct StageResultData: Codable, Equatable {
 
     var reasonText: String {
         if didWin {
-            let handCount: Int
-            switch stageNumber {
-            case 1:
-                handCount = VerticalSliceBalance.stage1Hands
-            case 2:
-                handCount = VerticalSliceBalance.stage2Hands
-            default:
-                handCount = 0
-            }
-
-            if handCount > 0 {
+            if let handCount = Stage.allStages.first(where: { $0.id == stageNumber })?.roundLimit {
                 return "Cleared by staying solvent after \(handCount) hands."
             }
 
@@ -644,7 +693,7 @@ struct StageResultData: Codable, Equatable {
         startingBankrollCents = try container.decodeIfPresent(Int.self, forKey: .startingBankrollCents) ?? 0
         endingBankrollCents = try container.decodeIfPresent(Int.self, forKey: .endingBankrollCents) ?? 0
         profitCents = try container.decode(Int.self, forKey: .profitCents)
-        opponentName = try container.decodeIfPresent(String.self, forKey: .opponentName) ?? "Opponent"
+        opponentName = try container.decodeIfPresent(String.self, forKey: .opponentName) ?? "Table Profile"
         opponentProfitCents = try container.decodeIfPresent(Int.self, forKey: .opponentProfitCents) ?? 0
         bankrollChangeCents = try container.decode(Int.self, forKey: .bankrollChangeCents)
         objectiveDescription = try container.decodeIfPresent(String.self, forKey: .objectiveDescription) ?? "Clear the stage objective."

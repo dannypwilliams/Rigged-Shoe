@@ -86,6 +86,10 @@ struct ContentView: View {
                     onForceDailySeed: { seed in viewModel.debugForceDailySeed(seed) },
                     onRunPhase3Checks: viewModel.debugRunPhase3Checks,
                     onStressGameRoomLayout: viewModel.debugStressGameRoomLayout,
+                    onStartAtStage: viewModel.debugStartAtStage,
+                    onApplyResourceFixture: viewModel.debugApplyResourceFixture,
+                    onClearSave: viewModel.debugClearSave,
+                    diagnosticsExportText: viewModel.debugDiagnosticsExportText,
                     onClose: { isShowingDebugMenu = false }
                 )
                 .transition(.opacity.combined(with: .scale(scale: 0.98)))
@@ -541,22 +545,12 @@ struct ContentView: View {
                 return "\(viewModel.activeShoeReveal?.title ?? "Reveal") active: bet capped at \(MoneyFormatter.format(cap))."
             }
 
-            switch viewModel.state.runManager.stageReached {
-            case 1:
-                return "Stage 1: survive 5 hands. Legal bets are $25, $50, or $75 if your bankroll can cover them."
-            case 2:
-                return "Stage 2: survive 6 hands. Legal bets are $50 or $100 if your bankroll can cover them."
-            case 3:
-                return "Seven hands. Use upgrades or reads before pressing the larger bet."
-            case 4:
-                return "Eight hands before the first boss. Keep the build alive."
-            case 5:
-                return "Boss table. Watch for modified rules and protect your bankroll."
-            default:
-                break
-            }
-
-            return "Deal plays one baccarat round from the shoe."
+            let stage = viewModel.state.runManager.currentStage
+            let legalBets = viewModel.state.runManager.legalBetAmounts(bankrollCents: viewModel.state.bankrollCents)
+                .map(MoneyFormatter.format)
+                .joined(separator: ", ")
+            let bossNote = stage.isBossStage ? " Boss table: watch the modified rules." : ""
+            return "Stage \(stage.id): survive \(viewModel.state.runManager.currentRoundLimit) hands. Legal bets: \(legalBets).\(bossNote)"
         }
 
         if viewModel.state.runManager.status == .failed || viewModel.state.runManager.status == .completed {

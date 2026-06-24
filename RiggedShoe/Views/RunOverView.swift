@@ -144,8 +144,7 @@ struct RunOverView: View {
             (title: "Best Profit", value: MoneyFormatter.format(runManager.highestProfitCents)),
             (title: "Rounds", value: "\(runManager.totalRoundsPlayed)"),
             (title: "Bosses", value: "\(bossManager.bossesDefeatedCount)"),
-            (title: "Chips Earned", value: "+\(formatNumber(chipsEarnedThisRun))"),
-            (title: "Rep Earned", value: "+\(formatNumber(reputationEarnedThisRun))")
+            (title: "Chips Earned", value: "+\(formatNumber(chipsEarnedThisRun))")
         ]
 
         guard !isCompact else {
@@ -154,21 +153,19 @@ struct RunOverView: View {
 
         return required + [
             (title: "Total Chips", value: formatNumber(profile.casinoChips)),
-            (title: "Total Rep", value: formatNumber(profile.reputation)),
             (title: "Player Wins", value: "\(runManager.playerWins)"),
             (title: "Banker Wins", value: "\(runManager.bankerWins)"),
-            (title: "Tie Results", value: "\(runManager.tieResults)"),
-            (title: "Relics", value: "\(bossRelics.count)")
+            (title: "Tie Results", value: "\(runManager.tieResults)")
         ]
     }
 
     private var mainBuild: String {
-        "Main Build: \(BuildArchetypeDetector.detect(activeModifiers: activeModifiers))"
+        "Build: \(BuildArchetypeDetector.detect(activeModifiers: activeModifiers))"
     }
 
     private var runExplanation: String {
         if isVictory {
-            return "Your build survived every opponent table and cleared The House."
+            return "Your build survived every house table and cleared The House."
         }
 
         if let result = runManager.lastStageResult, !result.lossExplanation.isEmpty {

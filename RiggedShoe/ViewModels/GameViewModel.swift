@@ -1223,6 +1223,66 @@ final class GameViewModel: ObservableObject {
         persistRunState()
     }
 
+    func debugStartAtStage(_ stageID: Int) {
+        track(.debugAction, properties: ["action": "startAtStage", "stage": "\(stageID)"])
+        let clampedStage = min(max(1, stageID), state.runManager.stages.count)
+        state.runManager.currentStageIndex = clampedStage - 1
+        state.runManager.status = .active
+        state.runManager.flowState = .stagePreview
+        state.runManager.stageStartingBankrollCents = max(state.bankrollCents, state.runManager.currentStage.minimumBetCents * 8)
+        state.bankrollCents = state.runManager.stageStartingBankrollCents
+        state.runManager.currentStageRoundsPlayed = 0
+        state.runManager.currentStageWinningBets = 0
+        state.runManager.currentStageUpgradeTriggers = 0
+        state.runManager.currentStageRevealWins = 0
+        state.runManager.currentStageUpgradeInfluencedWins = 0
+        state.runManager.currentStageLosses = 0
+        state.runManager.currentStageOpponentProfitCents = 0
+        state.runManager.currentStageWinningBetTypes = []
+        state.runManager.currentStageLastWinner = nil
+        state.runManager.lastStageResult = nil
+        state.bossManager.pendingAnnouncementBoss = nil
+        state.bossManager.activeBoss = nil
+        resetVisibleBattleStateForStage(reason: "debug start at stage")
+        prepareBossAnnouncementIfNeeded()
+        normalizeSelectedBetForStage()
+        persistRunState()
+    }
+
+    func debugApplyResourceFixture(bankrollCents: Int, chips: Int, heat: Int) {
+        track(.debugAction, properties: ["action": "applyResourceFixture"])
+        state.bankrollCents = max(0, bankrollCents)
+        state.runManager.chips = max(0, chips)
+        state.runManager.heat = min(state.runManager.maxHeat, max(0, heat))
+        normalizeSelectedBetForStage()
+        persistRunState()
+    }
+
+    func debugClearSave() {
+        track(.debugAction, properties: ["action": "clearSave"])
+        RunPersistenceManager.clear()
+        state = GameState(configuration: metaProgression.runConfiguration())
+        normalizeSelectedBetForStage()
+        persistRunState()
+    }
+
+    func debugDiagnosticsExportText() -> String {
+        [
+            "Rigged Shoe Diagnostics",
+            "runStartedAt=\(state.runStartedAt.ISO8601Format())",
+            "seed=\(state.dailySeed.map(String.init) ?? "standard")",
+            "stage=\(state.runManager.stageReached)",
+            "hand=\(state.runManager.currentStageRoundsPlayed)/\(state.runManager.currentRoundLimit)",
+            "flow=\(state.runManager.flowState.rawValue)",
+            "bankrollCents=\(state.bankrollCents)",
+            "chips=\(state.runManager.chips)",
+            "heat=\(state.runManager.heat)/\(state.runManager.maxHeat)",
+            "contact=\(state.startingContact.name)",
+            "activeModifiers=\(state.activeModifiers.map(\.modifierID).joined(separator: ","))",
+            "recentEvents=\(state.debugGameEventLog.suffix(20).joined(separator: " | "))"
+        ].joined(separator: "\n")
+    }
+
     func debugFastForwardThreeRounds() {
         track(.debugAction, properties: ["action": "fastForwardThreeRounds"])
 

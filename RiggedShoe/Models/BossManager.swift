@@ -144,23 +144,28 @@ struct BossManager: Equatable {
         challengeID: ChallengeModeID = .standard,
         seededGenerator: inout SeededRandomGenerator?
     ) -> Boss? {
-        if stageID == 10 {
-            return .house
-        }
-
-        if stageID == 5 {
+        switch stageID {
+        case 5:
             return .pitBoss
-        }
-
-        if stageID == 8 {
+        case 10:
             return .shoeInspector
+        case 15:
+            return .automaticShuffler
+        case 20:
+            return .tieTaxAuditor
+        case 25:
+            return .compController
+        case 30:
+            return .house
+        default:
+            break
         }
 
-        guard challengeID == .bossRush || [5, 8].contains(stageID) else {
+        guard challengeID == .bossRush else {
             return nil
         }
 
-        let pool = Boss.randomBossPool
+        let pool = Boss.randomBossPool.filter { $0 != .house }
 
         if var generator = seededGenerator {
             let boss = pool.seededRandomElement(using: &generator)

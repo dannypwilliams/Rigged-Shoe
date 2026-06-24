@@ -11,12 +11,17 @@ struct DebugMenuView: View {
     let onForceDailySeed: (UInt64) -> Void
     let onRunPhase3Checks: () -> String
     let onStressGameRoomLayout: () -> Void
+    let onStartAtStage: (Int) -> Void
+    let onApplyResourceFixture: (Int, Int, Int) -> Void
+    let onClearSave: () -> Void
+    let diagnosticsExportText: () -> String
     let onClose: () -> Void
 
     @State private var upgradeName = "Marked Shoe"
     @State private var selectedBossID = Boss.surveillance.id
     @State private var dailySeedText = "20260618"
     @State private var phase3CheckResult = "Not run"
+    @State private var diagnosticsText = "Not exported"
 
     private var selectedBoss: Boss {
         Boss.allBosses.first { $0.id == selectedBossID } ?? .surveillance
@@ -35,9 +40,12 @@ struct DebugMenuView: View {
                     actionButton("Stress Game Room Layout", action: onStressGameRoomLayout)
                     actionButton("Fast Forward 3 Rounds", action: onFastForward)
                     actionButton("Instant Stage Clear", action: onInstantStageClear)
+                    qaStartPanel
+                    resourceFixturePanel
                     grantUpgradePanel
                     bossPanel
                     seedPanel
+                    diagnosticsPanel
                 }
                 .padding(20)
             }
@@ -127,6 +135,43 @@ struct DebugMenuView: View {
         .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.22, cornerRadius: 12)
     }
 
+    private var qaStartPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("QA Start Points")
+                .font(.headline.weight(.black))
+                .foregroundStyle(.white)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                ForEach([1, 6, 11, 16, 21, 26], id: \.self) { stage in
+                    actionButton("Act \(actNumber(for: stage))") { onStartAtStage(stage) }
+                }
+                ForEach([5, 10, 15, 20, 25, 30], id: \.self) { stage in
+                    actionButton("Boss \(stage)") { onStartAtStage(stage) }
+                }
+            }
+        }
+        .padding(14)
+        .neonPanel(strokeColor: CasinoTheme.gold, opacity: 0.22, cornerRadius: 12)
+    }
+
+    private var resourceFixturePanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Resource Fixtures")
+                .font(.headline.weight(.black))
+                .foregroundStyle(.white)
+
+            HStack {
+                actionButton("Stable") { onApplyResourceFixture(200_000, 8, 1) }
+                actionButton("Pressure") { onApplyResourceFixture(75_000, 3, 7) }
+                actionButton("High Roll") { onApplyResourceFixture(1_500_000, 20, 4) }
+            }
+
+            actionButton("Clear Save") { onClearSave() }
+        }
+        .padding(14)
+        .neonPanel(strokeColor: CasinoTheme.emerald, opacity: 0.20, cornerRadius: 12)
+    }
+
     private var bossPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Spawn Boss")
@@ -167,6 +212,25 @@ struct DebugMenuView: View {
         .neonPanel(strokeColor: CasinoTheme.emerald, opacity: 0.20, cornerRadius: 12)
     }
 
+    private var diagnosticsPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Diagnostics")
+                .font(.headline.weight(.black))
+                .foregroundStyle(.white)
+
+            Text(diagnosticsText)
+                .font(.caption.monospacedDigit().weight(.bold))
+                .foregroundStyle(.white.opacity(0.72))
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            actionButton("Export Diagnostics") {
+                diagnosticsText = diagnosticsExportText()
+            }
+        }
+        .padding(14)
+        .neonPanel(strokeColor: CasinoTheme.neonBlue, opacity: 0.22, cornerRadius: 12)
+    }
+
     private func actionButton(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
@@ -190,6 +254,10 @@ struct DebugMenuView: View {
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.trailing)
         }
+    }
+
+    private func actNumber(for stage: Int) -> Int {
+        ((stage - 1) / 5) + 1
     }
 }
 #endif

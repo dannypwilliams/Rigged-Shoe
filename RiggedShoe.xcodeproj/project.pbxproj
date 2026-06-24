@@ -51,6 +51,7 @@
 		E10000000000000000000024 /* HapticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000034 /* HapticsManager.swift */; };
 		E10000000000000000000025 /* CasinoTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000035 /* CasinoTheme.swift */; };
 		F60000000000000000000021 /* CrookedCasinoTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60000000000000000000031 /* CrookedCasinoTheme.swift */; };
+		F70000000000000000000021 /* CasinoDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000031 /* CasinoDesignSystem.swift */; };
 		E10000000000000000000026 /* AnimatedMoneyText.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000036 /* AnimatedMoneyText.swift */; };
 		E10000000000000000000027 /* ParticleBurstView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000037 /* ParticleBurstView.swift */; };
 		E10000000000000000000028 /* ScreenShakeEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000038 /* ScreenShakeEffect.swift */; };
@@ -137,6 +138,7 @@
 		E10000000000000000000034 /* HapticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsManager.swift; sourceTree = "<group>"; };
 		E10000000000000000000035 /* CasinoTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasinoTheme.swift; sourceTree = "<group>"; };
 		F60000000000000000000031 /* CrookedCasinoTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrookedCasinoTheme.swift; sourceTree = "<group>"; };
+		F70000000000000000000031 /* CasinoDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasinoDesignSystem.swift; sourceTree = "<group>"; };
 		E10000000000000000000036 /* AnimatedMoneyText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedMoneyText.swift; sourceTree = "<group>"; };
 		E10000000000000000000037 /* ParticleBurstView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleBurstView.swift; sourceTree = "<group>"; };
 		E10000000000000000000038 /* ScreenShakeEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenShakeEffect.swift; sourceTree = "<group>"; };
@@ -296,6 +298,7 @@
 			children = (
 				E10000000000000000000035 /* CasinoTheme.swift */,
 				F60000000000000000000031 /* CrookedCasinoTheme.swift */,
+				F70000000000000000000031 /* CasinoDesignSystem.swift */,
 				F40000000000000000000031 /* CasinoLobbyView.swift */,
 				F50000000000000000000031 /* CasinoFloorPagerView.swift */,
 				F40000000000000000000032 /* ShoeView.swift */,
@@ -472,6 +475,7 @@
 				E10000000000000000000024 /* HapticsManager.swift in Sources */,
 				E10000000000000000000025 /* CasinoTheme.swift in Sources */,
 				F60000000000000000000021 /* CrookedCasinoTheme.swift in Sources */,
+				F70000000000000000000021 /* CasinoDesignSystem.swift in Sources */,
 				E10000000000000000000026 /* AnimatedMoneyText.swift in Sources */,
 				E10000000000000000000027 /* ParticleBurstView.swift in Sources */,
 				E10000000000000000000028 /* ScreenShakeEffect.swift in Sources */,

@@ -738,11 +738,11 @@ private enum UXHelpTopic: String, Identifiable {
         switch self {
         case .gameInfo:
             return [
-                "Clear a stage by staying solvent through its fixed hand count: 5 hands in Stage 1, then 6 hands in Stage 2.",
-                "Stage 1 wagers are $25, $50, and $75. Stage 2 wagers are $50 and $100.",
+                "Clear each stage by staying solvent through its fixed hand count. The production route ends at Stage 30.",
+                "Each Scout Report shows the current minimum wager, maximum wager, table rule, and optional bonus before you enter.",
                 "The guided first hand locks Player $25, then all legal sides and amounts unlock.",
                 "Player and Banker bets push for $0 on Tie. Tie bets pay 8:1.",
-                "Banker normally pays 0.95:1. No Commission Night in Stage 2 makes Banker pay 1:1.",
+                "Banker normally pays 0.95:1. Table rules can temporarily change payouts or Heat.",
                 "Chips buy shop offers or rerolls. Heat only changes from visible rules, contacts, modifiers, Pit Boss Skim, or Crackdown."
             ]
         case .baccarat:

@@ -582,7 +582,8 @@ extension OpponentState {
         case 10:
             return allOpponents[11]
         default:
-            return allOpponents[min(max(0, stageID - 1), allOpponents.count - 1)]
+            let latePool = Array(allOpponents.suffix(8))
+            return latePool[(stageID - 11) % latePool.count]
         }
     }
 
@@ -629,7 +630,7 @@ extension OpponentState {
 
 extension BossState {
     static func sample(stageNumber: Int) -> BossState {
-        let isFinal = stageNumber == 10
+        let isFinal = stageNumber == 30
         return BossState(
             id: isFinal ? "the-house-rebuild" : "surveillance-rebuild-\(stageNumber)",
             sourceBossID: isFinal ? 4 : 1,

@@ -142,15 +142,17 @@ final class ShopBackboneTests: XCTestCase {
         }
     }
 
-    func testVerticalSliceStartsWithTwoFixedCapStages() {
+    func testProductionRunStartsWithThirtyStagesAndFixedOpeningCaps() {
         let manager = RunManager()
 
-        XCTAssertEqual(manager.stages.map(\.id), [1, 2])
+        XCTAssertEqual(manager.stages.map(\.id), Array(1...30))
         XCTAssertEqual(manager.startingBankrollCents, VerticalSliceBalance.startingBankrollCents)
         XCTAssertEqual(manager.chips, VerticalSliceBalance.startingChips)
         XCTAssertEqual(manager.heat, VerticalSliceBalance.startingHeat)
         XCTAssertEqual(manager.currentStage.betLimit.allowedBetAmountsCents, [2_500, 5_000, 7_500])
         XCTAssertEqual(manager.currentStage.stageMaxBetCents, 7_500)
+        XCTAssertEqual(manager.stages.last?.id, 30)
+        XCTAssertTrue(manager.stages.last?.isBossStage == true)
     }
 
     func testStagePayoutRulesReflectNoCommissionNight() {
@@ -204,8 +206,12 @@ final class ShopBackboneTests: XCTestCase {
     func testBossScheduleAndRelicRewardsAreDeterministic() {
         XCTAssertNil(BossManager.boss(forStageID: 1))
         XCTAssertEqual(BossManager.boss(forStageID: 5)?.name, "Pit Boss")
-        XCTAssertEqual(BossManager.boss(forStageID: 8)?.name, "The Inspector")
-        XCTAssertEqual(BossManager.boss(forStageID: 10)?.name, "The House")
+        XCTAssertNil(BossManager.boss(forStageID: 8))
+        XCTAssertEqual(BossManager.boss(forStageID: 10)?.name, "The Inspector")
+        XCTAssertEqual(BossManager.boss(forStageID: 15)?.name, "Automatic Shuffler")
+        XCTAssertEqual(BossManager.boss(forStageID: 20)?.name, "Tie Tax Auditor")
+        XCTAssertEqual(BossManager.boss(forStageID: 25)?.name, "Comp Controller")
+        XCTAssertEqual(BossManager.boss(forStageID: 30)?.name, "The House")
 
         let relicRewardIDs = BossReward.productionRewards.compactMap { reward -> String? in
             if case .grantBossRelic(let id) = reward.effect {
@@ -223,14 +229,14 @@ final class ShopBackboneTests: XCTestCase {
         XCTAssertEqual(pitBoss?.effect.usesPitBossUpgradeDisable, false)
         XCTAssertTrue(pitBoss?.effect.ruleDescriptions.joined(separator: " ").contains("same side 4 times") == true)
 
-        let inspector = BossManager.boss(forStageID: 8)
+        let inspector = BossManager.boss(forStageID: 10)
         XCTAssertEqual(inspector?.effect.usesPitBossUpgradeDisable, false)
         XCTAssertFalse(inspector?.effect.suppressesReveal ?? true)
         let inspectorRules = inspector?.effect.ruleDescriptions.joined(separator: " ") ?? ""
         XCTAssertTrue(inspectorRules.contains("adds 2 Heat"))
         XCTAssertTrue(inspectorRules.contains("opponent a score boost"))
 
-        let house = BossManager.boss(forStageID: 10)
+        let house = BossManager.boss(forStageID: 30)
         XCTAssertEqual(house?.effect.disabledUpgradeCount, 0)
         XCTAssertFalse(house?.effect.suppressesReveal ?? true)
         XCTAssertTrue(house?.effect.shufflesAfterEveryRound ?? false)
@@ -398,7 +404,7 @@ final class ShopBackboneTests: XCTestCase {
     }
 
     @MainActor
-    func testTwoStageRouteCompletesForRepresentativeArchetypeContacts() {
+    func testProductionRouteDoesNotCompleteAfterStageTwoForRepresentativeArchetypeContacts() {
         let contacts: [StartingContact] = [
             .bankerBias,
             .playerSurge,
@@ -437,13 +443,14 @@ final class ShopBackboneTests: XCTestCase {
             viewModel.debugInstantStageClear()
             viewModel.continueFromStageResult()
 
-            XCTAssertEqual(viewModel.state.runManager.status, .completed, contact.name)
-            XCTAssertEqual(viewModel.state.runManager.flowState, .runComplete, contact.name)
+            XCTAssertEqual(viewModel.state.runManager.status, .stageCleared, contact.name)
+            XCTAssertNotEqual(viewModel.state.runManager.flowState, .runComplete, contact.name)
+            XCTAssertEqual(viewModel.state.runManager.currentStage.id, 2, contact.name)
         }
     }
 
     @MainActor
-    func testFinalStageClearCompletesRunWithoutRewardDraft() {
+    func testStageThirtyClearCompletesRunWithoutRewardDraft() {
         RunPersistenceManager.clear()
         var metaProgression = isolatedMetaProgression()
         metaProgression.markGuidedFirstRunCompleted()
@@ -451,21 +458,39 @@ final class ShopBackboneTests: XCTestCase {
 
         viewModel.selectStartingContact(.defaultFloorHost)
         viewModel.continueFromRunStart()
-        viewModel.startStageBattle()
-        viewModel.debugInstantStageClear()
-        viewModel.continueFromStageResult()
+        for stageID in 1...29 {
+            if viewModel.state.bossManager.pendingAnnouncementBoss != nil {
+                viewModel.continueToBoss()
+            }
+            viewModel.startStageBattle()
+            viewModel.debugInstantStageClear()
 
-        guard let reward = viewModel.state.pendingStageRewardChoices.first else {
-            XCTFail("Expected Stage 1 reward")
-            return
+            if !viewModel.state.bossManager.pendingBossRewardChoices.isEmpty {
+                guard let reward = viewModel.state.bossManager.pendingBossRewardChoices.first else {
+                    XCTFail("Expected boss reward at Stage \(stageID)")
+                    return
+                }
+                viewModel.selectBossReward(reward)
+            } else {
+                viewModel.continueFromStageResult()
+                guard let reward = viewModel.state.pendingStageRewardChoices.first else {
+                    XCTFail("Expected stage reward at Stage \(stageID)")
+                    return
+                }
+                viewModel.selectStageReward(reward)
+            }
+
+            viewModel.continueFromShop()
+            XCTAssertEqual(viewModel.state.runManager.currentStage.id, stageID + 1)
         }
 
-        viewModel.selectStageReward(reward)
-        viewModel.continueFromShop()
+        if viewModel.state.bossManager.pendingAnnouncementBoss != nil {
+            viewModel.continueToBoss()
+        }
         viewModel.startStageBattle()
         viewModel.debugInstantStageClear()
 
-        XCTAssertEqual(viewModel.state.runManager.currentStage.id, 2)
+        XCTAssertEqual(viewModel.state.runManager.currentStage.id, 30)
         XCTAssertEqual(viewModel.state.runManager.flowState, .stageResult)
         XCTAssertTrue(viewModel.state.pendingStageRewardChoices.isEmpty)
 
